@@ -1,0 +1,30 @@
+{
+  "name": "platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "tsc && vp build",
+    "preview": "vp preview"
+  },
+  "dependencies": {
+    "@foruntendo/challenges": "workspace:*",
+    "@monaco-editor/react": "^4.7.0",
+    "@tanstack/react-router": "^1.120.3",
+    "@webcontainer/api": "^1.5.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "catalog:",
+    "monaco-editor": "^0.52.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "DB Server",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["src/server.mjs"],
+      "cwd": "apps/db",
+      "port": 41731
+    },
+    {
+      "name": "Platform (Vite)",
+      "runtimeExecutable": "vp",
+      "runtimeArgs": ["dev"],
+      "cwd": "apps/platform",
+      "port": 5173
+    },
+    {
+      "name": "All Dev Servers",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/dev.mjs"],
+      "port": 5173
+    }
+  ]
+}

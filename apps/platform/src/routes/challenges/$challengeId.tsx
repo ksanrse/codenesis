@@ -1,0 +1,36 @@
+import { createRoute, useParams } from "@tanstack/react-router";
+import { getChallengeById } from "@foruntendo/challenges";
+import { Suspense, lazy } from "react";
+import { routeTree } from "../__root.tsx";
+
+const ChallengeLayout = lazy(() =>
+  import("../../components/editor/ChallengeLayout.tsx").then((module) => ({
+    default: module.ChallengeLayout,
+  })),
+);
+
+export const challengeDetailRoute = createRoute({
+  getParentRoute: () => routeTree,
+  path: "/challenges/$challengeId",
+  component: ChallengeDetailPage,
+});
+
+function ChallengeDetailPage() {
+  const { challengeId } = useParams({ from: "/challenges/$challengeId" });
+  const challenge = getChallengeById(challengeId);
+
+  if (!challenge) {
+    return (
+      <div className="container">
+        <h1>Задача не найдена</h1>
+        <p>Нет задачи с id "{challengeId}".</p>
+      </div>
+    );
+  }
+
+  return (
+    <Suspense fallback={<div className="container">Загрузка задачи...</div>}>
+      <ChallengeLayout challenge={challenge} />
+    </Suspense>
+  );
+}

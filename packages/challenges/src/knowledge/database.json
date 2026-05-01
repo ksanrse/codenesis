@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "id": "javascript-core",
+      "title": "База JavaScript",
+      "summary": "Замыкания, сравнение, массивы, промисы и event loop.",
+      "category": "JavaScript",
+      "difficulty": "Starter",
+      "tags": ["closures", "promises", "event-loop", "arrays"],
+      "estimatedMinutes": 12,
+      "questions": [
+        {
+          "id": "js-core-closure",
+          "type": "single-choice",
+          "prompt": "Что позволяет сделать замыкание?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Получать доступ к переменным из лексической области после завершения внешней функции."
+            },
+            {
+              "id": "b",
+              "text": "Автоматически превращать синхронную функцию в асинхронную."
+            },
+            { "id": "c", "text": "Запрещать изменение любых переменных." },
+            {
+              "id": "d",
+              "text": "Автоматически делить локальные переменные между несвязанными модулями."
+            }
+          ],
+          "answer": ["a"],
+          "explanation": "Замыкание хранит ссылки на переменные из лексического окружения, где функция была создана."
+        },
+        {
+          "id": "js-core-equality",
+          "type": "single-choice",
+          "prompt": "Какое сравнение не выполняет приведение типов?",
+          "options": [
+            { "id": "a", "text": "==" },
+            { "id": "b", "text": "===" },
+            { "id": "c", "text": "Object.is всегда полностью совпадает с ===" },
+            { "id": "d", "text": "Boolean(value)" }
+          ],
+          "answer": ["b"],
+          "explanation": "Строгое равенство сравнивает значение и тип без неявного приведения."
+        },
+        {
+          "id": "js-core-map",
+          "type": "single-choice",
+          "prompt": "Для чего лучше использовать `Array.prototype.map`?",
+          "options": [
+            { "id": "a", "text": "Чтобы преобразовать каждый элемент и получить новый массив." },
+            { "id": "b", "text": "Чтобы остановить перебор при первом совпадении." },
+            { "id": "c", "text": "Чтобы мутировать исходный массив на месте." },
+            { "id": "d", "text": "Чтобы отсортировать значения по умолчанию." }
+          ],
+          "answer": ["a"],
+          "explanation": "map возвращает новый массив, где каждый элемент является результатом вызова callback-функции."
+        },
+        {
+          "id": "js-core-promise",
+          "type": "single-choice",
+          "prompt": "Что возвращает async-функция?",
+          "options": [
+            { "id": "a", "text": "Сырое возвращаемое значение." },
+            {
+              "id": "b",
+              "text": "Promise, который resolve-ится значением или reject-ится выброшенной ошибкой."
+            },
+            { "id": "c", "text": "Callback." },
+            { "id": "d", "text": "Generator iterator." }
+          ],
+          "answer": ["b"],
+          "explanation": "async-функции всегда возвращают Promise, даже если внутри возвращается обычное значение."
+        },
+        {
+          "id": "js-core-event-loop",
+          "type": "single-choice",
+          "prompt": "Что в браузере обычно выполняется перед следующей макрозадачей?",
+          "options": [
+            { "id": "a", "text": "Микрозадачи Promise, поставленные в текущей задаче." },
+            { "id": "b", "text": "Все callbacks из setTimeout с любой задержкой." },
+            { "id": "c", "text": "Сетевые запросы, которые еще не завершились." },
+            { "id": "d", "text": "requestAnimationFrame следующего кадра всегда первым." }
+          ],
+          "answer": ["a"],
+          "explanation": "Очередь микрозадач очищается после завершения текущего call stack и до следующей задачи event loop."
+        }
+      ]
+    },
+    {
+      "id": "typescript-types",
+      "title": "Типы TypeScript",
+      "summary": "Union-типы, narrowing, generics, type guards и границы API.",
+      "category": "TypeScript",
+      "difficulty": "Mid",
+      "tags": ["unions", "generics", "narrowing", "type-guards"],
+      "estimatedMinutes": 14,
+      "questions": [
+        {
+          "id": "ts-types-union",
+          "type": "single-choice",
+          "prompt": "Как безопаснее использовать значение `string | number` как строку?",
+          "code": "function format(value: string | number) {\n  // ?\n}",
+          "options": [
+            { "id": "a", "text": "Сразу вызвать value.toUpperCase()." },
+            { "id": "b", "text": "Проверить typeof перед вызовом строковых методов." },
+            { "id": "c", "text": "Привести значение к any." },
+            { "id": "d", "text": "Отключить strict mode." }
+          ],
+          "answer": ["b"],
+          "explanation": "Проверка typeof сужает union, и TypeScript понимает, какие методы доступны."
+        },
+        {
+          "id": "ts-types-generic",
+          "type": "single-choice",
+          "prompt": "Зачем использовать generic-функцию?",
+          "options": [
+            { "id": "a", "text": "Чтобы сохранить связь между типом входа и типом выхода." },
+            { "id": "b", "text": "Чтобы отключить всю проверку типов." },
+            { "id": "c", "text": "Чтобы runtime-код автоматически стал быстрее." },
+            { "id": "d", "text": "Чтобы автоматически импортировать типы из npm." }
+          ],
+          "answer": ["a"],
+          "explanation": "Generics позволяют функции оставаться переиспользуемой и сохранять конкретные связи типов для каждого вызова."
+        },
+        {
+          "id": "ts-types-unknown",
+          "type": "single-choice",
+          "prompt": "Главное отличие `unknown` от `any`?",
+          "options": [
+            { "id": "a", "text": "unknown требует сужения перед использованием, any нет." },
+            { "id": "b", "text": "unknown и any полностью одинаковы." },
+            { "id": "c", "text": "unknown работает только с классами." },
+            { "id": "d", "text": "any безопаснее для входов публичного API." }
+          ],
+          "answer": ["a"],
+          "explanation": "unknown сохраняет защиту компилятора, пока ты явно не докажешь форму или тип значения."
+        },
+        {
+          "id": "ts-types-discriminated-union",
+          "type": "single-choice",
+          "prompt": "Что помогает удобно сужать discriminated union?",
+          "options": [
+            { "id": "a", "text": "Общее литеральное поле, например `kind` или `type`." },
+            { "id": "b", "text": "Имя класса в каждом объекте." },
+            { "id": "c", "text": "Все свойства должны быть optional." },
+            { "id": "d", "text": "Union должен содержать только primitives." }
+          ],
+          "answer": ["a"],
+          "explanation": "Проверка общего литерального поля сообщает TypeScript, какой вариант union сейчас обрабатывается."
+        },
+        {
+          "id": "ts-types-interface-type",
+          "type": "multiple-choice",
+          "prompt": "Какие утверждения про `interface` и `type` верны?",
+          "options": [
+            { "id": "a", "text": "Оба могут описывать форму объекта." },
+            { "id": "b", "text": "Interfaces поддерживают declaration merging." },
+            { "id": "c", "text": "Только interfaces могут описывать unions." },
+            { "id": "d", "text": "Type aliases могут собирать unions и intersections." }
+          ],
+          "answer": ["a", "b", "d"],
+          "explanation": "Оба описывают объекты. Interfaces могут объединять объявления, а type aliases часто используют для unions и intersections."
+        }
+      ]
+    },
+    {
+      "id": "react-state",
+      "title": "Состояние React",
+      "summary": "Обновления состояния, effects, controlled inputs, memoization и render.",
+      "category": "React",
+      "difficulty": "Mid",
+      "tags": ["state", "effects", "controlled-inputs", "rendering"],
+      "estimatedMinutes": 13,
+      "questions": [
+        {
+          "id": "react-state-functional-update",
+          "type": "single-choice",
+          "prompt": "Когда лучше использовать функциональную форму `setState`?",
+          "code": "setCount((count) => count + 1);",
+          "options": [
+            { "id": "a", "text": "Когда новое значение зависит от предыдущего." },
+            { "id": "b", "text": "Только внутри class components." },
+            { "id": "c", "text": "Только когда state является строкой." },
+            { "id": "d", "text": "Когда нужно полностью пропустить render." }
+          ],
+          "answer": ["a"],
+          "explanation": "Функциональное обновление защищает от stale values при batching или нескольких обновлениях подряд."
+        },
+        {
+          "id": "react-state-effect-deps",
+          "type": "single-choice",
+          "prompt": "Что контролирует dependency array у `useEffect`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Какие значения React сравнит, чтобы решить, перезапускать ли effect."
+            },
+            { "id": "b", "text": "Какие JSX-элементы разрешены." },
+            { "id": "c", "text": "Скомпилируется ли компонент TypeScript." },
+            { "id": "d", "text": "Какие CSS-классы будут scoped." }
+          ],
+          "answer": ["a"],
+          "explanation": "React перезапускает effect после render, если одна из зависимостей изменилась с прошлого render."
+        },
+        {
+          "id": "react-state-controlled",
+          "type": "single-choice",
+          "prompt": "Что делает input controlled в React?",
+          "options": [
+            { "id": "a", "text": "Его value приходит из React state и обновляется через handler." },
+            { "id": "b", "text": "У него есть placeholder." },
+            { "id": "c", "text": "У него есть CSS-класс." },
+            { "id": "d", "text": "Он находится внутри form." }
+          ],
+          "answer": ["a"],
+          "explanation": "Controlled input получает текущее значение из React state и сообщает изменения обратно в React."
+        },
+        {
+          "id": "react-state-key",
+          "type": "single-choice",
+          "prompt": "Зачем элементам списка нужны стабильные keys?",
+          "options": [
+            { "id": "a", "text": "Чтобы React сохранял identity между renders." },
+            { "id": "b", "text": "Чтобы CSS-селекторы стали быстрее." },
+            { "id": "c", "text": "Чтобы fetch-запросы кешировались." },
+            { "id": "d", "text": "Чтобы браузер валидировал HTML." }
+          ],
+          "answer": ["a"],
+          "explanation": "Стабильные keys помогают React корректно сопоставлять старые и новые children во время reconciliation."
+        },
+        {
+          "id": "react-state-memo",
+          "type": "single-choice",
+          "prompt": "Для чего в основном нужен `useMemo`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Кешировать дорогое производное значение, пока зависимости не изменились."
+            },
+            { "id": "b", "text": "Запускать side effects после paint." },
+            { "id": "c", "text": "Заменять весь component state." },
+            { "id": "d", "text": "Делать network requests обязательными." }
+          ],
+          "answer": ["a"],
+          "explanation": "useMemo хранит результат вычисления и пересчитывает его только при изменении dependencies."
+        }
+      ]
+    }
+  ]
+}

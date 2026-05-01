@@ -1,0 +1,22 @@
+{
+  "name": "foruntendo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:mojibake": "node tools/check-mojibake.mjs",
+    "e2e": "playwright test --config playwright.config.mjs",
+    "ready": "vp run check:mojibake && vp fmt && vp lint && vp run test -r && vp run build -r",
+    "dev": "node tools/dev.mjs",
+    "start": "node tools/dev.mjs",
+    "prepare": "vp config"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "pnpm@10.32.1"
+}
