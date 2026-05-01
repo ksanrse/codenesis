@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f /d/Personal/Projects/forutenudo/.git/lint-staged_unstaged.patch)",
+      "Bash(git add *)"
+    ]
+  }
+}
