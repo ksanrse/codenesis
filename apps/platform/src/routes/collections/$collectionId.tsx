@@ -5,10 +5,14 @@ import {
   getChallengeCollections,
   getChallengeLevel,
   getRankBand,
+  sortChallenges,
   type ChallengeCollection,
   type ChallengeDefinition,
+  type ChallengeSort,
 } from "@foruntendo/challenges";
 import { ArrowRight, Check, CircleStop, RefreshCcw } from "lucide-react";
+import { useState } from "react";
+import { LanguageIcon } from "../../components/ui/LanguageIcon.tsx";
 import { useDatabaseSnapshot } from "../../hooks/useDatabaseSnapshot.ts";
 import { getCollectionProgress } from "../../lib/collection-progress.ts";
 import { setActiveCollectionId, type ChallengeAttempt } from "../../lib/local-db.ts";
@@ -164,12 +168,6 @@ function CollectionHero({
   );
 }
 
-function getLanguageBadge(language: string) {
-  if (language === "javascript") return "JS";
-  if (language === "typescript") return "TS";
-  return language.toUpperCase();
-}
-
 function ChallengeListRow({
   challenge,
   index,
@@ -193,13 +191,10 @@ function ChallengeListRow({
         <span className="collection-task-title">{challenge.title}</span>
         <span className="collection-task-description">{challenge.description.split("\n")[0]}</span>
         <span className="collection-task-meta">
-          <span className="collection-task-kind">JS</span>
           <span>{challenge.group}</span>
           <span className={`collection-task-rank rank-tone-${rankTone}`}>{rankBand.label}</span>
           {challenge.languages.map((language) => (
-            <span key={language} className={`collection-task-language ${language}`}>
-              {getLanguageBadge(language)}
-            </span>
+            <LanguageIcon key={language} language={language} size={18} />
           ))}
         </span>
       </span>
@@ -244,6 +239,8 @@ function CollectionPage() {
   const { collectionId } = useParams({ from: "/collections/$collectionId" });
   const collection = getChallengeCollectionById(collectionId);
   const { activeCollectionId, attempts } = useDatabaseSnapshot();
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<ChallengeSort>("default");
 
   if (!collection) {
     return (
@@ -266,6 +263,18 @@ function CollectionPage() {
   const challenges = collection.challengeIds
     .map((challengeId) => getChallengeById(challengeId))
     .filter((challenge): challenge is ChallengeDefinition => Boolean(challenge));
+  const visibleChallenges = (() => {
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? challenges.filter(
+          (c) =>
+            c.title.toLowerCase().includes(q) ||
+            c.description.toLowerCase().includes(q) ||
+            c.tags.some((t) => t.includes(q)),
+        )
+      : challenges;
+    return sortChallenges(filtered, sort);
+  })();
   const isActive = collection.id === activeCollectionId;
   const isNestedSet = collection.kind === "set" && Boolean(collection.parentCollectionId);
   const passedChallengeIds = getPassedChallengeIds(attempts);
@@ -344,8 +353,27 @@ function CollectionPage() {
 
       {childCollections.length === 0 && (
         <>
+          <div className="filter-bar">
+            <input
+              type="text"
+              className="filter-search"
+              placeholder="Поиск задач..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <select
+              className="filter-select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as ChallengeSort)}
+              aria-label="Сортировка"
+            >
+              <option value="default">По порядку</option>
+              <option value="rank-asc">Сложность ↑</option>
+              <option value="rank-desc">Сложность ↓</option>
+            </select>
+          </div>
           <div className="collection-task-list">
-            {challenges.map((challenge, index) => (
+            {visibleChallenges.map((challenge, index) => (
               <ChallengeListRow
                 key={challenge.id}
                 challenge={challenge}
@@ -359,6 +387,9 @@ function CollectionPage() {
                 }
               />
             ))}
+            {visibleChallenges.length === 0 && (
+              <p className="empty-state">По этим фильтрам задач нет.</p>
+            )}
           </div>
         </>
       )}

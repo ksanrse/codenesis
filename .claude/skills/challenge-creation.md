@@ -18,51 +18,80 @@ Use this skill when creating or materially changing a programming task. Also use
 7. Run or inspect tests and verify that the prose, tests, starter, and solution all describe the same contract.
 8. Run `vp check`, `vp test`, and `vp run check:mojibake` when possible.
 
-## Explanation Standard
+## Explanation Standard — Feynman Style
 
-Each task should include:
+Write descriptions like you're talking to a curious beginner, not like documentation. Goal: even a kid should understand what the function does and why before reading requirements. Heavy text walls = bad. Conversation tone = good.
 
-- A short context paragraph: why this function exists in real code.
-- A clear implementation paragraph: exactly what to write.
-- Requirements that are specific enough to test.
-- Examples with expected output for the main behavior and at least one edge case.
-- A short interface line: `Экспортируй функцию ...`.
+**The rule of thumb:** if the description reads like a Wikipedia paragraph, rewrite it. If it reads like a friend explaining the problem at a whiteboard, keep it.
 
-Avoid:
+### Mandatory pieces
 
-- vague phrases like "обработай значение" without saying how;
-- unexplained edge cases;
-- hiding important behavior only in tests;
-- increasing difficulty to compensate for unclear prose.
+Every task description has, in this order:
 
-For detailed prose patterns, read `references/[explanation-patterns.md](http://explanation-patterns.md)`.
+1. **Title-line metaphor or hook** — one short paragraph that gives a mental picture. Use everyday analogies (objects = boxes with drawers, garbage collector = janitor, etc.) when the concept is abstract. Skip if the function is trivially concrete.
+2. **The trap or the "why this is interesting"** — what surprises beginners about this. Pose it as a question or as "одна хитрость" / "одна странная штука". Show the surprising fact as code, not as a sentence.
+3. **What to write** — short, direct: `Напиши \`fn(args)\`:` followed by 1-2 sentences. No re-stating the trap from step 2.
+4. **Requirements list** — bullet points, specific enough to test. Include the export rule (`экспортируй \`fn\``).
+5. **Examples** — at least 3, including one edge case. Format: `\`fn(input)\`` → `\`output\`` on separate lines.
 
-### How to Write the Context Paragraph
+### Voice rules
 
-The context paragraph answers: **where would a real developer write this function?** Name a concrete scenario — a product feature, a module in a real app, a common library pattern. Avoid "эта задача проверяет X" — that's meta-commentary, not context.
+- **Address the reader as "ты"**, not "разработчик" or impersonal. "Ты получаешь...", "представь...", "ты проходишь по..."
+- **One fact per line/paragraph.** Do not glue three ideas into one sentence with commas and dashes.
+- **Show, don't describe.** If you're explaining what `typeof NaN` returns, write `typeof NaN  // 'number'` instead of "typeof для NaN возвращает строку 'number'".
+- **Use questions to set up surprises.** "Знаешь как `typeof` называет `NaN`?" beats "интересно, что typeof для NaN тоже возвращает 'number'".
+- **Bytovoy language over textbook language.** "хитрость" not "нюанс", "странная штука" not "особенность", "пропускай" not "отфильтровывай", "ящики" not "свойства" (when introducing the concept; switch to "свойства" once it's established).
+- **Cut anything that doesn't help solve the task.** Interesting tangents (`value === value` trick, history of `for..in`, etc.) belong in a footnote or get cut entirely.
 
-Bad: "Функция демонстрирует использование `switch`."
-Good: "В платежном интерфейсе сумма хранится отдельно от валюты. Чтобы показать цену, нужно превратить код `"USD"` в символ `"$"`."
+### Bad vs good
 
-If the function involves a non-obvious behavior (JavaScript returns `Infinity` for division by zero, `NaN` propagates silently, `-0 !== 0` for some operations), **name it explicitly in prose** — not only in tests. The learner should not discover this from a failing test.
+❌ **Sukhovoi/textbook:**
+> Когда нужно пройтись по всем парам ключ-значение объекта, в JavaScript используют цикл for..in. Этот цикл перебирает имена свойств одно за другим, а значения ты получаешь через obj[key]. for..in - старая, базовая конструкция, и хотя сегодня чаще встречаются Object.keys и Object.entries, понимать for..in всё равно нужно, потому что он лежит в основе многих полифилов.
 
-### How to Write the Implementation Paragraph
+✅ **Feynman:**
+> Представь объект как коробку с подписанными ящичками: `{ возраст: 25, имя: 'Аня' }`. Пройтись по всем ящикам можно через `for..in`:
+>
+> ```js
+> for (const key in obj) console.log(key, obj[key]);
+> ```
+>
+> `key` — название ящика, `obj[key]` — что внутри.
 
-Start with `Напиши \`functionName(args)\`:`then describe what to do in active voice. Name the branching structure: "через`switch` выбери", "если ... верни ..., иначе". If there are two distinct behaviors (normal path + error path), say both in the same paragraph.
+### Trap pattern
 
-Bad: "Функция принимает параметры и возвращает результат в зависимости от входных данных."
-Good: "Напиши `calculateByOperation(left, right, operation)`: через `switch` выбери арифметику. Деление — особый случай: если `right === 0`, брось ошибку, потому что JavaScript иначе вернёт `Infinity` без предупреждения."
+When the function has a JS gotcha (NaN, `typeof null`, `-0`, `==` coercion, mutation, etc.), structure it like this:
 
-### How to Write Examples
+> **Одна хитрость.** Кажется, что [naive idea]. Но в JavaScript [show the surprise as code]:
+>
+> ```js
+> typeof NaN  // 'number'
+> ```
+>
+> Поэтому [the actual rule].
 
-Write examples **before** requirements. They force you to resolve ambiguity early — if you can't write a clear example for a case, the spec is incomplete.
+Three beats: naive expectation → demonstrate the surprise → state the fix. No more.
 
-- Cover the happy path with concrete numbers.
-- Cover at least one edge case that the learner might miss.
-- Cover the error case if the function throws.
-- Use the exact format `functionName(input) // output` or `// выбрасывает Error("message")`.
+### Examples format
 
-Don't omit the error case from examples even if it feels obvious. The learner should see exactly what message to throw before reading the requirements list.
+Each example on its own line. `code` → `result`.
+
+```
+`sumValues({ a: 1, b: 2 })` → `3`
+`sumValues({ a: 1, b: 'x' })` → `1`
+`sumValues({ a: NaN, b: 5 })` → `5`
+`sumValues({})` → `0`
+```
+
+Multi-line cases stay in fenced blocks. Single-line input/output go as backtick→backtick paragraphs (better for narrow screens).
+
+### Avoid
+
+- meta-commentary ("эта задача показывает X", "ты научишься Y") — beginners don't care
+- "интерфейс" sections separate from requirements — fold export rule into requirements list
+- jargon without payoff (don't introduce "примитивы", "дескрипторы" unless the task hinges on them)
+- multi-clause sentences with three commas
+- explaining the same trap twice (once in a paragraph, once in requirements)
+- listing requirements that the examples already make obvious
 
 ## Test Sufficiency
 

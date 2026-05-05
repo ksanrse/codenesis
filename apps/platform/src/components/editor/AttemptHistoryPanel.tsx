@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import type { ChallengeAttempt } from "../../lib/local-db.ts";
+import { highlightJavaScriptCode } from "../../lib/syntax-highlight.tsx";
 
 interface AttemptHistoryPanelProps {
   attempts: ChallengeAttempt[];
@@ -21,51 +22,6 @@ function getAttemptCode(files: Record<string, string>) {
   if (entries.length === 1) return entries[0]?.[1] ?? "";
 
   return entries.map(([path, content]) => `// ${path}\n${content.trimEnd()}`).join("\n\n");
-}
-
-function highlightJavaScriptCode(code: string) {
-  const tokenPattern =
-    /(\/\/.*|\/\*[\s\S]*?\*\/|`(?:\\[\s\S]|[^`\\])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\b(?:export|function|const|let|var|return|if|else|switch|case|default|throw|new|true|false|null|undefined|class|extends|import|from|async|await)\b|\b\d+(?:\.\d+)?n?\b)/g;
-  const keywordPattern =
-    /^(export|function|const|let|var|return|if|else|switch|case|default|throw|new|class|extends|import|from|async|await)$/;
-  const literalPattern = /^(true|false|null|undefined)$/;
-  const nodes: ReactNode[] = [];
-  let lastIndex = 0;
-  let tokenIndex = 0;
-
-  for (const match of code.matchAll(tokenPattern)) {
-    const token = match[0];
-    const index = match.index ?? 0;
-    if (index > lastIndex) nodes.push(code.slice(lastIndex, index));
-
-    const className =
-      token.startsWith("//") || token.startsWith("/*")
-        ? "syntax-comment"
-        : token.startsWith("'") || token.startsWith('"') || token.startsWith("`")
-          ? "syntax-string"
-          : keywordPattern.test(token)
-            ? "syntax-keyword"
-            : literalPattern.test(token)
-              ? "syntax-literal"
-              : /^\d/.test(token)
-                ? "syntax-number"
-                : undefined;
-
-    nodes.push(
-      className ? (
-        <span key={`${tokenIndex}:${index}`} className={className}>
-          {token}
-        </span>
-      ) : (
-        token
-      ),
-    );
-    lastIndex = index + token.length;
-    tokenIndex += 1;
-  }
-
-  if (lastIndex < code.length) nodes.push(code.slice(lastIndex));
-  return nodes;
 }
 
 function getTotalTests(attempt: ChallengeAttempt) {

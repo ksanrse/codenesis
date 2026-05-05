@@ -79,13 +79,14 @@
 
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono:
-    "IBM Plex Mono", "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", Consolas,
+    "Geist Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas,
     monospace;
 
   --nav-height: 56px;
   --container-width: 1200px;
   --radius: 6px;
   --radius-lg: 8px;
+  --radius-card: 12px;
 
   --success: var(--raycast-green);
   --error: var(--raycast-red);
@@ -695,8 +696,9 @@ ul {
 
 .dashboard-summary-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
   gap: 28px;
+  align-items: stretch;
 }
 
 .dashboard-panel {
@@ -730,18 +732,45 @@ ul {
 }
 
 .solved-panel-body {
-  display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 28px;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 12px;
 }
 
 .mini-ring {
-  --progress: 0%;
+  position: relative;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: conic-gradient(var(--dashboard-progress) var(--progress), var(--bg-muted) 0);
+}
+
+.mini-ring-svg {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.mini-ring-track,
+.mini-ring-progress {
+  fill: none;
+  stroke-width: 8;
+}
+
+.mini-ring-track {
+  stroke: var(--bg-muted);
+}
+
+.mini-ring-progress {
+  stroke: var(--primary);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease;
+}
+
+.mini-ring > span {
+  grid-area: 1 / 1;
+  z-index: 1;
 }
 
 .solved-ring {
@@ -749,17 +778,12 @@ ul {
   position: relative;
   display: grid;
   place-items: center;
-  width: 138px;
-  height: 138px;
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 1;
   border-radius: 999px;
 }
 
-.mini-ring::before {
-  content: "";
-  grid-area: 1 / 1;
-  border-radius: inherit;
-  background: var(--dashboard-panel-bg);
-}
 
 .solved-ring-svg {
   grid-area: 1 / 1;
@@ -779,7 +803,7 @@ ul {
 }
 
 .solved-ring-progress {
-  stroke: var(--dashboard-progress);
+  stroke: var(--primary);
   stroke-linecap: round;
 }
 
@@ -794,8 +818,8 @@ ul {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 112px;
-  height: 112px;
+  width: 78%;
+  aspect-ratio: 1;
   border-radius: inherit;
   background: var(--dashboard-panel-bg);
 }
@@ -817,6 +841,75 @@ ul {
 .dashboard-progress-list {
   display: grid;
   gap: 22px;
+}
+
+.difficulty-panel-body {
+  padding: 8px 4px 4px;
+}
+
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.difficulty-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 12px 8px;
+}
+
+.difficulty-ring > * {
+  grid-area: 1 / 1;
+}
+
+.difficulty-ring.empty {
+  opacity: 0.45;
+}
+
+.difficulty-ring-svg {
+  width: 84px;
+  height: 84px;
+  transform: rotate(-90deg);
+}
+
+.difficulty-ring-track {
+  fill: none;
+  stroke: var(--dashboard-track);
+  stroke-width: 6;
+}
+
+.difficulty-ring-progress {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease;
+}
+
+.difficulty-ring-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-mono);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.difficulty-ring-label strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.difficulty-ring-label span {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.1;
 }
 
 .dashboard-progress-row {
@@ -1095,11 +1188,6 @@ ul {
 .mini-ring {
   width: 62px;
   height: 62px;
-}
-
-.mini-ring::before {
-  width: 48px;
-  height: 48px;
 }
 
 .mini-ring span {
@@ -3423,8 +3511,9 @@ ul {
 }
 
 .challenge-info {
-  padding: 24px;
+  padding: 24px 14px 24px 24px;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .challenge-info-header {
@@ -3437,10 +3526,10 @@ ul {
 
 .challenge-title {
   color: var(--text-heading);
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.18;
-  letter-spacing: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
 }
 
 .challenge-meta {
@@ -3542,65 +3631,130 @@ ul {
 
 .challenge-description {
   display: grid;
-  gap: 0;
+  gap: 16px;
   color: var(--text);
   font-size: 15px;
-  line-height: 1.62;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
 }
 
-.challenge-description h2 {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  margin-top: 26px;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-
-.challenge-description h2::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: var(--border);
+.challenge-description > * {
+  margin: 0;
 }
 
 .challenge-description p {
-  margin-bottom: 14px;
   color: var(--text-heading);
+  margin: 0;
 }
 
 .challenge-description .description-copy:first-child {
-  padding: 14px 16px;
-  margin-bottom: 10px;
+  padding: 16px 18px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.025);
+  box-shadow: rgba(255, 255, 255, 0.04) 0 1px 0 inset;
+}
+
+.description-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.02);
   box-shadow: rgba(255, 255, 255, 0.03) 0 1px 0 inset;
 }
 
-.challenge-description li {
-  list-style: none;
-  padding: 9px 0 9px 22px;
-  position: relative;
+.description-section-title {
   margin: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
-  color: var(--text-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.challenge-description li:last-of-type {
+.description-collapsible {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+  box-shadow: rgba(255, 255, 255, 0.04) 0 1px 0 inset;
+}
+
+.description-collapsible-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  user-select: none;
+  transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.description-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+.description-collapsible-summary::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  margin-right: 4px;
+  transition: transform 0.18s ease;
+}
+
+.description-collapsible[open] > .description-collapsible-summary::before {
+  transform: rotate(45deg);
+}
+
+.description-collapsible-summary:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.description-collapsible-body {
+  padding: 6px 18px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.description-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.description-list-item {
+  list-style: none;
+  position: relative;
+  padding: 10px 0 10px 22px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-heading);
+  line-height: 1.55;
+}
+
+.description-list-item:last-child {
   border-bottom: 0;
 }
 
-.challenge-description li::before {
+.description-list-item::before {
   content: "";
   position: absolute;
   left: 4px;
-  top: 19px;
+  top: 17px;
   width: 7px;
   height: 7px;
   border-radius: 999px;
@@ -3608,7 +3762,7 @@ ul {
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.challenge-description code {
+.challenge-description :not(pre) > code {
   font-family: var(--font-mono);
   font-size: 0.86em;
   background: var(--primary-light);
@@ -3617,6 +3771,15 @@ ul {
   border: 1px solid var(--primary-border);
   color: var(--primary);
   box-shadow: none;
+}
+
+.challenge-description pre.attempt-code-block code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
 }
 
 .description-inline-code {
@@ -4101,7 +4264,13 @@ ul {
   background: var(--raycast-surface-muted);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
+  overflow-y: hidden;
   flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.file-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .file-tab {
@@ -4764,4 +4933,187 @@ ul {
   .challenge-action-right {
     flex-wrap: wrap;
   }
+}
+
+/* ==============================
+   Mosaic Layout
+   ============================== */
+.challenge-layout-mosaic {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--nav-height));
+  padding: 12px 16px 74px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.challenge-mosaic-shell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mosaic-foruntendo {
+  height: 100%;
+  background: transparent;
+}
+
+.mosaic-foruntendo .mosaic-root {
+  position: absolute;
+  inset: 0;
+}
+
+.mosaic-foruntendo .mosaic-window,
+.mosaic-foruntendo .mosaic-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-subtle);
+  box-shadow:
+    rgba(255, 255, 255, 0.04) 0 1px 0 inset,
+    rgb(27, 28, 30) 0 0 0 1px,
+    rgb(7, 8, 10) 0 0 0 1px inset,
+    rgba(0, 0, 0, 0.28) 0 8px 24px;
+  overflow: hidden;
+}
+
+.mosaic-foruntendo .mosaic-window-title {
+  display: none;
+}
+
+.mosaic-foruntendo .mosaic-window-controls {
+  display: none;
+}
+
+.mosaic-foruntendo .mosaic-window-toolbar {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  min-height: 52px;
+  height: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--raycast-surface-muted);
+  cursor: grab;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.2px;
+}
+
+.mosaic-foruntendo .mosaic-window-toolbar.draggable:active {
+  cursor: grabbing;
+}
+
+.mosaic-foruntendo .mosaic-window-toolbar > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mosaic-foruntendo .mosaic-window-toolbar button,
+.mosaic-foruntendo .mosaic-window-toolbar [role="button"],
+.mosaic-foruntendo .mosaic-window-toolbar a,
+.mosaic-foruntendo .mosaic-window-toolbar select {
+  cursor: pointer;
+}
+
+.mosaic-foruntendo .mosaic-output-toolbar {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  padding: 0 18px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.mosaic-foruntendo .mosaic-output-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.2px;
+}
+
+.mosaic-foruntendo .mosaic-output-glyph {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.mosaic-foruntendo .mosaic-window-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg-subtle);
+  position: relative;
+}
+
+.mosaic-foruntendo .mosaic-window-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.mosaic-foruntendo .mosaic-tile-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.mosaic-foruntendo .mosaic-tile-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mosaic-foruntendo .editor-panel {
+  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mosaic-foruntendo .mosaic-split {
+  background: transparent;
+  z-index: 1;
+}
+
+.mosaic-foruntendo .mosaic-split-line {
+  background: transparent;
+  transition: background-color 0.18s ease;
+}
+
+.mosaic-foruntendo .mosaic-split:hover .mosaic-split-line,
+.mosaic-foruntendo .mosaic-split.-active .mosaic-split-line {
+  background: var(--primary);
+}
+
+.mosaic-foruntendo .mosaic-split.mosaic-split-row {
+  width: 12px;
+}
+
+.mosaic-foruntendo .mosaic-split.mosaic-split-column {
+  height: 12px;
+}
+
+.mosaic-foruntendo .drop-target-container .drop-target {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.mosaic-foruntendo .drop-target-container .drop-target.drop-target-hover {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.mosaic-tile-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
 }

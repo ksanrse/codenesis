@@ -3,18 +3,26 @@ packages:
   - packages/*
   - tools/*
 
-catalogMode: prefer
-
 catalog:
-  "@types/node": ^24
+  '@fontsource/geist-mono': ^5.2.7
   "@playwright/test": ^1.59.1
+  "@types/node": ^24
   "@vitejs/plugin-react": ^6.0.1
+  dockview-core: ^6.0.1
+  dockview-react: ^6.0.1
   lucide-react: ^1.11.0
+  react-dnd: ^16.0.1
+  react-dnd-html5-backend: ^16.0.1
+  react-markdown: ^10.1.0
+  react-mosaic-component: 7.0.0-beta0
+  remark-gfm: ^4.0.1
   sql.js: ^1.14.1
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
+  vite-plus: ^0.1.20
   vitest: npm:@voidzero-dev/vite-plus-test@latest
-  vite-plus: latest
+
+catalogMode: prefer
 overrides:
   vite: "catalog:"
   vitest: "catalog:"

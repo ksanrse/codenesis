@@ -184,7 +184,12 @@ function HomePage() {
                   <span>решено</span>
                 </div>
               </div>
-              <div className="difficulty-list">
+            </div>
+          </article>
+          <article className="dashboard-panel difficulty-panel">
+            <h3>По типам задач</h3>
+            <div className="difficulty-panel-body">
+              <div className="difficulty-grid">
                 {RANK_BANDS.map((band) => {
                   const difficultyTotal = challenges.filter(
                     (challenge) => challenge.rank >= band.from && challenge.rank <= band.to,
@@ -201,15 +206,37 @@ function HomePage() {
                       : Math.round((difficultySolved / difficultyTotal) * 100);
 
                   return (
-                    <div key={band.id} className="dashboard-progress-row">
-                      <div>
-                        <span>{band.label}</span>
-                        <strong>
+                    <div
+                      key={band.id}
+                      className={`difficulty-ring ${difficultyTotal === 0 ? "empty" : ""}`}
+                      title={`${band.label} · ${difficultySolved}/${difficultyTotal}`}
+                    >
+                      <svg
+                        className="difficulty-ring-svg"
+                        viewBox="0 0 60 60"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          className="difficulty-ring-track"
+                          cx="30"
+                          cy="30"
+                          r="26"
+                          pathLength="100"
+                        />
+                        <circle
+                          className="difficulty-ring-progress"
+                          cx="30"
+                          cy="30"
+                          r="26"
+                          pathLength="100"
+                          style={{ strokeDasharray: `${percent} 100` }}
+                        />
+                      </svg>
+                      <div className="difficulty-ring-label">
+                        <strong>{band.label}</strong>
+                        <span>
                           {difficultySolved}/{difficultyTotal}
-                        </strong>
-                      </div>
-                      <div className="dashboard-progress-track">
-                        <span style={{ width: `${percent}%` }} />
+                        </span>
                       </div>
                     </div>
                   );
@@ -283,10 +310,24 @@ function HomePage() {
                     })
                   }
                 >
-                  <div
-                    className="mini-ring"
-                    style={{ "--progress": `${progress.percent}%` } as CSSProperties}
-                  >
+                  <div className="mini-ring">
+                    <svg className="mini-ring-svg" viewBox="0 0 60 60" aria-hidden="true">
+                      <circle
+                        className="mini-ring-track"
+                        cx="30"
+                        cy="30"
+                        r="26"
+                        pathLength="100"
+                      />
+                      <circle
+                        className="mini-ring-progress"
+                        cx="30"
+                        cy="30"
+                        r="26"
+                        pathLength="100"
+                        style={{ strokeDasharray: `${progress.percent} 100` }}
+                      />
+                    </svg>
                     <span>{progress.percent}%</span>
                   </div>
                   <div>

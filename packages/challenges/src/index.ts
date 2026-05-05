@@ -21,6 +21,7 @@ export {
   getChallengeCollectionById,
   getChallengeCollections,
   getChallengeGroups,
+  sortChallenges,
 } from "./registry.ts";
 export { getKnowledgeTopicById, getKnowledgeTopics } from "./knowledge.ts";
 export {
@@ -51,4 +52,4 @@ export {
   type RankProgress,
 } from "./ranking.ts";
 
-export type { FilterOptions } from "./registry.ts";
+export type { ChallengeSort, FilterOptions } from "./registry.ts";

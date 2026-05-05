@@ -2,6 +2,7 @@ import { createRoute, useNavigate } from "@tanstack/react-router";
 import {
   filterChallenges,
   type Category,
+  type ChallengeSort,
   getChallengeGroups,
   type Language,
 } from "@foruntendo/challenges";
@@ -23,6 +24,7 @@ function ChallengesPage() {
   const [category, setCategory] = useState<Category | "">("");
   const [group, setGroup] = useState("");
   const [language, setLanguage] = useState<Language | "">("");
+  const [sort, setSort] = useState<ChallengeSort>("default");
   const groups = getChallengeGroups();
   const [minRank, maxRank] = rankRange
     ? rankRange.split("-").map((value) => Number(value))
@@ -35,6 +37,7 @@ function ChallengesPage() {
     category: category || undefined,
     group: group || undefined,
     language: language || undefined,
+    sort,
   });
 
   return (
@@ -58,6 +61,8 @@ function ChallengesPage() {
         onGroupChange={setGroup}
         language={language}
         onLanguageChange={setLanguage}
+        sort={sort}
+        onSortChange={setSort}
       />
 
       <div className="challenges-grid">

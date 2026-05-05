@@ -3,6 +3,9 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
   server: {
     headers: {
       "Cross-Origin-Embedder-Policy": "require-corp",

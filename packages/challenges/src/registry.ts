@@ -12,7 +12,14 @@ import { jsTypeChallenges } from "./challenges/js-types/index.ts";
 import {
   arrowFunctionChallenges,
   codeQualityChallenges,
+  constructorNewChallenges,
+  garbageCollectionChallenges,
   javascriptSpecialChallenges,
+  objectCopyChallenges,
+  objectMethodsChallenges,
+  objectsBasicsChallenges,
+  objectToPrimitiveChallenges,
+  optionalChainingChallenges,
   polyfillChallenges,
 } from "./challenges/learn-javascript-ru/index.ts";
 import { modalComponent } from "./challenges/modal-component/index.ts";
@@ -27,6 +34,13 @@ const challenges: ChallengeDefinition[] = [
   ...javascriptSpecialChallenges,
   ...codeQualityChallenges,
   ...polyfillChallenges,
+  ...objectsBasicsChallenges,
+  ...objectCopyChallenges,
+  ...garbageCollectionChallenges,
+  ...objectMethodsChallenges,
+  ...constructorNewChallenges,
+  ...optionalChainingChallenges,
+  ...objectToPrimitiveChallenges,
   todoList,
   modalComponent,
   autocompleteSearch,
@@ -57,6 +71,13 @@ const collectionDefinitions: CollectionDefinition[] = [
       "js-specials",
       "js-code-quality",
       "js-polyfills",
+      "js-objects-basics",
+      "js-object-copy",
+      "js-garbage-collection",
+      "js-object-methods",
+      "js-constructor-new",
+      "js-optional-chaining",
+      "js-object-toprimitive",
     ],
   },
   {
@@ -146,6 +167,97 @@ const collectionDefinitions: CollectionDefinition[] = [
       "Финальное закрепление: пишем my*-версии встроенных методов без изменения прототипов.",
   },
   {
+    id: "js-objects-basics",
+    title: "JS / objects",
+    description:
+      "6 задач по объектам: литералы, доступ через точку и скобки, вычисляемые ключи, оператор in, цикл for..in и полифил Object.keys.",
+    tag: "JS/objects-basics",
+    skillLabel: "База JavaScript: объекты",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-object-copy",
+    title: "JS / object copy",
+    description:
+      "5 задач по копированию: ссылки vs значения, Object.assign, поверхностный и глубокий клон, полифил Object.assign.",
+    tag: "JS/object-copy",
+    skillLabel: "Копирование объектов",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-garbage-collection",
+    title: "JS / garbage collection",
+    description:
+      "2 задачи на достижимость и алгоритм mark-and-sweep: обход графа ссылок и собственная реализация сборщика.",
+    tag: "JS/garbage-collection",
+    skillLabel: "Сборка мусора",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-object-methods",
+    title: "JS / object methods",
+    description:
+      "5 задач по методам объектов и this: краткий синтаксис, потеря this, вызов по имени и полифил bind.",
+    tag: "JS/object-methods",
+    skillLabel: "Методы объекта и this",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-constructor-new",
+    title: "JS / constructor, new",
+    description:
+      "5 задач по функциям-конструкторам: this в конструкторе, методы экземпляра, new.target и полифил оператора new.",
+    tag: "JS/constructor-new",
+    skillLabel: "Конструкторы и new",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-optional-chaining",
+    title: "JS / optional chaining",
+    description:
+      "5 задач по ?.: безопасный доступ к свойствам, опциональный вызов метода, скобочная форма и полифил getPath.",
+    tag: "JS/optional-chaining",
+    skillLabel: "Опциональная цепочка",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-object-toprimitive",
+    title: "JS / toPrimitive",
+    description:
+      "4 задачи по преобразованию объектов в примитив: Symbol.toPrimitive, hint string/number/default, fallback на toString/valueOf и полный полифил ToPrimitive.",
+    tag: "JS/object-toprimitive",
+    skillLabel: "Преобразование в примитив",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 6 · Объекты",
+    sectionDescription:
+      "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
     id: "js-dom-state",
     title: "JS / DOM и состояние",
     description: "Практика DOM, локального состояния и пользовательских событий.",
@@ -186,6 +298,8 @@ export function getChallengeById(id: string): ChallengeDefinition | undefined {
   return challengeMap.get(id);
 }
 
+export type ChallengeSort = "default" | "rank-asc" | "rank-desc";
+
 export interface FilterOptions {
   difficulty?: Difficulty;
   minRank?: number;
@@ -195,10 +309,22 @@ export interface FilterOptions {
   language?: Language;
   tag?: string;
   search?: string;
+  sort?: ChallengeSort;
+}
+
+export function sortChallenges<T extends { rank: number }>(
+  list: T[],
+  sort: ChallengeSort = "default",
+): T[] {
+  if (sort === "default") return list;
+  const copy = [...list];
+  if (sort === "rank-asc") copy.sort((a, b) => a.rank - b.rank);
+  else copy.sort((a, b) => b.rank - a.rank);
+  return copy;
 }
 
 export function filterChallenges(options: FilterOptions): ChallengeMeta[] {
-  return getAllChallenges().filter((c) => {
+  const filtered = getAllChallenges().filter((c) => {
     if (options.difficulty && c.difficulty !== options.difficulty) return false;
     if (options.minRank !== undefined && c.rank < options.minRank) return false;
     if (options.maxRank !== undefined && c.rank > options.maxRank) return false;
@@ -217,6 +343,8 @@ export function filterChallenges(options: FilterOptions): ChallengeMeta[] {
     }
     return true;
   });
+
+  return sortChallenges(filtered, options.sort);
 }
 
 export function getChallengeGroups(): string[] {

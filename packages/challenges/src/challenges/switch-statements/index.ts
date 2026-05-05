@@ -13,6 +13,7 @@ interface SwitchChallengeConfig {
   rank?: number;
   reputation?: number;
   tags: string[];
+  excludeFromSet?: boolean;
 }
 
 const emptyLangs: ChallengeFile[] = [];
@@ -56,7 +57,12 @@ function createSwitchChallenge(config: SwitchChallengeConfig): ChallengeDefiniti
     languages: ["javascript"],
     rank,
     reputation: config.reputation ?? getChallengePoints(rank),
-    tags: ["JS/switch", "switch", "control-flow", ...config.tags],
+    tags: [
+      ...(config.excludeFromSet ? [] : ["JS/switch"]),
+      "switch",
+      "control-flow",
+      ...config.tags,
+    ],
     starterFiles: {
       javascript: starterFiles,
       typescript: emptyLangs,
@@ -99,16 +105,18 @@ export const switchChallenges: ChallengeDefinition[] = [
   createSwitchChallenge({
     id: "switch-traffic-light",
     title: "Сигнал светофора",
-    description: `Когда значений немного и каждое значение означает отдельное действие, \`switch\` помогает сделать код прямым и читаемым. Светофор - хороший минимальный пример: цвет уже является готовым кодом состояния, а функция должна только выбрать нужную команду.
+    description: `Стоишь на перекрёстке. Загорелся красный — стоп. Жёлтый — жди. Зелёный — поехали. Цвет уже несёт всю информацию, тебе остаётся только выбрать команду по нему.
 
-Напиши \`getTrafficAction(color)\`: функция получает строку с цветом сигнала и возвращает короткое действие для пользователя. Не нужно придумывать сложную логику или проверять похожие цвета. Сравнивай только с теми строками, которые перечислены в требованиях.
+Когда у тебя три-четыре варианта и каждый ведёт к своему ответу, \`switch\` читается чище, чем длинная цепочка \`if\`:
 
-Примеры:
+\`\`\`js
+switch (color) {
+  case 'red': return 'stop';
+  case 'green': return 'go';
+}
+\`\`\`
 
-\`getTrafficAction("red") // "stop"\`
-\`getTrafficAction("yellow") // "wait"\`
-\`getTrafficAction("green") // "go"\`
-\`getTrafficAction("blue") // "unknown"\`
+**Что написать.** Функцию \`getTrafficAction(color)\`, которая по цвету сигнала возвращает короткое действие. На любой непонятный цвет — \`"unknown"\`, не пытайся угадывать.
 
 ## Требования
 
@@ -119,9 +127,12 @@ export const switchChallenges: ChallengeDefinition[] = [
 5. Для \`"green"\` верни \`"go"\`.
 6. Для любого другого значения верни \`"unknown"\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getTrafficAction(color)\`.`,
+\`getTrafficAction("red")\` → \`"stop"\`
+\`getTrafficAction("yellow")\` → \`"wait"\`
+\`getTrafficAction("green")\` → \`"go"\`
+\`getTrafficAction("blue")\` → \`"unknown"\``,
     starter: `export function getTrafficAction(color) {
   // Выбери действие по цвету светофора
 }
@@ -177,15 +188,17 @@ describe('getTrafficAction', () => {
   createSwitchChallenge({
     id: "switch-http-status",
     title: "HTTP status через switch",
-    description: `HTTP-статус - это числовой код ответа сервера. В приложении такой код редко показывают пользователю напрямую: обычно его переводят в короткую метку, по которой дальше можно выбрать текст, цвет или действие.
+    description: `Сервер отвечает числом — \`200\`, \`401\`, \`500\`. Пользователю это число показывать бессмысленно, поэтому в приложении его обычно превращают в короткую метку, а уже по метке выбирают цвет плашки или текст ошибки.
 
-Напиши \`describeStatus(status)\`: функция получает HTTP-статус числом и возвращает строковую метку. Здесь важно заметить, что несколько разных кодов могут означать одну группу ошибок. Например, \`401\` и \`403\` относятся к проблемам авторизации, поэтому обе ветки должны вернуть одну и ту же строку.
+**Хитрость.** Разные коды могут значить одно и то же. \`401\` (не авторизован) и \`403\` (запрещено) — обе про авторизацию. В \`switch\` для этого можно поставить два \`case\` подряд без \`break\` — оба провалятся в одну ветку:
 
-Примеры:
+\`\`\`js
+case 401:
+case 403:
+  return 'auth-error';
+\`\`\`
 
-\`describeStatus(200) // "ok"\`
-\`describeStatus(401) // "auth-error"\`
-\`describeStatus(418) // "unknown"\`
+**Что написать.** Функцию \`describeStatus(status)\`, которая по числу возвращает метку.
 
 ## Требования
 
@@ -197,9 +210,12 @@ describe('getTrafficAction', () => {
 6. Для \`401\` и \`403\` верни \`"auth-error"\`.
 7. Для остальных статусов верни \`"unknown"\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`describeStatus(status)\`.`,
+\`describeStatus(200)\` → \`"ok"\`
+\`describeStatus(401)\` → \`"auth-error"\`
+\`describeStatus(403)\` → \`"auth-error"\`
+\`describeStatus(418)\` → \`"unknown"\``,
     starter: `export function describeStatus(status) {
   // Решение должно быть через switch
 }
@@ -242,19 +258,22 @@ describe('describeStatus', () => {
 `,
     tags: ["http", "default-case"],
     rank: 2,
+    excludeFromSet: true,
   }),
   createSwitchChallenge({
     id: "switch-currency-symbol",
     title: "Символ валюты",
-    description: `В платежном интерфейсе сумма часто хранится отдельно от валюты. Чтобы красиво показать цену, нужно превратить код валюты вроде \`"USD"\` или \`"EUR"\` в символ.
+    description: `В корзине у тебя сумма \`1990\` и валюта \`"USD"\`. Просто склеить нельзя — \`"1990 USD"\` выглядит как накладная, а не цена. Хочется увидеть \`$1990\`. Значит, код валюты надо превратить в символ.
 
-Напиши \`getCurrencySymbol(code)\`: функция получает трехбуквенный код валюты и возвращает символ. Не нужно нормализовать регистр: если пришло \`"usd"\`, это неизвестный код. Такая строгость помогает увидеть, что \`switch\` сравнивает значения точно.
+**Одна хитрость.** \`switch\` сравнивает через \`===\`, без всякой магии с регистром. Поэтому \`"USD"\` и \`"usd"\` для него — два разных значения:
 
-Примеры:
+\`\`\`js
+'USD' === 'usd'; // false
+\`\`\`
 
-\`getCurrencySymbol("USD") // "$"\`
-\`getCurrencySymbol("RUB") // "₽"\`
-\`getCurrencySymbol("usd") // "?"\`
+Если пришло \`"usd"\` — это неизвестный код, верни заглушку. Никакого \`.toUpperCase()\` внутри \`switch\` не нужно.
+
+**Что написать.** Функцию \`getCurrencySymbol(code)\`, которая по трёхбуквенному коду возвращает символ валюты.
 
 ## Требования
 
@@ -266,9 +285,12 @@ describe('describeStatus', () => {
 6. Для \`"JPY"\` верни \`"¥"\`.
 7. Для неизвестного кода верни \`"?"\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getCurrencySymbol(code)\`.`,
+\`getCurrencySymbol("USD")\` → \`"$"\`
+\`getCurrencySymbol("RUB")\` → \`"₽"\`
+\`getCurrencySymbol("usd")\` → \`"?"\`
+\`getCurrencySymbol("GBP")\` → \`"?"\``,
     starter: `export function getCurrencySymbol(code) {
   // Верни символ валюты
 }
@@ -322,19 +344,23 @@ describe('getCurrencySymbol', () => {
 `,
     tags: ["strings", "strict-comparison"],
     rank: 1,
+    excludeFromSet: true,
   }),
   createSwitchChallenge({
     id: "switch-shipping-price",
     title: "Стоимость доставки",
-    description: `Способ доставки обычно приходит строковым кодом: например, \`"standard"\` или \`"express"\`. По этому коду нужно выбрать фиксированную цену, которую потом можно добавить к итоговой стоимости заказа.
+    description: `Пользователь выбрал доставку, фронт прислал тебе строку \`"express"\`. Тебе нужно превратить её в число рублей, чтобы прибавить к сумме заказа.
 
-Напиши \`getShippingPrice(method)\`: функция получает код доставки и возвращает стоимость числом. Если код неизвестен, это уже не просто запасной текст, а ошибка в данных. Поэтому в таком случае нужно выбросить исключение, чтобы вызывающий код не продолжил расчет с неправильной доставкой.
+**Хитрость.** Что делать, если пришла строка \`"drone"\`, которую ты не поддерживаешь? Соблазн вернуть \`0\` или \`null\`. Но тогда заказ молча уедет с бесплатной доставкой — а это уже потерянные деньги. Лучше громко упасть:
 
-Примеры:
+\`\`\`js
+default:
+  throw new Error('Unknown shipping method');
+\`\`\`
 
-\`getShippingPrice("pickup") // 0\`
-\`getShippingPrice("express") // 700\`
-\`getShippingPrice("drone") // throws Error("Unknown shipping method")\`
+Ошибка остановит расчёт, и кто-то наверху разберётся.
+
+**Что написать.** Функцию \`getShippingPrice(method)\`, которая по коду доставки возвращает цену или бросает ошибку.
 
 ## Требования
 
@@ -346,9 +372,12 @@ describe('getCurrencySymbol', () => {
 6. \`"overnight"\` должен вернуть \`1200\`.
 7. Для неизвестного способа выброси ошибку с текстом \`"Unknown shipping method"\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getShippingPrice(method)\`.`,
+\`getShippingPrice("pickup")\` → \`0\`
+\`getShippingPrice("standard")\` → \`300\`
+\`getShippingPrice("express")\` → \`700\`
+\`getShippingPrice("drone")\` → бросает \`Error("Unknown shipping method")\``,
     starter: `export function getShippingPrice(method) {
   // Верни стоимость или выброси ошибку
 }
@@ -390,16 +419,27 @@ describe('getShippingPrice', () => {
   createSwitchChallenge({
     id: "switch-log-prefix",
     title: "Префикс лога",
-    description: `В модулях логирования уровень сообщения превращается в короткий префикс — \`[ERROR]\`, \`[WARN]\`, \`[INFO]\`. Префикс собирается отдельно, а потом склеивается с текстом сообщения.
+    description: `Логи в консоли сервера обычно выглядят так: \`[ERROR] File not found\`. Префикс в квадратных скобках выбирается по уровню сообщения, дальше идёт сам текст.
 
-Напиши \`formatLogEntry(level, message)\`: через \`switch\` присвой переменной \`prefix\` нужный префикс, а после \`switch\` верни строку \`\${prefix} \${message}\`. Каждая ветка должна заканчиваться \`break\`, иначе выполнение провалится в следующую ветку и перезапишет \`prefix\`.
+В прошлых задачах ты делал \`return\` прямо из \`case\`. Это удобно, но скрывает одну важную особенность \`switch\` — здесь мы её разоблачим.
 
-Примеры:
+**Странная штука.** Если ты пишешь \`case\` без \`break\`, выполнение НЕ останавливается. Оно проваливается дальше в следующий \`case\`:
 
-\`formatLogEntry("error", "File not found") // "[ERROR] File not found"\`
-\`formatLogEntry("warn", "Disk space low") // "[WARN] Disk space low"\`
-\`formatLogEntry("info", "Server started") // "[INFO] Server started"\`
-\`formatLogEntry("debug", "Request received") // "[LOG] Request received"\`
+\`\`\`js
+let prefix;
+switch ('error') {
+  case 'error':
+    prefix = '[ERROR]';
+    // забыл break — летим дальше
+  case 'warn':
+    prefix = '[WARN]'; // перезаписали!
+}
+// prefix === '[WARN]'
+\`\`\`
+
+Это называется fallthrough. Иногда им пользуются специально (как в задаче со статусами \`401\`/\`403\`). Чаще — это баг. \`return\` прячет проблему, потому что выходит из функции целиком. \`break\` — выходит только из \`switch\`.
+
+**Что написать.** Функцию \`formatLogEntry(level, message)\`. Внутри — \`switch\`, который присваивает \`prefix\`, и каждая ветка кончается \`break\`. После \`switch\` склей \`\`\${prefix} \${message}\`\` и верни.
 
 ## Требования
 
@@ -412,9 +452,12 @@ describe('getShippingPrice', () => {
 7. Для неизвестного уровня установи \`prefix = "[LOG]"\`.
 8. После \`switch\` верни \`\`\${prefix} \${message}\`\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`formatLogEntry(level, message)\`.`,
+\`formatLogEntry("error", "File not found")\` → \`"[ERROR] File not found"\`
+\`formatLogEntry("warn", "Disk space low")\` → \`"[WARN] Disk space low"\`
+\`formatLogEntry("info", "Server started")\` → \`"[INFO] Server started"\`
+\`formatLogEntry("debug", "Request received")\` → \`"[LOG] Request received"\``,
     starter: `export function formatLogEntry(level, message) {
   let prefix;
   // Через switch по level присвой prefix
@@ -483,16 +526,21 @@ describe('formatLogEntry', () => {
   createSwitchChallenge({
     id: "switch-file-extension",
     title: "Тип файла по расширению",
-    description: `Расширение файла - это короткий код в конце имени: \`"png"\`, \`"pdf"\`, \`"zip"\`. По нему часто выбирают иконку, способ предпросмотра или обработчик загрузки.
+    description: `Открыл папку с загрузками — там \`photo.jpg\`, \`photo.jpeg\`, \`photo.png\`. Все три — картинки, и иконку им нужно одну и ту же. Писать \`if (ext === 'jpg' || ext === 'jpeg' || ext === 'png')\` скучно. В \`switch\` есть приём короче.
 
-Напиши \`getFileCategory(extension)\`: функция получает расширение без точки и возвращает категорию файла. Некоторые расширения должны попадать в одну категорию. Например, \`"jpg"\`, \`"jpeg"\` и \`"png"\` - это изображения, поэтому их можно сгруппировать несколькими \`case\` подряд.
+**Хитрость.** Помнишь fallthrough из задачи про логи? Тут он работает на нас. Несколько \`case\` подряд без \`break\` сваливаются в общую ветку:
 
-Примеры:
+\`\`\`js
+case 'jpg':
+case 'jpeg':
+case 'png':
+case 'gif':
+  return 'image';
+\`\`\`
 
-\`getFileCategory("png") // "image"\`
-\`getFileCategory("pdf") // "document"\`
-\`getFileCategory("zip") // "archive"\`
-\`getFileCategory("exe") // "unknown"\`
+Любое из четырёх значений приведёт к \`return 'image'\`. Это уже не баг, а нормальный способ группировки.
+
+**Что написать.** Функцию \`getFileCategory(extension)\`, которая по расширению (без точки) возвращает категорию файла.
 
 ## Требования
 
@@ -503,9 +551,13 @@ describe('formatLogEntry', () => {
 5. Для \`"zip"\` и \`"rar"\` верни \`"archive"\`.
 6. Для остальных расширений верни \`"unknown"\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getFileCategory(extension)\`.`,
+\`getFileCategory("png")\` → \`"image"\`
+\`getFileCategory("jpeg")\` → \`"image"\`
+\`getFileCategory("pdf")\` → \`"document"\`
+\`getFileCategory("zip")\` → \`"archive"\`
+\`getFileCategory("exe")\` → \`"unknown"\``,
     starter: `export function getFileCategory(extension) {
   // Сгруппируй расширения по категориям
 }
@@ -568,19 +620,23 @@ describe('getFileCategory', () => {
 `,
     tags: ["fallthrough", "grouping"],
     rank: 3,
+    excludeFromSet: true,
   }),
   createSwitchChallenge({
     id: "switch-user-role",
     title: "Права пользователя",
-    description: `Роль пользователя часто раскрывается в набор разрешений. Например, гость может только читать, редактор может читать и писать, а владелец может управлять оплатой.
+    description: `В системе есть гости, редакторы, админы, владельцы. У каждого свой набор того, что ему можно: читать, писать, удалять, управлять оплатой. Когда приходит запрос, бэкенд должен по роли быстро понять список разрешений.
 
-Напиши \`getRolePermissions(role)\`: функция получает роль и возвращает массив разрешений для этой роли. Здесь важно вернуть именно массив строк. Для неизвестной роли не нужно бросать ошибку: безопаснее вернуть пустой список прав.
+\`switch\` спокойно возвращает не только строки и числа, но и массивы:
 
-Примеры:
+\`\`\`js
+case 'admin':
+  return ['read', 'write', 'delete'];
+\`\`\`
 
-\`getRolePermissions("guest") // ["read"]\`
-\`getRolePermissions("admin") // ["read", "write", "delete"]\`
-\`getRolePermissions("anonymous") // []\`
+**Хитрость.** Что вернуть для незнакомой роли вроде \`"anonymous"\`? Бросать ошибку — слишком жёстко. Безопаснее вернуть пустой массив \`[]\` — тогда дальше любая проверка \`permissions.includes('read')\` честно вернёт \`false\`, и пользователь просто ничего не сможет сделать.
+
+**Что написать.** Функцию \`getRolePermissions(role)\`, которая по роли возвращает массив разрешений.
 
 ## Требования
 
@@ -592,9 +648,12 @@ describe('getFileCategory', () => {
 6. Для \`"owner"\` верни \`["read", "write", "delete", "billing"]\`.
 7. Для неизвестной роли верни пустой массив.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getRolePermissions(role)\`.`,
+\`getRolePermissions("guest")\` → \`["read"]\`
+\`getRolePermissions("editor")\` → \`["read", "write"]\`
+\`getRolePermissions("admin")\` → \`["read", "write", "delete"]\`
+\`getRolePermissions("anonymous")\` → \`[]\``,
     starter: `export function getRolePermissions(role) {
   // Верни массив прав для роли
 }
@@ -632,19 +691,25 @@ describe('getRolePermissions', () => {
 `,
     tags: ["arrays", "roles"],
     rank: 2,
+    excludeFromSet: true,
   }),
   createSwitchChallenge({
     id: "switch-weekday-type",
     title: "Тип дня недели",
-    description: `Номер дня недели можно сгруппировать в рабочие и выходные дни. В \`switch\` для этого удобно использовать несколько \`case\` подряд: разные входные значения попадают в одну общую ветку.
+    description: `Календарь хранит день недели числом: \`1\` — понедельник, \`7\` — воскресенье. С понедельника по пятницу — рабочие дни, суббота с воскресеньем — выходные. Любое другое число — мусор, его прислали по ошибке.
 
-Напиши \`getWeekdayType(day)\`: функция получает номер дня недели, где \`1\` - понедельник, а \`7\` - воскресенье. Числа от \`1\` до \`5\` считаются рабочими днями, \`6\` и \`7\` - выходными. Все остальные значения считаются некорректными.
+Через \`if\` тут получится цепочка из пяти проверок только для рабочих. Через \`switch\` с группировкой \`case\` — пять строк подряд, и одна ветка ловит их все:
 
-Примеры:
+\`\`\`js
+case 1:
+case 2:
+case 3:
+case 4:
+case 5:
+  return 'workday';
+\`\`\`
 
-\`getWeekdayType(1) // "workday"\`
-\`getWeekdayType(6) // "weekend"\`
-\`getWeekdayType(0) // "invalid"\`
+**Что написать.** Функцию \`getWeekdayType(day)\`, которая по номеру дня возвращает \`"workday"\`, \`"weekend"\` или \`"invalid"\`.
 
 ## Требования
 
@@ -655,9 +720,13 @@ describe('getRolePermissions', () => {
 5. Для остальных значений верни \`"invalid"\`.
 6. Не решай задачу через длинную цепочку \`if/else\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getWeekdayType(day)\`.`,
+\`getWeekdayType(1)\` → \`"workday"\`
+\`getWeekdayType(5)\` → \`"workday"\`
+\`getWeekdayType(6)\` → \`"weekend"\`
+\`getWeekdayType(0)\` → \`"invalid"\`
+\`getWeekdayType(8)\` → \`"invalid"\``,
     starter: `export function getWeekdayType(day) {
   // 1 = понедельник, 7 = воскресенье
 }
@@ -705,15 +774,16 @@ describe('getWeekdayType', () => {
   createSwitchChallenge({
     id: "switch-priority-score",
     title: "Приоритет задачи",
-    description: `В трекере задач приоритет часто хранится строкой: \`"low"\`, \`"normal"\`, \`"high"\`. Для сортировки такую строку удобно превратить в число: чем выше число, тем раньше задача должна попасть в список.
+    description: `В Jira-подобном трекере приоритет хранится строкой: \`"low"\`, \`"normal"\`, \`"high"\`, \`"urgent"\`. Чтобы отсортировать список по важности, строки удобно превратить в числа — потом просто \`tasks.sort((a, b) => b.score - a.score)\`.
 
-Напиши \`getPriorityScore(priority)\`: функция получает приоритет и возвращает числовой вес. В этой задаче важно не только выбрать значения через \`switch\`, но и правильно обработать отсутствие приоритета: неизвестная строка должна считаться обычной задачей, а не самой важной.
+**Хитрость.** Что делать с непонятным приоритетом вроде \`"later"\`? Соблазн вернуть \`0\` или \`5\`. Но \`0\` уведёт задачу в самый низ списка, а \`5\` — в самый верх, выше \`"urgent"\`. И то и другое — вранье. Самое честное — считать её обычной задачей, \`2\`:
 
-Примеры:
+\`\`\`js
+default:
+  return 2; // не знаем — значит, normal
+\`\`\`
 
-\`getPriorityScore("low") // 1\`
-\`getPriorityScore("urgent") // 4\`
-\`getPriorityScore("later") // 2\`
+**Что написать.** Функцию \`getPriorityScore(priority)\`, которая возвращает числовой вес приоритета.
 
 ## Требования
 
@@ -725,9 +795,12 @@ describe('getWeekdayType', () => {
 6. Для \`"urgent"\` верни \`4\`.
 7. Для неизвестного приоритета верни \`2\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getPriorityScore(priority)\`.`,
+\`getPriorityScore("low")\` → \`1\`
+\`getPriorityScore("high")\` → \`3\`
+\`getPriorityScore("urgent")\` → \`4\`
+\`getPriorityScore("later")\` → \`2\``,
     starter: `export function getPriorityScore(priority) {
   // Верни числовой вес приоритета
 }
@@ -765,18 +838,23 @@ describe('getPriorityScore', () => {
 `,
     tags: ["numbers", "fallback"],
     rank: 1,
+    excludeFromSet: true,
   }),
   createSwitchChallenge({
     id: "switch-notification-channel",
     title: "Канал уведомлений",
-    description: `Каналы уведомлений настраиваются по-разному. Email может повторять отправку несколько раз, SMS лучше не спамить, а push-уведомление можно отправить сразу без очереди.
+    description: `Сервис уведомлений умеет слать письма, SMS и пуши. Каждый канал хочет свои настройки: email можно ретраить три раза, SMS дорогой и его лучше не спамить (один ретрай), push улетает мгновенно без очереди.
 
-Напиши \`getNotificationSettings(channel)\`: функция получает название канала и возвращает объект настроек. Для неизвестного канала верни безопасные настройки по умолчанию: отправка отключена. Каждый вызов должен возвращать новый объект, чтобы один результат нельзя было случайно изменить и сломать следующий вызов.
+**Странная штука.** Что если положить настройки рядом как константу и каждый раз возвращать одну и ту же ссылку?
 
-Примеры:
+\`\`\`js
+const EMAIL = { async: true, retries: 3 };
+case 'email': return EMAIL;
+\`\`\`
 
-\`getNotificationSettings("email") // { async: true, retries: 3 }\`
-\`getNotificationSettings("fax") // { async: false, retries: 0, disabled: true }\`
+Где-то в коде кто-то напишет \`config.retries = 0\` — и теперь у всех вызовов \`retries\` стал ноль. Один объект, общий на всех. Поэтому возвращай новый литерал \`{ ... }\` прямо из \`case\` — каждый вызов получит свою копию.
+
+**Что написать.** Функцию \`getNotificationSettings(channel)\`, которая по имени канала возвращает свежий объект настроек. Для неизвестного канала — безопасный объект с \`disabled: true\`.
 
 ## Требования
 
@@ -787,9 +865,12 @@ describe('getPriorityScore', () => {
 5. Для \`"push"\` верни \`{ async: false, retries: 0 }\`.
 6. Для неизвестного канала верни \`{ async: false, retries: 0, disabled: true }\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getNotificationSettings(channel)\`.`,
+\`getNotificationSettings("email")\` → \`{ async: true, retries: 3 }\`
+\`getNotificationSettings("sms")\` → \`{ async: true, retries: 1 }\`
+\`getNotificationSettings("push")\` → \`{ async: false, retries: 0 }\`
+\`getNotificationSettings("fax")\` → \`{ async: false, retries: 0, disabled: true }\``,
     starter: `export function getNotificationSettings(channel) {
   // Верни объект конфигурации
 }
@@ -860,17 +941,18 @@ describe('getNotificationSettings', () => {
   createSwitchChallenge({
     id: "switch-calculator-operation",
     title: "Операция калькулятора",
-    description: `В калькуляторах, конструкторах формул и командных панелях действие часто передаётся строкой: \`"add"\`, \`"divide"\`. Это позволяет вызывающему коду не знать об арифметике напрямую — он просто говорит «сложи» или «раздели», а функция выбирает нужное действие.
+    description: `Представь, что ты делаешь калькулятор, где кнопки на UI отправляют команду строкой: нажал \`+\` — пришло \`"add"\`, нажал \`÷\` — пришло \`"divide"\`. Кнопки ничего не знают про арифметику, они просто говорят «сделай это».
 
-Напиши \`calculateByOperation(left, right, operation)\`: через \`switch\` по строке \`operation\` выбери арифметическое действие и верни результат. Два случая требуют выброса ошибки. Для неизвестной операции это очевидно. Для деления — важно: JavaScript при \`right === 0\` молча вернёт \`Infinity\`, а не ошибку, поэтому нужно проверить делитель явно.
+**Странная штука.** Что вернёт \`8 / 0\` в JavaScript? Не ошибку, как в Python. И не \`null\`. Молча выдаст \`Infinity\`:
 
-Примеры:
+\`\`\`js
+8 / 0; // Infinity
+8 / 0 + 5; // тоже Infinity, ошибка тихо ползёт дальше
+\`\`\`
 
-\`calculateByOperation(2, 3, "add") // 5\`
-\`calculateByOperation(10, 4, "subtract") // 6\`
-\`calculateByOperation(5, 2, "divide") // 2.5\`
-\`calculateByOperation(8, 0, "divide") // выбрасывает Error("Cannot divide by zero")\`
-\`calculateByOperation(1, 2, "power") // выбрасывает Error("Unknown operation")\`
+Если ты просто вернёшь \`left / right\`, бесконечность спокойно дойдёт до пользователя и сломает интерфейс. Поэтому делитель нужно проверить руками и кинуть свою ошибку.
+
+**Что написать.** Функцию \`calculateByOperation(left, right, operation)\`, которая через \`switch\` по строке выбирает арифметику. На деление нуля и неизвестную операцию — \`throw\`.
 
 ## Требования
 
@@ -882,9 +964,13 @@ describe('getNotificationSettings', () => {
 6. \`"divide"\` — верни \`left / right\`; если \`right === 0\`, выброси \`Error("Cannot divide by zero")\`.
 7. Для неизвестной операции выброси \`Error("Unknown operation")\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`calculateByOperation(left, right, operation)\`.`,
+\`calculateByOperation(2, 3, "add")\` → \`5\`
+\`calculateByOperation(10, 4, "subtract")\` → \`6\`
+\`calculateByOperation(5, 2, "divide")\` → \`2.5\`
+\`calculateByOperation(8, 0, "divide")\` → бросает \`Error("Cannot divide by zero")\`
+\`calculateByOperation(1, 2, "power")\` → бросает \`Error("Unknown operation")\``,
     starter: `export function calculateByOperation(left, right, operation) {
   // Выбери арифметическую операцию
 }
@@ -951,15 +1037,16 @@ describe('calculateByOperation', () => {
   createSwitchChallenge({
     id: "switch-command-router",
     title: "Роутер команд",
-    description: `CLI-приложения и командные панели часто получают действие строкой: \`"start"\`, \`"stop"\`, \`"restart"\`. Каждая команда должна вернуть структурированный результат, чтобы внешний код понимал, что делать дальше.
+    description: `Админ заходит в CLI и пишет \`service start\` или \`service status\`. Внутри программа должна понять, что за команда пришла, и вернуть наверх и действие (\`"start-service"\`), и текст для лога (\`"Service is starting"\`).
 
-Напиши \`routeCommand(command)\`: функция получает команду и возвращает объект с полями \`action\` и \`message\`. Эта задача немного сложнее простого выбора строки: каждая ветка должна вернуть объект одинаковой формы, а неизвестная команда должна вернуть ошибочный результат без исключения.
+В прошлой задаче неизвестная операция бросала ошибку. Здесь — наоборот: исключение остановило бы весь интерактивный сеанс. Лучше вернуть такой же объект, только со специальным \`action: "error"\`. Внешний код увидит его и сам решит, что делать.
 
-Примеры:
+\`\`\`js
+default:
+  return { action: 'error', message: 'Unknown command' };
+\`\`\`
 
-\`routeCommand("start") // { action: "start-service", message: "Service is starting" }\`
-\`routeCommand("status") // { action: "show-status", message: "Reading service status" }\`
-\`routeCommand("deploy") // { action: "error", message: "Unknown command" }\`
+**Что написать.** Функцию \`routeCommand(command)\`, которая для каждой команды возвращает объект с одинаковой формой \`{ action, message }\`.
 
 ## Требования
 
@@ -971,9 +1058,12 @@ describe('calculateByOperation', () => {
 6. Для \`"status"\` верни \`{ action: "show-status", message: "Reading service status" }\`.
 7. Для неизвестной команды верни \`{ action: "error", message: "Unknown command" }\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`routeCommand(command)\`.`,
+\`routeCommand("start")\` → \`{ action: "start-service", message: "Service is starting" }\`
+\`routeCommand("restart")\` → \`{ action: "restart-service", message: "Service is restarting" }\`
+\`routeCommand("status")\` → \`{ action: "show-status", message: "Reading service status" }\`
+\`routeCommand("deploy")\` → \`{ action: "error", message: "Unknown command" }\``,
     starter: `export function routeCommand(command) {
   // Верни объект действия для команды
 }
@@ -1053,16 +1143,18 @@ describe('routeCommand', () => {
   createSwitchChallenge({
     id: "switch-normalize-event",
     title: "Нормализация события",
-    description: `В аналитике одно и то же действие может приходить из разных мест с разными именами. Например, кнопка может отправить \`"click"\`, форма - \`"submit"\`, а мобильный клиент - \`"tap"\`. Перед сохранением такие события удобно привести к единому формату.
+    description: `В аналитику события прилетают из разных мест. Веб шлёт \`"click"\`, мобильный — \`"tap"\`, форма — \`"submit"\`. Для пользователя это всё «потыкал в интерфейс», а в дашборде хочется видеть одну метрику. Значит, перед записью нужно сводить разные имена в общие группы.
 
-Напиши \`normalizeEventName(eventName)\`: функция получает имя события и возвращает нормализованную строку. Несколько входных значений должны попадать в одну группу. Если событие неизвестно, верни \`"custom"\`, чтобы его можно было обработать отдельно.
+Это та же группировка \`case\`, что и в задаче про расширения файлов — только групп больше: взаимодействия, навигация, сбои, авторизация.
 
-Примеры:
+\`\`\`js
+case 'click':
+case 'tap':
+case 'submit':
+  return 'interaction';
+\`\`\`
 
-\`normalizeEventName("click") // "interaction"\`
-\`normalizeEventName("tap") // "interaction"\`
-\`normalizeEventName("page_view") // "navigation"\`
-\`normalizeEventName("purchase") // "custom"\`
+**Что написать.** Функцию \`normalizeEventName(eventName)\`, которая по имени события возвращает категорию. Незнакомые события — в \`"custom"\`, чтобы их потом разобрать отдельно.
 
 ## Требования
 
@@ -1074,9 +1166,13 @@ describe('routeCommand', () => {
 6. \`"login"\`, \`"logout"\` должны вернуть \`"auth"\`.
 7. Для неизвестного события верни \`"custom"\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`normalizeEventName(eventName)\`.`,
+\`normalizeEventName("click")\` → \`"interaction"\`
+\`normalizeEventName("tap")\` → \`"interaction"\`
+\`normalizeEventName("page_view")\` → \`"navigation"\`
+\`normalizeEventName("logout")\` → \`"auth"\`
+\`normalizeEventName("purchase")\` → \`"custom"\``,
     starter: `export function normalizeEventName(eventName) {
   // Приведи событие к общей категории
 }
@@ -1144,30 +1240,40 @@ describe('normalizeEventName', () => {
   createSwitchChallenge({
     id: "switch-state-transition",
     title: "Переход состояния заказа",
-    description: `Многие приложения работают как маленькие автоматы состояний. Заказ может быть \`"draft"\`, затем \`"paid"\`, затем \`"shipped"\`, затем \`"delivered"\`. Не каждое действие разрешено в каждом состоянии.
+    description: `Жизнь заказа в магазине — это маленький автомат. Сначала он \`"draft"\` (черновик в корзине), потом \`"paid"\` (оплачен), потом \`"shipped"\` (отправлен), потом \`"delivered"\` (получен). Из каждого состояния разрешены только определённые действия.
 
-Напиши \`getNextOrderStatus(status, event)\`: функция получает текущее состояние заказа и событие, которое с ним произошло. Через \`switch\` по текущему состоянию выбери, какие события можно обработать. Если переход разрешен, верни новое состояние. Если событие не подходит для текущего состояния, верни исходное состояние без изменений.
+**Хитрость.** Можно ли отгрузить (\`"ship"\`) черновик? Нет, его сначала надо оплатить. Можно ли доставить (\`"deliver"\`) оплаченный заказ, не отправив его? Тоже нет. Так что одно и то же событие \`"ship"\` означает разное в зависимости от текущего состояния:
 
-Примеры:
+\`\`\`js
+switch (status) {
+  case 'draft':
+    return event === 'pay' ? 'paid' : status;
+  case 'paid':
+    // только тут можно ship или cancel
+}
+\`\`\`
 
-\`getNextOrderStatus("draft", "pay") // "paid"\`
-\`getNextOrderStatus("paid", "ship") // "shipped"\`
-\`getNextOrderStatus("paid", "deliver") // "paid"\`
-\`getNextOrderStatus("delivered", "refund") // "refunded"\`
+И ещё — если событие не подходит, не падай. Просто верни старое состояние, как будто ничего не произошло. Конечный автомат должен быть устойчивым к мусорным событиям.
+
+**Что написать.** Функцию \`getNextOrderStatus(status, event)\`, которая по текущему состоянию и событию возвращает следующее состояние.
 
 ## Требования
 
 1. Экспортируй функцию \`getNextOrderStatus(status, event)\`.
 2. Используй \`switch\` по текущему \`status\`.
 3. Из \`"draft"\` событие \`"pay"\` переводит в \`"paid"\`.
-4. Из \`"paid"\` событие \`"ship"\` переводит в \`"shipped"\`, а \`"cancel"\` - в \`"cancelled"\`.
+4. Из \`"paid"\` событие \`"ship"\` переводит в \`"shipped"\`, а \`"cancel"\` — в \`"cancelled"\`.
 5. Из \`"shipped"\` событие \`"deliver"\` переводит в \`"delivered"\`.
 6. Из \`"delivered"\` событие \`"refund"\` переводит в \`"refunded"\`.
 7. Для неподходящего события верни исходный \`status\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`getNextOrderStatus(status, event)\`.`,
+\`getNextOrderStatus("draft", "pay")\` → \`"paid"\`
+\`getNextOrderStatus("paid", "ship")\` → \`"shipped"\`
+\`getNextOrderStatus("paid", "deliver")\` → \`"paid"\`
+\`getNextOrderStatus("shipped", "deliver")\` → \`"delivered"\`
+\`getNextOrderStatus("delivered", "refund")\` → \`"refunded"\``,
     starter: `export function getNextOrderStatus(status, event) {
   // Верни следующее состояние заказа
 }
@@ -1235,17 +1341,25 @@ describe('getNextOrderStatus', () => {
   createSwitchChallenge({
     id: "switch-my-switch",
     title: "Свой switch",
-    description: `Оператор \`switch\` выбирает первую ветку, значение которой строго совпало с входом. В реальном JavaScript внутри \`switch\` можно писать любой код, но для тренировки мы сделаем маленькую функцию, которая повторяет главную идею: пройти по списку вариантов, найти первое совпадение и вернуть результат выбранной ветки.
+    description: `Ты весь раздел пользовался \`switch\` как чёрным ящиком. А что у него внутри? Лучший способ понять любую конструкцию — собрать её самому из простых частей.
 
-Напиши \`mySwitch(value, cases, defaultCase)\`. \`cases\` - это массив пар \`[caseValue, result]\`. Функция должна пройти по массиву сверху вниз и сравнить \`caseValue\` с \`value\` через строгое равенство \`===\`. Если совпадение найдено, нужно вернуть \`result\`. Если \`result\` является функцией, вызови ее с исходным \`value\` и верни результат вызова.
+Идея \`switch\` простая: есть значение, есть список вариантов, надо найти первый совпавший и вернуть его результат. Никакой магии — обычный цикл с \`===\`.
 
-Если совпадений нет, используй \`defaultCase\`. Он работает так же: если это функция, вызови ее с \`value\`; иначе верни как есть. Внутри \`mySwitch\` не используй настоящий оператор \`switch\`: цель задачи - руками собрать похожий механизм выбора.
+\`\`\`js
+for (const [caseValue, result] of cases) {
+  if (caseValue === value) return result;
+}
+\`\`\`
 
-Примеры:
+**Хитрость.** В настоящем \`switch\` после \`case\` можно писать произвольный код, который выполнится при совпадении. Здесь, чтобы повторить эту динамику, мы разрешаем класть в \`result\` функцию. Если функция — её надо вызвать с \`value\` и вернуть результат вызова:
 
-\`mySwitch("red", [["red", "stop"], ["green", "go"]], "unknown") // "stop"\`
-\`mySwitch(2, [[1, "one"], [2, (value) => value * 10]], 0) // 20\`
-\`mySwitch("2", [[2, "number"]], "default") // "default"\`
+\`\`\`js
+[2, (value) => value * 10] // совпадение по 2 → вызвать → 20
+\`\`\`
+
+То же правило — для \`defaultCase\`. Если он функция, вызови его. Если нет, верни как есть.
+
+**Что написать.** Функцию \`mySwitch(value, cases, defaultCase)\`, которая повторяет логику \`switch\`. Внутри \`mySwitch\` использовать настоящий оператор \`switch\` нельзя — иначе теряется смысл задачи.
 
 ## Требования
 
@@ -1257,9 +1371,15 @@ describe('getNextOrderStatus', () => {
 6. Если совпадений нет, верни \`defaultCase\` или результат вызова \`defaultCase(value)\`, если это функция.
 7. Не используй оператор \`switch\` внутри \`mySwitch\`.
 
-## Интерфейс
+## Примеры
 
-Экспортируй функцию \`mySwitch(value, cases, defaultCase)\`.`,
+\`\`\`js
+mySwitch("red", [["red", "stop"], ["green", "go"]], "unknown") // "stop"
+mySwitch("blue", [["red", "stop"]], "unknown")                 // "unknown"
+mySwitch(2, [[1, "one"], [2, (value) => value * 10]], 0)       // 20
+mySwitch("2", [[2, "number"]], "default")                      // "default"
+mySwitch(5, [[1, "one"]], (value) => value + 1)                // 6
+\`\`\``,
     starter: `export function mySwitch(value, cases, defaultCase) {
   // Реализуй выбор ветки без оператора switch
 }

@@ -24,7 +24,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  type ReactNode,
   Suspense,
   lazy,
   useCallback,
@@ -33,6 +32,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Mosaic, MosaicWindow, type MosaicNode } from "react-mosaic-component";
 import { useWebContainer } from "../../hooks/useWebContainer.ts";
 import { canRunInBrowser, runBrowserTests } from "../../lib/browser-test-runner.ts";
 import {
@@ -47,6 +47,7 @@ import type { TestResult } from "../../lib/test-runner.ts";
 import { parseTestResults } from "../../lib/test-runner.ts";
 import { AttemptHistoryPanel } from "./AttemptHistoryPanel.tsx";
 import { ChallengeCollectionNavigator } from "./ChallengeCollectionNavigator.tsx";
+import { ChallengeDescription } from "./ChallengeDescription.tsx";
 import { OutputPanel } from "./OutputPanel.tsx";
 
 interface ChallengeLayoutProps {
@@ -91,30 +92,35 @@ function getInitialEditorFontSize() {
   return 14;
 }
 
-function getInitialOutputHeight() {
-  const saved = Number(localStorage.getItem("editorOutputHeight"));
-  if (Number.isFinite(saved) && saved >= 160 && saved <= 520) return saved;
-  return 260;
-}
+type ViewId = "description" | "editor" | "output";
 
-function getInitialSidebarWidth() {
-  const saved = Number(localStorage.getItem("editorSidebarWidth"));
-  if (Number.isFinite(saved) && saved >= 360 && saved <= 900) return saved;
-  return 780;
-}
+const MOSAIC_TREE_KEY = "editorMosaicTree";
 
-function renderInlineCode(text: string): ReactNode[] {
-  return text.split(/(`[^`]+`)/g).map((part, index) => {
-    if (part.length > 1 && part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={`${part}-${index}`} className="description-inline-code">
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
+const DEFAULT_MOSAIC_TREE: MosaicNode<ViewId> = {
+  type: "split",
+  direction: "row",
+  children: [
+    "description",
+    {
+      type: "split",
+      direction: "column",
+      children: ["editor", "output"],
+      splitPercentages: [65, 35],
+    },
+  ],
+  splitPercentages: [38, 62],
+};
 
-    return part;
-  });
+function getInitialMosaicTree(): MosaicNode<ViewId> {
+  if (typeof window === "undefined") return DEFAULT_MOSAIC_TREE;
+  try {
+    const saved = window.localStorage.getItem(MOSAIC_TREE_KEY);
+    if (!saved) return DEFAULT_MOSAIC_TREE;
+    const parsed = JSON.parse(saved) as MosaicNode<ViewId> | null;
+    return parsed ?? DEFAULT_MOSAIC_TREE;
+  } catch {
+    return DEFAULT_MOSAIC_TREE;
+  }
 }
 
 export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
@@ -135,10 +141,9 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
   const [showFullTests, setShowFullTests] = useState(false);
   const [editorTheme, setEditorTheme] = useState(getInitialEditorTheme);
   const [editorFontSize, setEditorFontSize] = useState(getInitialEditorFontSize);
-  const [outputHeight, setOutputHeight] = useState(getInitialOutputHeight);
-  const [sidebarWidth, setSidebarWidth] = useState(getInitialSidebarWidth);
   const [isEditorMenuOpen, setIsEditorMenuOpen] = useState(false);
   const [isCollectionNavigatorOpen, setIsCollectionNavigatorOpen] = useState(false);
+  const [mosaicTree, setMosaicTree] = useState<MosaicNode<ViewId> | null>(getInitialMosaicTree);
   const [collectionSearch, setCollectionSearch] = useState("");
   const [attemptsVersion, setAttemptsVersion] = useState(0);
   const fileChangesRef = useRef<Record<string, string>>({});
@@ -146,8 +151,7 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
   const editorMenuRef = useRef<HTMLDivElement>(null);
   const collectionNavigatorRef = useRef<HTMLDivElement>(null);
   const collectionDrawerRef = useRef<HTMLDivElement>(null);
-  const editorSplitRef = useRef<HTMLDivElement>(null);
-  const challengeLayoutRef = useRef<HTMLDivElement>(null);
+  const challengeInfoRef = useRef<HTMLDivElement>(null);
 
   const collectionContext = useMemo(() => {
     const collections = getChallengeCollections();
@@ -485,93 +489,8 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
     localStorage.setItem("editorFontSize", String(fontSize));
   };
 
-  const handleOutputResizeStart = (event: React.PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    const split = editorSplitRef.current;
-    if (!split) return;
-
-    const pointerId = event.pointerId;
-    event.currentTarget.setPointerCapture(pointerId);
-
-    const handlePointerMove = (moveEvent: PointerEvent) => {
-      const rect = split.getBoundingClientRect();
-      const nextHeight = Math.round(rect.bottom - moveEvent.clientY);
-      const maxHeight = Math.max(180, Math.round(rect.height * 0.72));
-      const clampedHeight = Math.min(maxHeight, Math.max(160, nextHeight));
-      setOutputHeight(clampedHeight);
-      localStorage.setItem("editorOutputHeight", String(clampedHeight));
-    };
-
-    const handlePointerUp = () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-  };
-
-  const handleSidebarResizeStart = (event: React.PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    const layout = challengeLayoutRef.current;
-    if (!layout) return;
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-
-    const handlePointerMove = (moveEvent: PointerEvent) => {
-      const rect = layout.getBoundingClientRect();
-      const maxWidth = Math.max(420, Math.round(rect.width - 520));
-      const nextWidth = Math.round(moveEvent.clientX - rect.left);
-      const clampedWidth = Math.min(maxWidth, Math.max(360, nextWidth));
-      setSidebarWidth(clampedWidth);
-      localStorage.setItem("editorSidebarWidth", String(clampedWidth));
-    };
-
-    const handlePointerUp = () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-  };
-
   const renderChallengeDescription = () => (
-    <div className="challenge-description">
-      {challenge.description.split("\n").map((line, index) => {
-        const trimmedLine = line.trim();
-        if (trimmedLine === "") return null;
-        if (trimmedLine.startsWith("## "))
-          return (
-            <h2 key={index} className="description-section-title">
-              {trimmedLine.slice(3)}
-            </h2>
-          );
-        if (trimmedLine.startsWith("- "))
-          return (
-            <li key={index} className="description-list-item">
-              {renderInlineCode(trimmedLine.slice(2))}
-            </li>
-          );
-        if (trimmedLine.match(/^\d+\./))
-          return (
-            <li key={index} className="description-list-item">
-              {renderInlineCode(trimmedLine.replace(/^\d+\.\s*/, ""))}
-            </li>
-          );
-        if (trimmedLine.startsWith("`") && trimmedLine.endsWith("`"))
-          return (
-            <code key={index} className="description-code-line">
-              {trimmedLine.slice(1, -1)}
-            </code>
-          );
-        return (
-          <p key={index} className="description-copy">
-            {renderInlineCode(trimmedLine)}
-          </p>
-        );
-      })}
-    </div>
+    <ChallengeDescription markdown={challenge.description} />
   );
 
   const renderSolution = () => {
@@ -682,69 +601,36 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
     );
   };
 
-  return (
-    <div
-      className="challenge-layout"
-      ref={challengeLayoutRef}
-      style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
-    >
-      <section className="challenge-sidebar">
-        <div className="challenge-panel-tabs">
-          <button
-            type="button"
-            className={sidebarView === "description" ? "panel-tab active" : "panel-tab"}
-            onClick={() => setSidebarView("description")}
-          >
-            Описание
-          </button>
-          <button
-            type="button"
-            className={sidebarView === "solution" ? "panel-tab active" : "panel-tab"}
-            onClick={() => {
-              setSidebarView("solution");
-              setSolutionReveal("prompt");
-            }}
-          >
-            Решение
-          </button>
-          <button
-            type="button"
-            className={sidebarView === "attempts" ? "panel-tab active" : "panel-tab"}
-            onClick={() => setSidebarView("attempts")}
-          >
-            Попытки
-          </button>
-        </div>
-
-        <div className="challenge-info">
-          <div className="challenge-info-header">
-            <h1 className="challenge-title">{challenge.title}</h1>
-            <span className="badge badge-rank">{getChallengeLevelLabel(challenge.rank)}</span>
-          </div>
-          <div className="challenge-meta">
-            <span>{challenge.category}</span>
-            <span>{challenge.group}</span>
-            <span>{rankBand.label}</span>
-            <span>+{challenge.reputation} MMR</span>
-          </div>
-          {renderSidebarContent()}
-        </div>
-      </section>
-
+  const renderDescriptionToolbar = () => (
+    <div className="challenge-panel-tabs">
       <button
         type="button"
-        className="challenge-column-resizer"
-        aria-label="Изменить ширину описания"
-        onPointerDown={handleSidebarResizeStart}
-      />
+        className={sidebarView === "description" ? "panel-tab active" : "panel-tab"}
+        onClick={() => setSidebarView("description")}
+      >
+        Описание
+      </button>
+      <button
+        type="button"
+        className={sidebarView === "solution" ? "panel-tab active" : "panel-tab"}
+        onClick={() => {
+          setSidebarView("solution");
+          setSolutionReveal("prompt");
+        }}
+      >
+        Решение
+      </button>
+      <button
+        type="button"
+        className={sidebarView === "attempts" ? "panel-tab active" : "panel-tab"}
+        onClick={() => setSidebarView("attempts")}
+      >
+        Попытки
+      </button>
+    </div>
+  );
 
-      <section className="challenge-editor-area">
-        <div
-          className="editor-split"
-          ref={editorSplitRef}
-          style={{ "--output-height": `${outputHeight}px` } as React.CSSProperties}
-        >
-          <div className="editor-code-block">
+  const renderEditorToolbar = () => (
             <div className="challenge-panel-tabs editor-panel-tabs">
               <button
                 type="button"
@@ -939,22 +825,88 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
                 </div>
               </div>
             </div>
-            {renderEditorContent()}
+  );
+
+  const renderTile = (id: ViewId, path: number[]) => {
+    if (id === "description") {
+      return (
+        <MosaicWindow<ViewId>
+          path={path}
+          title="Описание"
+          toolbarControls={<></>}
+          renderToolbar={() => renderDescriptionToolbar()}
+        >
+          <div className="challenge-info" ref={challengeInfoRef}>
+            <div className="challenge-info-header">
+              <h1 className="challenge-title">{challenge.title}</h1>
+              <span className="badge badge-rank">{getChallengeLevelLabel(challenge.rank)}</span>
+              {(isChallengeCompleted || passedChallengeIds.has(challenge.id)) && (
+                <span className="badge badge-completed">Сделано</span>
+              )}
+            </div>
+            <div className="challenge-meta">
+              <span>{challenge.category}</span>
+              <span>{challenge.group}</span>
+              <span>{rankBand.label}</span>
+              <span>+{challenge.reputation} MMR</span>
+            </div>
+            {renderSidebarContent()}
           </div>
-          <button
-            type="button"
-            className="editor-output-resizer"
-            aria-label="Изменить высоту вывода"
-            onPointerDown={handleOutputResizeStart}
-          />
-          <OutputPanel
-            output={output}
-            testResults={testResults}
-            isRunning={isRunning}
-            expectedTests={expectedTests}
-          />
-        </div>
-      </section>
+        </MosaicWindow>
+      );
+    }
+    if (id === "editor") {
+      return (
+        <MosaicWindow<ViewId>
+          path={path}
+          title="Редактор"
+          toolbarControls={<></>}
+          renderToolbar={() => renderEditorToolbar()}
+        >
+          <div className="editor-code-block mosaic-tile-body">{renderEditorContent()}</div>
+        </MosaicWindow>
+      );
+    }
+    return (
+      <MosaicWindow<ViewId>
+        path={path}
+        title="Вывод"
+        toolbarControls={<></>}
+        renderToolbar={() => (
+          <div className="mosaic-output-toolbar">
+            <span className="mosaic-output-title">
+              <span className="mosaic-output-glyph">{">_"}</span>
+              Вывод
+            </span>
+          </div>
+        )}
+      >
+        <OutputPanel
+          output={output}
+          testResults={testResults}
+          isRunning={isRunning}
+          expectedTests={expectedTests}
+          hideHeader
+        />
+      </MosaicWindow>
+    );
+  };
+
+  const handleMosaicChange = (next: MosaicNode<ViewId> | null) => {
+    setMosaicTree(next);
+    if (next) localStorage.setItem(MOSAIC_TREE_KEY, JSON.stringify(next));
+  };
+
+  return (
+    <div className="challenge-layout challenge-layout-mosaic">
+      <div className="challenge-mosaic-shell">
+        <Mosaic<ViewId>
+          className="mosaic-foruntendo"
+          renderTile={renderTile}
+          value={mosaicTree}
+          onChange={handleMosaicChange}
+        />
+      </div>
 
       <div className="challenge-action-bar">
         <div className="challenge-action-left">

@@ -3,6 +3,7 @@ import type { WebContainer } from "@webcontainer/api";
 export interface TestResult {
   name: string;
   status: "pass" | "fail";
+  error?: string;
 }
 
 export interface RunResult {
@@ -43,9 +44,10 @@ const ANSI_RE = /\x1b\[[0-9;]*m/g;
 
 export function parseTestResults(raw: string): TestResult[] {
   const clean = raw.replace(ANSI_RE, "");
+  const lines = clean.split("\n");
   const results: TestResult[] = [];
 
-  for (const line of clean.split("\n")) {
+  for (const line of lines) {
     const passMatch = line.match(/^\s*[✓✔]\s+(.+?)(?:\s+\d+ms)?$/);
     if (passMatch) {
       results.push({ name: passMatch[1]!, status: "pass" });
@@ -56,6 +58,21 @@ export function parseTestResults(raw: string): TestResult[] {
     if (failMatch) {
       results.push({ name: failMatch[1]!, status: "fail" });
     }
+  }
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i]!;
+    if (!/^[\w$]/.test(line)) continue;
+    const name = line.trim();
+    const detail: string[] = [];
+    let j = i + 1;
+    while (j < lines.length && (lines[j]!.startsWith("  ") || lines[j]!.startsWith("\t"))) {
+      detail.push(lines[j]!.replace(/^\s+/, ""));
+      j += 1;
+    }
+    if (detail.length === 0) continue;
+    const target = results.find((r) => r.status === "fail" && r.name === name && !r.error);
+    if (target) target.error = detail.join("\n");
   }
 
   return results;

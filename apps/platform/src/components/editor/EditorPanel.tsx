@@ -59,6 +59,7 @@ export function EditorPanel({
   const saveTimerRef = useRef<number | null>(null);
   const fileContentsRef = useRef<Record<string, string>>({});
   const dirtyRef = useRef(false);
+  const saveCurrentStateRef = useRef<() => Promise<void>>(async () => {});
 
   const [activeFile, setActiveFile] = useState(visibleFiles[0]?.path ?? "");
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
@@ -90,6 +91,9 @@ export function EditorPanel({
   const saveCurrentState = useCallback(async () => {
     if (editorRef.current && activeFile && !isReadOnly) {
       await editorRef.current.getAction("editor.action.formatDocument")?.run();
+      const raw = editorRef.current.getValue();
+      const collapsed = raw.replace(/\n{3,}/g, "\n\n").replace(/^\n+/, "").replace(/\n+$/, "\n");
+      if (collapsed !== raw) editorRef.current.setValue(collapsed);
       const formatted = editorRef.current.getValue();
       fileContentsRef.current = { ...fileContentsRef.current, [activeFile]: formatted };
       setFileContents(fileContentsRef.current);
@@ -99,6 +103,10 @@ export function EditorPanel({
     dirtyRef.current = false;
     await onSave(fileContentsRef.current);
   }, [activeFile, isReadOnly, onFileChange, onSave]);
+
+  useEffect(() => {
+    saveCurrentStateRef.current = saveCurrentState;
+  }, [saveCurrentState]);
 
   const handleChange = useCallback(
     (value: string | undefined) => {
@@ -122,8 +130,11 @@ export function EditorPanel({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+      const isSaveKey =
+        event.code === "KeyS" || event.key === "s" || event.key === "S" || event.key === "ы" || event.key === "Ы";
+      if ((event.ctrlKey || event.metaKey) && isSaveKey) {
         event.preventDefault();
+        event.stopPropagation();
         void saveCurrentState();
       }
     };
@@ -184,12 +195,15 @@ export function EditorPanel({
                 runTestsRef.current();
               },
             );
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+              void saveCurrentStateRef.current();
+            });
           }}
           theme={theme}
           options={{
             minimap: { enabled: false },
             fontSize,
-            fontFamily: "'IBM Plex Mono', 'JetBrains Mono', 'Cascadia Code', Consolas, monospace",
+            fontFamily: "'Geist Mono', ui-monospace, 'Cascadia Code', Consolas, monospace",
             lineNumbers: "on",
             scrollBeyondLastLine: false,
             automaticLayout: true,

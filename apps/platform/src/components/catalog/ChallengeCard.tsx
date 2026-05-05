@@ -1,5 +1,6 @@
 import type { ChallengeMeta } from "@foruntendo/challenges";
 import { getChallengeLevelLabel, getRankBand } from "@foruntendo/challenges";
+import { LanguageIcon } from "../ui/LanguageIcon.tsx";
 
 interface ChallengeCardProps {
   challenge: ChallengeMeta;
@@ -28,7 +29,11 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
       <div className="card-footer">
         <span className="card-rep">{rankBand.label}</span>
         <span className="card-rep">+{challenge.reputation} MMR</span>
-        <span className="card-languages">{challenge.languages.join(", ")}</span>
+        <span className="card-languages">
+          {challenge.languages.map((language) => (
+            <LanguageIcon key={language} language={language} size={16} />
+          ))}
+        </span>
       </div>
     </article>
   );

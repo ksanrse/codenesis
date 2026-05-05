@@ -1,4 +1,9 @@
-import { RANK_BANDS, type Category, type Language } from "@foruntendo/challenges";
+import {
+  RANK_BANDS,
+  type Category,
+  type ChallengeSort,
+  type Language,
+} from "@foruntendo/challenges";
 
 const categories: Category[] = [
   "JavaScript",
@@ -26,6 +31,8 @@ interface FilterBarProps {
   onGroupChange: (v: string) => void;
   language: Language | "";
   onLanguageChange: (v: Language | "") => void;
+  sort: ChallengeSort;
+  onSortChange: (v: ChallengeSort) => void;
 }
 
 export function FilterBar({
@@ -40,6 +47,8 @@ export function FilterBar({
   onGroupChange,
   language,
   onLanguageChange,
+  sort,
+  onSortChange,
 }: FilterBarProps) {
   return (
     <div className="filter-bar">
@@ -97,6 +106,16 @@ export function FilterBar({
             {l}
           </option>
         ))}
+      </select>
+      <select
+        className="filter-select"
+        value={sort}
+        onChange={(e) => onSortChange(e.target.value as ChallengeSort)}
+        aria-label="Сортировка"
+      >
+        <option value="default">По порядку</option>
+        <option value="rank-asc">Сложность ↑</option>
+        <option value="rank-desc">Сложность ↓</option>
       </select>
     </div>
   );
