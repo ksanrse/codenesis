@@ -28,10 +28,12 @@ import {
   lazy,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { Mosaic, MosaicWindow, type MosaicNode } from "react-mosaic-component";
 import { useWebContainer } from "../../hooks/useWebContainer.ts";
 import { canRunInBrowser, runBrowserTests } from "../../lib/browser-test-runner.ts";
@@ -149,6 +151,9 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
   const fileChangesRef = useRef<Record<string, string>>({});
   const runTokenRef = useRef(0);
   const editorMenuRef = useRef<HTMLDivElement>(null);
+  const editorMenuBtnRef = useRef<HTMLButtonElement>(null);
+  const editorDropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
   const collectionNavigatorRef = useRef<HTMLDivElement>(null);
   const collectionDrawerRef = useRef<HTMLDivElement>(null);
   const challengeInfoRef = useRef<HTMLDivElement>(null);
@@ -453,7 +458,12 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
     };
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (editorMenuRef.current && !editorMenuRef.current.contains(event.target as Node)) {
+      if (
+        editorMenuRef.current &&
+        !editorMenuRef.current.contains(event.target as Node) &&
+        editorDropdownRef.current &&
+        !editorDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsEditorMenuOpen(false);
       }
       if (
@@ -473,6 +483,13 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
       window.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [handleReset, handleRunTests]);
+
+  useLayoutEffect(() => {
+    if (isEditorMenuOpen && editorMenuBtnRef.current) {
+      const rect = editorMenuBtnRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    }
+  }, [isEditorMenuOpen]);
 
   const openEditorView = (view: EditorView) => {
     setEditorView(view);
@@ -739,6 +756,7 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
               </div>
               <div className="editor-menu" ref={editorMenuRef}>
                 <button
+                  ref={editorMenuBtnRef}
                   type="button"
                   data-testid="editor-menu-button"
                   className="panel-tab-icon panel-tab-menu"
@@ -749,80 +767,85 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
                 >
                   <MoreHorizontal size={17} strokeWidth={2.25} />
                 </button>
-                <div
-                  id="editor-options"
-                  className={isEditorMenuOpen ? "editor-dropdown is-open" : "editor-dropdown"}
-                >
-                  <div className="editor-theme-control">
-                    <label htmlFor="editor-theme">Editor Theme</label>
-                    <select
-                      id="editor-theme"
-                      value={editorTheme}
-                      onChange={(event) => handleEditorThemeChange(event.target.value)}
+                {createPortal(
+                  <div
+                    ref={editorDropdownRef}
+                    id="editor-options"
+                    className={isEditorMenuOpen ? "editor-dropdown is-open" : "editor-dropdown"}
+                    style={dropdownPos ? { top: dropdownPos.top, right: dropdownPos.right } : undefined}
+                  >
+                    <div className="editor-theme-control">
+                      <label htmlFor="editor-theme">Editor Theme</label>
+                      <select
+                        id="editor-theme"
+                        value={editorTheme}
+                        onChange={(event) => handleEditorThemeChange(event.target.value)}
+                      >
+                        <option value="vs-dark">Dracula</option>
+                        <option value="hc-black">High Contrast</option>
+                        <option value="light">Light</option>
+                      </select>
+                    </div>
+                    <div className="editor-theme-control">
+                      <label htmlFor="editor-font-size">Размер шрифта</label>
+                      <select
+                        id="editor-font-size"
+                        value={editorFontSize}
+                        onChange={(event) => handleEditorFontSizeChange(Number(event.target.value))}
+                      >
+                        <option value={12}>12 px</option>
+                        <option value={13}>13 px</option>
+                        <option value={14}>14 px</option>
+                        <option value={15}>15 px</option>
+                        <option value={16}>16 px</option>
+                        <option value={18}>18 px</option>
+                        <option value={20}>20 px</option>
+                        <option value={22}>22 px</option>
+                        <option value={24}>24 px</option>
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      data-testid="editor-menu-shortcuts"
+                      className="editor-dropdown-item editor-dropdown-item-large"
+                      onClick={() => openEditorView("shortcuts")}
                     >
-                      <option value="vs-dark">Dracula</option>
-                      <option value="hc-black">High Contrast</option>
-                      <option value="light">Light</option>
-                    </select>
-                  </div>
-                  <div className="editor-theme-control">
-                    <label htmlFor="editor-font-size">Размер шрифта</label>
-                    <select
-                      id="editor-font-size"
-                      value={editorFontSize}
-                      onChange={(event) => handleEditorFontSizeChange(Number(event.target.value))}
+                      <Keyboard size={16} strokeWidth={2.25} />
+                      Keyboard shortcuts
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="editor-menu-run"
+                      className="editor-dropdown-item"
+                      onClick={() => {
+                        setIsEditorMenuOpen(false);
+                        void handleRunTests();
+                      }}
                     >
-                      <option value={12}>12 px</option>
-                      <option value={13}>13 px</option>
-                      <option value={14}>14 px</option>
-                      <option value={15}>15 px</option>
-                      <option value={16}>16 px</option>
-                      <option value={18}>18 px</option>
-                      <option value={20}>20 px</option>
-                      <option value={22}>22 px</option>
-                      <option value={24}>24 px</option>
-                    </select>
-                  </div>
-                  <button
-                    type="button"
-                    data-testid="editor-menu-shortcuts"
-                    className="editor-dropdown-item editor-dropdown-item-large"
-                    onClick={() => openEditorView("shortcuts")}
-                  >
-                    <Keyboard size={16} strokeWidth={2.25} />
-                    Keyboard shortcuts
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="editor-menu-run"
-                    className="editor-dropdown-item"
-                    onClick={() => {
-                      setIsEditorMenuOpen(false);
-                      void handleRunTests();
-                    }}
-                  >
-                    Запустить тесты
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="editor-menu-switch-view"
-                    className="editor-dropdown-item"
-                    onClick={() => openEditorView(editorView === "code" ? "tests" : "code")}
-                  >
-                    {editorView === "code" ? "Показать тесты" : "Показать код"}
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="editor-menu-reset"
-                    className="editor-dropdown-item"
-                    onClick={() => {
-                      setIsEditorMenuOpen(false);
-                      handleReset();
-                    }}
-                  >
-                    Сбросить решение
-                  </button>
-                </div>
+                      Запустить тесты
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="editor-menu-switch-view"
+                      className="editor-dropdown-item"
+                      onClick={() => openEditorView(editorView === "code" ? "tests" : "code")}
+                    >
+                      {editorView === "code" ? "Показать тесты" : "Показать код"}
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="editor-menu-reset"
+                      className="editor-dropdown-item"
+                      onClick={() => {
+                        setIsEditorMenuOpen(false);
+                        handleReset();
+                      }}
+                    >
+                      Сбросить решение
+                    </button>
+                  </div>,
+                  document.body,
+                )}
               </div>
             </div>
   );

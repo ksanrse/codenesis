@@ -18,3 +18,9 @@ export {
   dateChallenges,
   jsonChallenges,
 } from "./destructuring-date-json.ts";
+export {
+  symbolChallenges,
+  bigintChallenges,
+  coercionChallenges,
+} from "./symbols-bigint-coercion.ts";
+export { dtPolyfillChallenges } from "./advanced-polyfills.ts";

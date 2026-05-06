@@ -4050,10 +4050,8 @@ ul {
 }
 
 .editor-dropdown {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  z-index: 20;
+  position: fixed;
+  z-index: 9999;
   width: 304px;
   padding: 10px;
   border: 1px solid var(--border-hover);
@@ -4062,16 +4060,17 @@ ul {
   box-shadow: var(--shadow-lg);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-6px);
+  transform: translateY(-6px) scale(0.97);
+  transform-origin: top right;
   transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .editor-dropdown.is-open {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .editor-theme-control {
@@ -4460,28 +4459,76 @@ ul {
   font-family: var(--font-mono);
 }
 
+.output-header-compact {
+  min-height: 38px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
 .test-results {
   display: grid;
   gap: 6px;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg-subtle) 52%, transparent);
   overflow-y: auto;
   flex-shrink: 0;
-  max-height: 190px;
 }
 
 .test-result {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 30px;
-  padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
   font-size: 12px;
   font-family: var(--font-mono);
+  overflow: hidden;
+}
+
+.test-result-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.test-result-clickable .test-result-row {
+  cursor: pointer;
+}
+
+.test-result-clickable .test-result-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.test-result-chevron {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  transition: transform 0.16s ease;
+}
+
+.test-result.is-open .test-result-chevron {
+  transform: rotate(180deg);
+}
+
+.test-result-error {
+  margin: 0;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--error-light);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--error);
+  white-space: pre-wrap;
+  overflow-x: auto;
 }
 
 .test-icon {
@@ -4520,19 +4567,6 @@ ul {
   flex-shrink: 0;
   color: var(--primary);
   font-size: 11px;
-}
-
-.test-error {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--error);
-  background: var(--error-light);
-  padding: 6px 8px;
-  border-radius: 2px;
-  border: 1px solid var(--error-border);
-  margin-top: 4px;
-  overflow-x: auto;
-  white-space: pre-wrap;
 }
 
 .output-terminal {

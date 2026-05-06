@@ -25,8 +25,11 @@ import {
 import {
   arrayChallenges,
   arrayMethodsChallenges,
+  bigintChallenges,
+  coercionChallenges,
   dateChallenges,
   destructuringChallenges,
+  dtPolyfillChallenges,
   iterableChallenges,
   jsonChallenges,
   keysValuesEntriesChallenges,
@@ -34,6 +37,7 @@ import {
   numberChallenges,
   primitiveMethodsChallenges,
   stringChallenges,
+  symbolChallenges,
   weakMapSetChallenges,
 } from "./challenges/data-types-ru/index.ts";
 import { modalComponent } from "./challenges/modal-component/index.ts";
@@ -56,6 +60,10 @@ const dtKeysValues = tagWith("JS/dt-keys-values", keysValuesEntriesChallenges);
 const dtDestructuring = tagWith("JS/dt-destructuring", destructuringChallenges);
 const dtDate = tagWith("JS/dt-date", dateChallenges);
 const dtJson = tagWith("JS/dt-json", jsonChallenges);
+const dtSymbols = tagWith("JS/dt-symbols", symbolChallenges);
+const dtBigint = tagWith("JS/dt-bigint", bigintChallenges);
+const dtCoercion = tagWith("JS/dt-coercion", coercionChallenges);
+const dtAdvancedPolyfills = tagWith("JS/dt-advanced-polyfills", dtPolyfillChallenges);
 
 const challenges: ChallengeDefinition[] = [
   ...jsTypeChallenges,
@@ -87,6 +95,10 @@ const challenges: ChallengeDefinition[] = [
   ...dtDestructuring,
   ...dtDate,
   ...dtJson,
+  ...dtSymbols,
+  ...dtBigint,
+  ...dtCoercion,
+  ...dtAdvancedPolyfills,
 ];
 
 const challengeMap = new Map(challenges.map((c) => [c.id, c]));
@@ -133,6 +145,10 @@ const collectionDefinitions: CollectionDefinition[] = [
       "js-dt-destructuring",
       "js-dt-date",
       "js-dt-json",
+      "js-dt-symbols",
+      "js-dt-bigint",
+      "js-dt-coercion",
+      "js-dt-advanced-polyfills",
     ],
   },
   {
@@ -462,6 +478,58 @@ const collectionDefinitions: CollectionDefinition[] = [
       "4 задачи: safeParse, deepClone, prettyPrint и omitFields через JSON.parse/stringify.",
     tag: "JS/dt-json",
     skillLabel: "JSON методы",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-symbols",
+    title: "JS / Symbol",
+    description:
+      "2 задачи: создание enum через Symbol и итерируемый объект через Symbol.iterator.",
+    tag: "JS/dt-symbols",
+    skillLabel: "Symbol",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-bigint",
+    title: "JS / BigInt",
+    description:
+      "2 задачи: сложение больших чисел и факториал через BigInt.",
+    tag: "JS/dt-bigint",
+    skillLabel: "BigInt",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-coercion",
+    title: "JS / приведение типов",
+    description:
+      "3 задачи: truthy/falsy-подсчёт, полифил Object.is и парсинг формы с приведением типов.",
+    tag: "JS/dt-coercion",
+    skillLabel: "Приведение типов",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-advanced-polyfills",
+    title: "JS / полифилы типов данных",
+    description:
+      "3 задачи: полифил Array.flat, глубокое клонирование и глубокое сравнение.",
+    tag: "JS/dt-advanced-polyfills",
+    skillLabel: "Полифилы типов данных",
     kind: "set",
     parentCollectionId: "javascript-textbook",
     sectionTitle: "Раздел 7 · Типы данных",
