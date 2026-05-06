@@ -22,9 +22,40 @@ import {
   optionalChainingChallenges,
   polyfillChallenges,
 } from "./challenges/learn-javascript-ru/index.ts";
+import {
+  arrayChallenges,
+  arrayMethodsChallenges,
+  dateChallenges,
+  destructuringChallenges,
+  iterableChallenges,
+  jsonChallenges,
+  keysValuesEntriesChallenges,
+  mapSetChallenges,
+  numberChallenges,
+  primitiveMethodsChallenges,
+  stringChallenges,
+  weakMapSetChallenges,
+} from "./challenges/data-types-ru/index.ts";
 import { modalComponent } from "./challenges/modal-component/index.ts";
 import { switchChallenges } from "./challenges/switch-statements/index.ts";
 import { todoList } from "./challenges/todo-list/index.ts";
+
+function tagWith(tag: string, list: ChallengeDefinition[]): ChallengeDefinition[] {
+  return list.map((c) => ({ ...c, tags: [...c.tags, tag] }));
+}
+
+const dtPrimitiveMethods = tagWith("JS/dt-primitive-methods", primitiveMethodsChallenges);
+const dtNumbers = tagWith("JS/dt-numbers", numberChallenges);
+const dtStrings = tagWith("JS/dt-strings", stringChallenges);
+const dtArrays = tagWith("JS/dt-arrays", arrayChallenges);
+const dtArrayMethods = tagWith("JS/dt-array-methods", arrayMethodsChallenges);
+const dtIterables = tagWith("JS/dt-iterables", iterableChallenges);
+const dtMapSet = tagWith("JS/dt-map-set", mapSetChallenges);
+const dtWeakMapSet = tagWith("JS/dt-weakmap-weakset", weakMapSetChallenges);
+const dtKeysValues = tagWith("JS/dt-keys-values", keysValuesEntriesChallenges);
+const dtDestructuring = tagWith("JS/dt-destructuring", destructuringChallenges);
+const dtDate = tagWith("JS/dt-date", dateChallenges);
+const dtJson = tagWith("JS/dt-json", jsonChallenges);
 
 const challenges: ChallengeDefinition[] = [
   ...jsTypeChallenges,
@@ -44,6 +75,18 @@ const challenges: ChallengeDefinition[] = [
   todoList,
   modalComponent,
   autocompleteSearch,
+  ...dtPrimitiveMethods,
+  ...dtNumbers,
+  ...dtStrings,
+  ...dtArrays,
+  ...dtArrayMethods,
+  ...dtIterables,
+  ...dtMapSet,
+  ...dtWeakMapSet,
+  ...dtKeysValues,
+  ...dtDestructuring,
+  ...dtDate,
+  ...dtJson,
 ];
 
 const challengeMap = new Map(challenges.map((c) => [c.id, c]));
@@ -78,6 +121,18 @@ const collectionDefinitions: CollectionDefinition[] = [
       "js-constructor-new",
       "js-optional-chaining",
       "js-object-toprimitive",
+      "js-dt-primitive-methods",
+      "js-dt-numbers",
+      "js-dt-strings",
+      "js-dt-arrays",
+      "js-dt-array-methods",
+      "js-dt-iterables",
+      "js-dt-map-set",
+      "js-dt-weakmap-weakset",
+      "js-dt-keys-values",
+      "js-dt-destructuring",
+      "js-dt-date",
+      "js-dt-json",
     ],
   },
   {
@@ -256,6 +311,162 @@ const collectionDefinitions: CollectionDefinition[] = [
     sectionTitle: "Раздел 6 · Объекты",
     sectionDescription:
       "Объекты, ссылки, копирование, методы, конструкторы, опциональная цепочка и преобразование в примитив.",
+  },
+  {
+    id: "js-dt-primitive-methods",
+    title: "JS / методы примитивов",
+    description:
+      "4 задачи: length строки, toFixed, padStart и toString с основанием — примитивы как объекты.",
+    tag: "JS/dt-primitive-methods",
+    skillLabel: "Методы примитивов",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-numbers",
+    title: "JS / числа",
+    description:
+      "4 задачи: parseInt строгий, float-сравнение через epsilon, clamp и округление центов.",
+    tag: "JS/dt-numbers",
+    skillLabel: "Числа в JavaScript",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-strings",
+    title: "JS / строки",
+    description:
+      "4 задачи: truncate через slice, slugify через regex, подсчёт слов и первый codepoint.",
+    tag: "JS/dt-strings",
+    skillLabel: "Строки в JavaScript",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-arrays",
+    title: "JS / массивы",
+    description:
+      "4 задачи: removeAt, lastN, chunk и uniquePush — базовые операции с массивами.",
+    tag: "JS/dt-arrays",
+    skillLabel: "Массивы в JavaScript",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-array-methods",
+    title: "JS / методы массивов",
+    description:
+      "4 задачи: sumBy, groupBy, sortByKey и flatten — реализация через reduce/forEach.",
+    tag: "JS/dt-array-methods",
+    skillLabel: "Методы массивов",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-iterables",
+    title: "JS / итерируемые объекты",
+    description:
+      "4 задачи: range, take, zipWith и takeWhile через протокол итерации и генераторы.",
+    tag: "JS/dt-iterables",
+    skillLabel: "Итерируемые объекты",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-map-set",
+    title: "JS / Map и Set",
+    description:
+      "4 задачи: tallyOccurrences, dedupSet, mergeMaps и intersectSets через Map и Set.",
+    tag: "JS/dt-map-set",
+    skillLabel: "Map и Set",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-weakmap-weakset",
+    title: "JS / WeakMap и WeakSet",
+    description:
+      "3 задачи: кэш через WeakMap, посещённые через WeakSet и мемоизация с обходом falsy.",
+    tag: "JS/dt-weakmap-weakset",
+    skillLabel: "WeakMap и WeakSet",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-keys-values",
+    title: "JS / Object.keys/values/entries",
+    description:
+      "4 задачи: invertObject, pickFields, mapValues и groupEntries через entries/fromEntries.",
+    tag: "JS/dt-keys-values",
+    skillLabel: "Object.keys/values/entries",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-destructuring",
+    title: "JS / деструктуризация",
+    description:
+      "4 задачи: swap без temp, headTail, defaults и rename через деструктуризацию массивов и объектов.",
+    tag: "JS/dt-destructuring",
+    skillLabel: "Деструктуризация",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-date",
+    title: "JS / Date",
+    description:
+      "4 задачи: formatISO, addDays, daysBetween и isWeekend через объект Date.",
+    tag: "JS/dt-date",
+    skillLabel: "Дата и время",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
+  },
+  {
+    id: "js-dt-json",
+    title: "JS / JSON",
+    description:
+      "4 задачи: safeParse, deepClone, prettyPrint и omitFields через JSON.parse/stringify.",
+    tag: "JS/dt-json",
+    skillLabel: "JSON методы",
+    kind: "set",
+    parentCollectionId: "javascript-textbook",
+    sectionTitle: "Раздел 7 · Типы данных",
+    sectionDescription:
+      "Примитивы, числа, строки, массивы, Map/Set, деструктуризация, Date и JSON.",
   },
   {
     id: "js-dom-state",
