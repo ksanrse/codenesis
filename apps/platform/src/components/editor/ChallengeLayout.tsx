@@ -1,3 +1,4 @@
+import "react-mosaic-component/react-mosaic-component.css";
 import { useNavigate } from "@tanstack/react-router";
 import {
   getChallengeById,
@@ -112,6 +113,8 @@ const DEFAULT_MOSAIC_TREE: MosaicNode<ViewId> = {
   ],
   splitPercentages: [38, 62],
 };
+
+const EMPTY_TOOLBAR_CONTROLS = <></>;
 
 function getInitialMosaicTree(): MosaicNode<ViewId> {
   if (typeof window === "undefined") return DEFAULT_MOSAIC_TREE;
@@ -256,8 +259,8 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
     );
   }, [challenge, language]);
 
-  const { status, writeFile, runTests } = useWebContainer(allFiles, deps);
   const browserRunnerAvailable = canRunInBrowser(allFiles);
+  const { status, writeFile, runTests } = useWebContainer(allFiles, deps, !browserRunnerAvailable);
   const canRunTests = status === "ready" || browserRunnerAvailable;
   const runButtonLabel = isRunning
     ? "Запуск..."
@@ -648,206 +651,206 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
   );
 
   const renderEditorToolbar = () => (
-            <div className="challenge-panel-tabs editor-panel-tabs">
-              <button
-                type="button"
-                className="panel-tab-icon"
-                aria-label="Добавить вкладку редактора"
-                data-testid="editor-add-tab"
-                onClick={() => setEditorView("new-tab")}
+    <div className="challenge-panel-tabs editor-panel-tabs">
+      <button
+        type="button"
+        className="panel-tab-icon"
+        aria-label="Добавить вкладку редактора"
+        data-testid="editor-add-tab"
+        onClick={() => setEditorView("new-tab")}
+      >
+        <Plus size={16} strokeWidth={2.25} />
+      </button>
+      <button
+        type="button"
+        data-testid="editor-code-tab"
+        className={editorView === "code" ? "panel-tab active" : "panel-tab"}
+        onClick={() => setEditorView("code")}
+      >
+        Код
+      </button>
+      <button
+        type="button"
+        data-testid="editor-tests-tab"
+        className={editorView === "tests" ? "panel-tab active" : "panel-tab"}
+        onClick={() => setEditorView("tests")}
+      >
+        Тесткейсы
+      </button>
+      {showFullTests && (
+        <button
+          type="button"
+          data-testid="editor-full-tests-tab"
+          className={editorView === "full-tests" ? "panel-tab active" : "panel-tab"}
+          onClick={() => setEditorView("full-tests")}
+        >
+          Все тесты
+        </button>
+      )}
+      {editorView === "shortcuts" && (
+        <button
+          type="button"
+          data-testid="editor-shortcuts-tab"
+          className="panel-tab active panel-tab-with-close"
+          onClick={() => setEditorView("shortcuts")}
+        >
+          Шорткаты редактора
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Закрыть вкладку шорткатов"
+            className="panel-tab-close"
+            onClick={(event) => {
+              event.stopPropagation();
+              setEditorView("code");
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                event.stopPropagation();
+                setEditorView("code");
+              }
+            }}
+          >
+            <X size={13} strokeWidth={2.25} />
+          </span>
+        </button>
+      )}
+      {editorView === "new-tab" && (
+        <button
+          type="button"
+          data-testid="editor-new-tab"
+          className="panel-tab active panel-tab-with-close"
+          onClick={() => setEditorView("new-tab")}
+        >
+          Новая вкладка
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Закрыть новую вкладку"
+            className="panel-tab-close"
+            onClick={(event) => {
+              event.stopPropagation();
+              setEditorView("code");
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                event.stopPropagation();
+                setEditorView("code");
+              }
+            }}
+          >
+            <X size={13} strokeWidth={2.25} />
+          </span>
+        </button>
+      )}
+      <div className="language-selector">
+        {availableLangs.map((lang) => (
+          <button
+            key={lang}
+            type="button"
+            className={`lang-btn ${lang === language ? "active" : ""}`}
+            onClick={() => setLanguage(lang)}
+          >
+            {lang}
+          </button>
+        ))}
+      </div>
+      <div className="editor-menu" ref={editorMenuRef}>
+        <button
+          ref={editorMenuBtnRef}
+          type="button"
+          data-testid="editor-menu-button"
+          className="panel-tab-icon panel-tab-menu"
+          aria-expanded={isEditorMenuOpen}
+          aria-controls="editor-options"
+          aria-label="Меню редактора"
+          onClick={() => setIsEditorMenuOpen((current) => !current)}
+        >
+          <MoreHorizontal size={17} strokeWidth={2.25} />
+        </button>
+        {createPortal(
+          <div
+            ref={editorDropdownRef}
+            id="editor-options"
+            className={isEditorMenuOpen ? "editor-dropdown is-open" : "editor-dropdown"}
+            style={dropdownPos ? { top: dropdownPos.top, right: dropdownPos.right } : undefined}
+          >
+            <div className="editor-theme-control">
+              <label htmlFor="editor-theme">Editor Theme</label>
+              <select
+                id="editor-theme"
+                value={editorTheme}
+                onChange={(event) => handleEditorThemeChange(event.target.value)}
               >
-                <Plus size={16} strokeWidth={2.25} />
-              </button>
-              <button
-                type="button"
-                data-testid="editor-code-tab"
-                className={editorView === "code" ? "panel-tab active" : "panel-tab"}
-                onClick={() => setEditorView("code")}
-              >
-                Код
-              </button>
-              <button
-                type="button"
-                data-testid="editor-tests-tab"
-                className={editorView === "tests" ? "panel-tab active" : "panel-tab"}
-                onClick={() => setEditorView("tests")}
-              >
-                Тесткейсы
-              </button>
-              {showFullTests && (
-                <button
-                  type="button"
-                  data-testid="editor-full-tests-tab"
-                  className={editorView === "full-tests" ? "panel-tab active" : "panel-tab"}
-                  onClick={() => setEditorView("full-tests")}
-                >
-                  Все тесты
-                </button>
-              )}
-              {editorView === "shortcuts" && (
-                <button
-                  type="button"
-                  data-testid="editor-shortcuts-tab"
-                  className="panel-tab active panel-tab-with-close"
-                  onClick={() => setEditorView("shortcuts")}
-                >
-                  Шорткаты редактора
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Закрыть вкладку шорткатов"
-                    className="panel-tab-close"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setEditorView("code");
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setEditorView("code");
-                      }
-                    }}
-                  >
-                    <X size={13} strokeWidth={2.25} />
-                  </span>
-                </button>
-              )}
-              {editorView === "new-tab" && (
-                <button
-                  type="button"
-                  data-testid="editor-new-tab"
-                  className="panel-tab active panel-tab-with-close"
-                  onClick={() => setEditorView("new-tab")}
-                >
-                  Новая вкладка
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Закрыть новую вкладку"
-                    className="panel-tab-close"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setEditorView("code");
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setEditorView("code");
-                      }
-                    }}
-                  >
-                    <X size={13} strokeWidth={2.25} />
-                  </span>
-                </button>
-              )}
-              <div className="language-selector">
-                {availableLangs.map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    className={`lang-btn ${lang === language ? "active" : ""}`}
-                    onClick={() => setLanguage(lang)}
-                  >
-                    {lang}
-                  </button>
-                ))}
-              </div>
-              <div className="editor-menu" ref={editorMenuRef}>
-                <button
-                  ref={editorMenuBtnRef}
-                  type="button"
-                  data-testid="editor-menu-button"
-                  className="panel-tab-icon panel-tab-menu"
-                  aria-expanded={isEditorMenuOpen}
-                  aria-controls="editor-options"
-                  aria-label="Меню редактора"
-                  onClick={() => setIsEditorMenuOpen((current) => !current)}
-                >
-                  <MoreHorizontal size={17} strokeWidth={2.25} />
-                </button>
-                {createPortal(
-                  <div
-                    ref={editorDropdownRef}
-                    id="editor-options"
-                    className={isEditorMenuOpen ? "editor-dropdown is-open" : "editor-dropdown"}
-                    style={dropdownPos ? { top: dropdownPos.top, right: dropdownPos.right } : undefined}
-                  >
-                    <div className="editor-theme-control">
-                      <label htmlFor="editor-theme">Editor Theme</label>
-                      <select
-                        id="editor-theme"
-                        value={editorTheme}
-                        onChange={(event) => handleEditorThemeChange(event.target.value)}
-                      >
-                        <option value="vs-dark">Dracula</option>
-                        <option value="hc-black">High Contrast</option>
-                        <option value="light">Light</option>
-                      </select>
-                    </div>
-                    <div className="editor-theme-control">
-                      <label htmlFor="editor-font-size">Размер шрифта</label>
-                      <select
-                        id="editor-font-size"
-                        value={editorFontSize}
-                        onChange={(event) => handleEditorFontSizeChange(Number(event.target.value))}
-                      >
-                        <option value={12}>12 px</option>
-                        <option value={13}>13 px</option>
-                        <option value={14}>14 px</option>
-                        <option value={15}>15 px</option>
-                        <option value={16}>16 px</option>
-                        <option value={18}>18 px</option>
-                        <option value={20}>20 px</option>
-                        <option value={22}>22 px</option>
-                        <option value={24}>24 px</option>
-                      </select>
-                    </div>
-                    <button
-                      type="button"
-                      data-testid="editor-menu-shortcuts"
-                      className="editor-dropdown-item editor-dropdown-item-large"
-                      onClick={() => openEditorView("shortcuts")}
-                    >
-                      <Keyboard size={16} strokeWidth={2.25} />
-                      Keyboard shortcuts
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="editor-menu-run"
-                      className="editor-dropdown-item"
-                      onClick={() => {
-                        setIsEditorMenuOpen(false);
-                        void handleRunTests();
-                      }}
-                    >
-                      Запустить тесты
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="editor-menu-switch-view"
-                      className="editor-dropdown-item"
-                      onClick={() => openEditorView(editorView === "code" ? "tests" : "code")}
-                    >
-                      {editorView === "code" ? "Показать тесты" : "Показать код"}
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="editor-menu-reset"
-                      className="editor-dropdown-item"
-                      onClick={() => {
-                        setIsEditorMenuOpen(false);
-                        handleReset();
-                      }}
-                    >
-                      Сбросить решение
-                    </button>
-                  </div>,
-                  document.body,
-                )}
-              </div>
+                <option value="vs-dark">Dracula</option>
+                <option value="hc-black">High Contrast</option>
+                <option value="light">Light</option>
+              </select>
             </div>
+            <div className="editor-theme-control">
+              <label htmlFor="editor-font-size">Размер шрифта</label>
+              <select
+                id="editor-font-size"
+                value={editorFontSize}
+                onChange={(event) => handleEditorFontSizeChange(Number(event.target.value))}
+              >
+                <option value={12}>12 px</option>
+                <option value={13}>13 px</option>
+                <option value={14}>14 px</option>
+                <option value={15}>15 px</option>
+                <option value={16}>16 px</option>
+                <option value={18}>18 px</option>
+                <option value={20}>20 px</option>
+                <option value={22}>22 px</option>
+                <option value={24}>24 px</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              data-testid="editor-menu-shortcuts"
+              className="editor-dropdown-item editor-dropdown-item-large"
+              onClick={() => openEditorView("shortcuts")}
+            >
+              <Keyboard size={16} strokeWidth={2.25} />
+              Keyboard shortcuts
+            </button>
+            <button
+              type="button"
+              data-testid="editor-menu-run"
+              className="editor-dropdown-item"
+              onClick={() => {
+                setIsEditorMenuOpen(false);
+                void handleRunTests();
+              }}
+            >
+              Запустить тесты
+            </button>
+            <button
+              type="button"
+              data-testid="editor-menu-switch-view"
+              className="editor-dropdown-item"
+              onClick={() => openEditorView(editorView === "code" ? "tests" : "code")}
+            >
+              {editorView === "code" ? "Показать тесты" : "Показать код"}
+            </button>
+            <button
+              type="button"
+              data-testid="editor-menu-reset"
+              className="editor-dropdown-item"
+              onClick={() => {
+                setIsEditorMenuOpen(false);
+                handleReset();
+              }}
+            >
+              Сбросить решение
+            </button>
+          </div>,
+          document.body,
+        )}
+      </div>
+    </div>
   );
 
   const renderTile = (id: ViewId, path: number[]) => {
@@ -856,7 +859,7 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
         <MosaicWindow<ViewId>
           path={path}
           title="Описание"
-          toolbarControls={<></>}
+          toolbarControls={EMPTY_TOOLBAR_CONTROLS}
           renderToolbar={() => renderDescriptionToolbar()}
         >
           <div className="challenge-info" ref={challengeInfoRef}>
@@ -883,7 +886,7 @@ export function ChallengeLayout({ challenge }: ChallengeLayoutProps) {
         <MosaicWindow<ViewId>
           path={path}
           title="Редактор"
-          toolbarControls={<></>}
+          toolbarControls={EMPTY_TOOLBAR_CONTROLS}
           renderToolbar={() => renderEditorToolbar()}
         >
           <div className="editor-code-block mosaic-tile-body">{renderEditorContent()}</div>

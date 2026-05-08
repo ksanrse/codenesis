@@ -19,8 +19,7 @@ const children = tasks.map((task) => {
 
   child.on("exit", (code, signal) => {
     if (shuttingDown) return;
-    console.log(`[dev] ${task.name} exited with ${signal ?? code}`);
-    shutdown(code ?? 1);
+    console.log(`[dev] ${task.name} exited with ${signal ?? code} — restart this process manually`);
   });
 
   return child;

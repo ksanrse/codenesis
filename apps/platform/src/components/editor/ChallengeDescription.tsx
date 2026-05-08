@@ -1,4 +1,4 @@
-import { isValidElement, type ReactNode } from "react";
+import { isValidElement, memo, useMemo, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { highlightJavaScriptCode } from "../../lib/syntax-highlight.tsx";
@@ -94,16 +94,16 @@ const markdownComponents = {
   },
 } as const;
 
-function MarkdownBody({ source }: { source: string }) {
+const MarkdownBody = memo(function MarkdownBody({ source }: { source: string }) {
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
       {source}
     </ReactMarkdown>
   );
-}
+});
 
-export function ChallengeDescription({ markdown }: ChallengeDescriptionProps) {
-  const sections = splitSections(markdown);
+function ChallengeDescriptionInner({ markdown }: ChallengeDescriptionProps) {
+  const sections = useMemo(() => splitSections(markdown), [markdown]);
 
   return (
     <div className="challenge-description">
@@ -134,3 +134,5 @@ export function ChallengeDescription({ markdown }: ChallengeDescriptionProps) {
     </div>
   );
 }
+
+export const ChallengeDescription = memo(ChallengeDescriptionInner);

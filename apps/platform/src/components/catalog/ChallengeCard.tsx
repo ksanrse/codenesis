@@ -1,5 +1,6 @@
 import type { ChallengeMeta } from "@foruntendo/challenges";
 import { getChallengeLevelLabel, getRankBand } from "@foruntendo/challenges";
+import { memo } from "react";
 import { LanguageIcon } from "../ui/LanguageIcon.tsx";
 
 interface ChallengeCardProps {
@@ -7,7 +8,9 @@ interface ChallengeCardProps {
   onClick: () => void;
 }
 
-export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
+export const ChallengeCard = memo(ChallengeCardInner);
+
+function ChallengeCardInner({ challenge, onClick }: ChallengeCardProps) {
   const rankBand = getRankBand(challenge.rank);
 
   return (

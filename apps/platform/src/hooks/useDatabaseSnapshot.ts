@@ -1,23 +1,23 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { getActiveCollectionId, getAttempts } from "../lib/local-db.ts";
 
+const EVENT = "foruntendo-db-change";
+
+function subscribe(listener: () => void) {
+  window.addEventListener(EVENT, listener);
+  return () => window.removeEventListener(EVENT, listener);
+}
+
+export function useAttempts() {
+  return useSyncExternalStore(subscribe, getAttempts, getAttempts);
+}
+
+export function useActiveCollectionId() {
+  return useSyncExternalStore(subscribe, getActiveCollectionId, getActiveCollectionId);
+}
+
 export function useDatabaseSnapshot() {
-  const [snapshot, setSnapshot] = useState(() => ({
-    activeCollectionId: getActiveCollectionId(),
-    attempts: getAttempts(),
-  }));
-
-  useEffect(() => {
-    const refresh = () => {
-      setSnapshot({
-        activeCollectionId: getActiveCollectionId(),
-        attempts: getAttempts(),
-      });
-    };
-
-    window.addEventListener("foruntendo-db-change", refresh);
-    return () => window.removeEventListener("foruntendo-db-change", refresh);
-  }, []);
-
-  return snapshot;
+  const attempts = useAttempts();
+  const activeCollectionId = useActiveCollectionId();
+  return { attempts, activeCollectionId };
 }

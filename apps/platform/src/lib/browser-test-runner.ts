@@ -44,10 +44,7 @@ function deepEqual(left: unknown, right: unknown): boolean {
   for (const key of leftKeys) {
     if (
       !Object.prototype.hasOwnProperty.call(right, key) ||
-      !deepEqual(
-        (left as Record<string, unknown>)[key],
-        (right as Record<string, unknown>)[key],
-      )
+      !deepEqual((left as Record<string, unknown>)[key], (right as Record<string, unknown>)[key])
     )
       return false;
   }
@@ -64,7 +61,8 @@ function formatValue(value: unknown): string {
   try {
     return JSON.stringify(value);
   } catch {
-    return String(value);
+    if (typeof value === "object") return "[Unstringifiable]";
+    return String(value as string | number | boolean | symbol | bigint);
   }
 }
 
@@ -174,15 +172,15 @@ function createExpect(
     },
     toContain(expected: unknown) {
       let ok = false;
-      if (typeof actual === "string" && typeof expected === "string") ok = actual.includes(expected);
+      if (typeof actual === "string" && typeof expected === "string")
+        ok = actual.includes(expected);
       else if (Array.isArray(actual)) ok = actual.includes(expected);
       else if (actual instanceof Set) ok = actual.has(expected);
       assert(ok, `Expected ${formatValue(actual)} to contain ${formatValue(expected)}`);
     },
     toMatch(expected: RegExp | string) {
       const str = String(actual);
-      const ok =
-        expected instanceof RegExp ? expected.test(str) : str.includes(expected as string);
+      const ok = expected instanceof RegExp ? expected.test(str) : str.includes(expected as string);
       assert(ok, `Expected ${formatValue(actual)} to match ${String(expected)}`);
     },
     toHaveLength(expected: number) {
@@ -263,10 +261,7 @@ function createExpect(
         negate(actual === null, `Expected value not to be null`);
       },
       toBeNaN() {
-        negate(
-          typeof actual === "number" && Number.isNaN(actual),
-          `Expected value not to be NaN`,
-        );
+        negate(typeof actual === "number" && Number.isNaN(actual), `Expected value not to be NaN`);
       },
       toBeTruthy() {
         negate(Boolean(actual), `Expected ${formatValue(actual)} not to be truthy`);
@@ -276,7 +271,8 @@ function createExpect(
       },
       toContain(expected: unknown) {
         let ok = false;
-        if (typeof actual === "string" && typeof expected === "string") ok = actual.includes(expected);
+        if (typeof actual === "string" && typeof expected === "string")
+          ok = actual.includes(expected);
         else if (Array.isArray(actual)) ok = actual.includes(expected);
         else if (actual instanceof Set) ok = actual.has(expected);
         negate(ok, `Expected ${formatValue(actual)} not to contain ${formatValue(expected)}`);

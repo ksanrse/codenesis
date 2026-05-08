@@ -69,6 +69,7 @@ describe('getNotificationSettings', () => {
         status: "pass",
       },
       {
+        error: expect.any(String),
         name: "getNotificationSettings > returns a fresh object on each call #2",
         status: "fail",
       },

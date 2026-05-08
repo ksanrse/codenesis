@@ -3,6 +3,7 @@
 Educational coding platform. pnpm monorepo on Vite+, React 19, Monaco, WebContainer. Russian-language UI and challenge content. Raycast-inspired dark theme.
 
 > Nested guides override scope:
+>
 > - `packages/challenges/AGENTS.md` — challenge package contract
 > - `packages/challenges/src/challenges/AGENTS.md` — content + rank rules
 > - `tools/AGENTS.md` — dev/e2e scripts
@@ -27,8 +28,10 @@ Workspace pkg name typo is permanent: `@foruntendo/challenges` (not `forutenudo`
 ## Tech Stack
 
 - Vite+ (`vp` CLI) wraps Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt
+- Per-package `vite.config.ts` files were removed — Vite+ auto-detects via `package.json` task fields. Do not re-add unless a task needs config the auto-detect cannot express.
+- Node `>=22.12.0` (matches Volta pin `22.22.2`). Do not lower the engines field — risks runtime failures on Node 20 from 22-only APIs.
 - pnpm 10 with `catalog:` versions in `pnpm-workspace.yaml`
-- React 19, TanStack Router (hash routing), Monaco Editor, WebContainer API
+- React 19, TanStack Router (hash routing), Monaco Editor, WebContainer API, `react-mosaic-component` for the editor split panes
 - Browser-side test runner (`apps/platform/src/lib/browser-test-runner.ts`) for JS challenges; falls back to WebContainer + vitest for the rest
 - TypeScript everywhere, `react-markdown` + `remark-gfm` for descriptions
 
@@ -36,19 +39,19 @@ Workspace pkg name typo is permanent: `@foruntendo/challenges` (not `forutenudo`
 
 Run from repo root unless noted.
 
-| Task | Command |
-|------|---------|
-| Install | `vp install` (or `pnpm install`) |
-| Dev (full stack) | `pnpm dev` (= `node tools/dev.mjs`) |
-| Platform only | `pnpm --filter platform dev` |
-| Build all | `vp run build -r` |
-| Check (fmt+lint+types) | `vp check` |
-| Test all | `vp run test -r` |
-| Mojibake guard | `vp run check:mojibake` (run after editing Russian text) |
-| E2E | `pnpm e2e` |
-| Pre-push gate | `pnpm ready` |
+| Task                   | Command                                                  |
+| ---------------------- | -------------------------------------------------------- |
+| Install                | `vp install` (or `pnpm install`)                         |
+| Dev (full stack)       | `pnpm dev` (= `node tools/dev.mjs`)                      |
+| Platform only          | `pnpm --filter platform dev`                             |
+| Build all              | `vp run -r build`                                        |
+| Check (fmt+lint+types) | `vp check`                                               |
+| Test all               | `vp run -r test`                                         |
+| Mojibake guard         | `vp run check:mojibake` (run after editing Russian text) |
+| E2E                    | `pnpm e2e`                                               |
+| Pre-push gate          | `pnpm ready`                                             |
 
-After editing challenge content or ranking, rebuild: `vp run build -r`. Consumers read from `packages/challenges/dist`.
+After editing challenge content or ranking, rebuild: `vp run -r build`. Consumers read from `packages/challenges/dist`.
 
 ## Conventions
 
@@ -72,9 +75,9 @@ Last challenge in a collection swaps the "Следующее задание" but
 ## Verification Checklist
 
 - [ ] `vp install` after pulling
-- [ ] `vp check` and `vp run test -r` before sending
+- [ ] `vp check` and `vp run -r test` before sending
 - [ ] `vp run check:mojibake` after Russian edits
-- [ ] `vp run build -r` after challenge content/rank changes
+- [ ] `vp run -r build` after challenge content/rank changes
 - [ ] Browser smoke test for editor/test-runner changes (preview shows pills + inline errors)
 
 <!--VITE PLUS START-->

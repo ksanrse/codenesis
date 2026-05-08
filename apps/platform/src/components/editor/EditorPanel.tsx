@@ -92,7 +92,10 @@ export function EditorPanel({
     if (editorRef.current && activeFile && !isReadOnly) {
       await editorRef.current.getAction("editor.action.formatDocument")?.run();
       const raw = editorRef.current.getValue();
-      const collapsed = raw.replace(/\n{3,}/g, "\n\n").replace(/^\n+/, "").replace(/\n+$/, "\n");
+      const collapsed = raw
+        .replace(/\n{3,}/g, "\n\n")
+        .replace(/^\n+/, "")
+        .replace(/\n+$/, "\n");
       if (collapsed !== raw) editorRef.current.setValue(collapsed);
       const formatted = editorRef.current.getValue();
       fileContentsRef.current = { ...fileContentsRef.current, [activeFile]: formatted };
@@ -111,10 +114,9 @@ export function EditorPanel({
   const handleChange = useCallback(
     (value: string | undefined) => {
       if (value === undefined || isReadOnly || !activeFile) return;
-      const nextContents = { ...fileContentsRef.current, [activeFile]: value };
-      fileContentsRef.current = nextContents;
+      fileContentsRef.current[activeFile] = value;
+      setFileContents((prev) => ({ ...prev, [activeFile]: value }));
       dirtyRef.current = true;
-      setFileContents(nextContents);
       onFileChange(activeFile, value);
 
       if (saveTimerRef.current) {
@@ -131,7 +133,11 @@ export function EditorPanel({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const isSaveKey =
-        event.code === "KeyS" || event.key === "s" || event.key === "S" || event.key === "ы" || event.key === "Ы";
+        event.code === "KeyS" ||
+        event.key === "s" ||
+        event.key === "S" ||
+        event.key === "ы" ||
+        event.key === "Ы";
       if ((event.ctrlKey || event.metaKey) && isSaveKey) {
         event.preventDefault();
         event.stopPropagation();

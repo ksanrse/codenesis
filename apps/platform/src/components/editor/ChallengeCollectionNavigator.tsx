@@ -4,7 +4,7 @@ import {
   type ChallengeDefinition,
 } from "@foruntendo/challenges";
 import { Check, Search, X } from "lucide-react";
-import type { RefObject } from "react";
+import { memo, type RefObject } from "react";
 
 interface ChallengeCollectionNavigatorProps {
   id: string;
@@ -21,7 +21,9 @@ interface ChallengeCollectionNavigatorProps {
   onNavigate: (challengeId: string) => void;
 }
 
-export function ChallengeCollectionNavigator({
+export const ChallengeCollectionNavigator = memo(ChallengeCollectionNavigatorInner);
+
+function ChallengeCollectionNavigatorInner({
   id,
   isOpen,
   title,

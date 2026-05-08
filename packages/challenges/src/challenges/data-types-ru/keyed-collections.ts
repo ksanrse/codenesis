@@ -456,9 +456,440 @@ describe('intersect', () => {
     rank: 2,
     tags: ["set"],
   }),
+  createDataTypeChallenge({
+    id: "data-types-bidirectional-map",
+    title: "Двунаправленный Map",
+    description: `Map хранит пары \`key → value\`. А что если нужно искать в обе стороны: и по ключу, и по значению?
+
+\`\`\`js
+const bm = createBidirectionalMap();
+bm.set('one', 1);
+bm.getByKey('one')   // 1
+bm.getByValue(1)     // 'one'
+\`\`\`
+
+Идея: держать **два** Map внутри — прямой и обратный. Каждый \`set\` обновляет обе стороны. \`delete\` чистит обе.
+
+**Что написать.** Функцию \`createBidirectionalMap()\` — возвращает объект с методами \`set(key, value)\`, \`getByKey(key)\`, \`getByValue(value)\`, \`delete(key)\`, \`size\`.
+
+## Требования
+
+1. Используй два Map внутри замыкания.
+2. \`set(key, value)\` — пишет в обе стороны.
+3. Если ключ уже был — старое значение должно удалиться из обратного Map.
+4. Если значение уже было привязано к другому ключу — старая связь должна разорваться.
+5. \`delete(key)\` чистит обе стороны, возвращает \`true\` если что-то удалили, \`false\` иначе.
+6. \`size\` — количество пар (геттер или метод — на твой вкус).
+7. Экспортируй функцию \`createBidirectionalMap\`.
+
+## Примеры
+
+\`\`\`js
+const bm = createBidirectionalMap();
+bm.set('one', 1);
+bm.set('two', 2);
+bm.getByKey('one')   // 1
+bm.getByValue(2)     // 'two'
+bm.delete('one');
+bm.getByKey('one')   // undefined
+bm.getByValue(1)     // undefined
+\`\`\``,
+    starter: `export function createBidirectionalMap() {
+  // Два Map внутри замыкания, оба обновляются на set/delete
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { createBidirectionalMap } from './index.js';
+
+describe('createBidirectionalMap', () => {
+  it('базовый set и getByKey', () => {
+    const bm = createBidirectionalMap();
+    bm.set('one', 1);
+    expect(bm.getByKey('one')).toBe(1);
+  });
+
+  it('getByValue', () => {
+    const bm = createBidirectionalMap();
+    bm.set('one', 1);
+    expect(bm.getByValue(1)).toBe('one');
+  });
+
+  it('delete по ключу чистит обе стороны', () => {
+    const bm = createBidirectionalMap();
+    bm.set('one', 1);
+    bm.delete('one');
+    expect(bm.getByKey('one')).toBeUndefined();
+    expect(bm.getByValue(1)).toBeUndefined();
+  });
+
+  it('size показывает количество пар', () => {
+    const bm = createBidirectionalMap();
+    bm.set('a', 1);
+    bm.set('b', 2);
+    const size = typeof bm.size === 'function' ? bm.size() : bm.size;
+    expect(size).toBe(2);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { createBidirectionalMap } from './index.js';
+
+describe('createBidirectionalMap', () => {
+  it('базовый set и getByKey', () => {
+    const bm = createBidirectionalMap();
+    bm.set('one', 1);
+    expect(bm.getByKey('one')).toBe(1);
+  });
+
+  it('getByValue', () => {
+    const bm = createBidirectionalMap();
+    bm.set('one', 1);
+    expect(bm.getByValue(1)).toBe('one');
+  });
+
+  it('перезапись ключа разрывает старую связь', () => {
+    const bm = createBidirectionalMap();
+    bm.set('a', 1);
+    bm.set('a', 2);
+    expect(bm.getByKey('a')).toBe(2);
+    expect(bm.getByValue(1)).toBeUndefined();
+    expect(bm.getByValue(2)).toBe('a');
+  });
+
+  it('перезапись значения разрывает старую связь по ключу', () => {
+    const bm = createBidirectionalMap();
+    bm.set('a', 1);
+    bm.set('b', 1);
+    expect(bm.getByKey('a')).toBeUndefined();
+    expect(bm.getByKey('b')).toBe(1);
+    expect(bm.getByValue(1)).toBe('b');
+  });
+
+  it('delete возвращает true для существующего ключа', () => {
+    const bm = createBidirectionalMap();
+    bm.set('a', 1);
+    expect(bm.delete('a')).toBe(true);
+  });
+
+  it('delete возвращает false для несуществующего', () => {
+    const bm = createBidirectionalMap();
+    expect(bm.delete('a')).toBe(false);
+  });
+
+  it('size после операций корректен', () => {
+    const bm = createBidirectionalMap();
+    bm.set('a', 1);
+    bm.set('b', 2);
+    bm.delete('a');
+    const size = typeof bm.size === 'function' ? bm.size() : bm.size;
+    expect(size).toBe(1);
+  });
+
+  it('пустой объект — size 0', () => {
+    const bm = createBidirectionalMap();
+    const size = typeof bm.size === 'function' ? bm.size() : bm.size;
+    expect(size).toBe(0);
+  });
+
+  it('независимые экземпляры', () => {
+    const a = createBidirectionalMap();
+    const b = createBidirectionalMap();
+    a.set('x', 1);
+    expect(b.getByKey('x')).toBeUndefined();
+  });
+});
+`,
+    rank: 3,
+    tags: ["map", "bidirectional"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-lru-cache",
+    title: "LRU-кеш через Map",
+    description: `LRU = Least Recently Used. Кеш фиксированного размера: при переполнении выкидываем тот ключ, который дольше всего не использовали. Map спасает: он **гарантированно сохраняет порядок вставки** и итерации.
+
+Алгоритм:
+- \`get(key)\`: если есть — удалить и вставить заново (теперь он самый свежий), вернуть значение. Если нет — \`undefined\`.
+- \`set(key, val)\`: если есть — удалить. Вставить. Если \`map.size > capacity\` — удалить первый ключ из итератора (\`map.keys().next().value\`).
+
+\`\`\`js
+const lru = createLRU(2);
+lru.set('a', 1); lru.set('b', 2);
+lru.get('a');    // 1, теперь 'a' свежее 'b'
+lru.set('c', 3); // переполнение → удаляется 'b'
+lru.get('b');    // undefined
+\`\`\`
+
+**Что написать.** Функцию \`createLRU(capacity)\` — возвращает объект с \`get(key)\`, \`set(key, val)\`, \`size\`. Размер не должен превышать \`capacity\`.
+
+## Требования
+
+1. Используй один \`Map\` внутри замыкания — он сохраняет порядок.
+2. \`get\` обновляет «свежесть» ключа.
+3. \`set\` тоже обновляет «свежесть»; при переполнении выкидывает самый старый.
+4. \`size\` возвращает текущее число пар.
+5. \`capacity\` — положительное целое.
+6. Экспортируй функцию \`createLRU\`.
+
+## Примеры
+
+\`\`\`js
+const lru = createLRU(2);
+lru.set('a', 1);
+lru.set('b', 2);
+lru.set('c', 3);
+lru.get('a') // undefined — выкинут
+lru.get('b') // 2
+lru.get('c') // 3
+\`\`\``,
+    starter: `export function createLRU(capacity) {
+  // Один Map в замыкании, get/set обновляют порядок, лишние выкидываются
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { createLRU } from './index.js';
+
+describe('createLRU', () => {
+  it('базовый set и get', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    expect(lru.get('a')).toBe(1);
+  });
+
+  it('переполнение выкидывает самый старый', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.set('c', 3);
+    expect(lru.get('a')).toBeUndefined();
+  });
+
+  it('get обновляет свежесть', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.get('a');
+    lru.set('c', 3);
+    expect(lru.get('a')).toBe(1);
+    expect(lru.get('b')).toBeUndefined();
+  });
+
+  it('size не превышает capacity', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.set('c', 3);
+    const size = typeof lru.size === 'function' ? lru.size() : lru.size;
+    expect(size).toBe(2);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { createLRU } from './index.js';
+
+describe('createLRU', () => {
+  it('базовый set и get', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    expect(lru.get('a')).toBe(1);
+  });
+
+  it('get несуществующего — undefined', () => {
+    const lru = createLRU(2);
+    expect(lru.get('x')).toBeUndefined();
+  });
+
+  it('переполнение выкидывает самый старый', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.set('c', 3);
+    expect(lru.get('a')).toBeUndefined();
+    expect(lru.get('b')).toBe(2);
+    expect(lru.get('c')).toBe(3);
+  });
+
+  it('get обновляет свежесть', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.get('a');
+    lru.set('c', 3);
+    expect(lru.get('a')).toBe(1);
+    expect(lru.get('b')).toBeUndefined();
+  });
+
+  it('повторный set обновляет свежесть и значение', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.set('a', 99);
+    lru.set('c', 3);
+    expect(lru.get('a')).toBe(99);
+    expect(lru.get('b')).toBeUndefined();
+  });
+
+  it('size не превышает capacity', () => {
+    const lru = createLRU(2);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    lru.set('c', 3);
+    const size = typeof lru.size === 'function' ? lru.size() : lru.size;
+    expect(size).toBe(2);
+  });
+
+  it('capacity 1', () => {
+    const lru = createLRU(1);
+    lru.set('a', 1);
+    lru.set('b', 2);
+    expect(lru.get('a')).toBeUndefined();
+    expect(lru.get('b')).toBe(2);
+  });
+
+  it('независимые экземпляры', () => {
+    const a = createLRU(2);
+    const b = createLRU(2);
+    a.set('x', 1);
+    expect(b.get('x')).toBeUndefined();
+  });
+});
+`,
+    rank: 4,
+    tags: ["map", "lru", "cache"],
+  }),
 ];
 
 export const weakMapSetChallenges: ChallengeDefinition[] = [
+  createDataTypeChallenge({
+    id: "data-types-weak-ref-intro",
+    title: "WeakMap не держит объект",
+    description: `Обычный \`Map\` хранит ссылку на ключ-объект и не даёт ему уйти в garbage collection — даже если в твоей программе больше никто на этот объект не ссылается. \`WeakMap\` ведёт себя противоположно: ссылки на ключи у него **слабые**, не мешают сборке мусора.
+
+Цена: ключи у \`WeakMap\` — только объекты (не строки/числа), и нельзя итерировать (\`size\` нет, \`for..of\` нет, \`keys()\` нет). У \`WeakMap\` есть только \`get/set/has/delete\`.
+
+\`\`\`js
+const m = new WeakMap();
+let user = { name: 'Аня' };
+m.set(user, 'admin');
+m.get(user);    // 'admin'
+m.has(user);    // true
+m.delete(user); // true
+m.has(user);    // false
+\`\`\`
+
+**Что написать.** Функцию \`weakStore()\` — возвращает объект с методами \`attach(obj, value)\`, \`read(obj)\`, \`detach(obj)\`. Внутри — один \`WeakMap\`.
+
+## Требования
+
+1. \`attach(obj, value)\` — связывает значение с объектом-ключом.
+2. \`read(obj)\` — возвращает значение или \`undefined\`.
+3. \`detach(obj)\` — удаляет, возвращает \`true\`/\`false\`.
+4. Используй \`WeakMap\` внутри замыкания.
+5. Экспортируй функцию \`weakStore\`.
+
+## Примеры
+
+\`\`\`js
+const store = weakStore();
+const obj = {};
+store.attach(obj, 'data');
+store.read(obj);   // 'data'
+store.detach(obj);
+store.read(obj);   // undefined
+\`\`\``,
+    starter: `export function weakStore() {
+  // WeakMap внутри замыкания, attach/read/detach
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { weakStore } from './index.js';
+
+describe('weakStore', () => {
+  it('attach и read', () => {
+    const store = weakStore();
+    const obj = {};
+    store.attach(obj, 'data');
+    expect(store.read(obj)).toBe('data');
+  });
+
+  it('read несуществующего — undefined', () => {
+    const store = weakStore();
+    expect(store.read({})).toBeUndefined();
+  });
+
+  it('detach удаляет', () => {
+    const store = weakStore();
+    const obj = {};
+    store.attach(obj, 'data');
+    store.detach(obj);
+    expect(store.read(obj)).toBeUndefined();
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { weakStore } from './index.js';
+
+describe('weakStore', () => {
+  it('attach и read', () => {
+    const store = weakStore();
+    const obj = {};
+    store.attach(obj, 'data');
+    expect(store.read(obj)).toBe('data');
+  });
+
+  it('read несуществующего — undefined', () => {
+    const store = weakStore();
+    expect(store.read({})).toBeUndefined();
+  });
+
+  it('detach возвращает true для существующего', () => {
+    const store = weakStore();
+    const obj = {};
+    store.attach(obj, 'data');
+    expect(store.detach(obj)).toBe(true);
+  });
+
+  it('detach возвращает false для несуществующего', () => {
+    const store = weakStore();
+    expect(store.detach({})).toBe(false);
+  });
+
+  it('detach очищает', () => {
+    const store = weakStore();
+    const obj = {};
+    store.attach(obj, 'data');
+    store.detach(obj);
+    expect(store.read(obj)).toBeUndefined();
+  });
+
+  it('два разных объекта — разные значения', () => {
+    const store = weakStore();
+    const a = {}; const b = {};
+    store.attach(a, 1);
+    store.attach(b, 2);
+    expect(store.read(a)).toBe(1);
+    expect(store.read(b)).toBe(2);
+  });
+
+  it('перезапись значения', () => {
+    const store = weakStore();
+    const obj = {};
+    store.attach(obj, 'old');
+    store.attach(obj, 'new');
+    expect(store.read(obj)).toBe('new');
+  });
+
+  it('независимые экземпляры', () => {
+    const a = weakStore();
+    const b = weakStore();
+    const obj = {};
+    a.attach(obj, 'A');
+    expect(b.read(obj)).toBeUndefined();
+  });
+});
+`,
+    rank: 0,
+    tags: ["weakmap", "intro"],
+  }),
   createDataTypeChallenge({
     id: "data-types-weakmap-cache",
     title: "Кеш на WeakMap",
@@ -1159,5 +1590,106 @@ describe('groupEntries', () => {
 `,
     rank: 3,
     tags: ["entries", "object"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-symbol-keys-skipped",
+    title: "Object.keys пропускает Symbol",
+    description: `\`Object.keys\`, \`Object.values\`, \`Object.entries\`, \`for..in\`, \`JSON.stringify\` — все они возвращают **только строковые** ключи. Свойства, у которых ключ — Symbol, остаются за бортом. Чтобы достать Symbol-ключи, используют \`Object.getOwnPropertySymbols\`. Чтобы достать вообще все собственные ключи (строки + Symbols) — \`Reflect.ownKeys\`.
+
+\`\`\`js
+const tag = Symbol('tag');
+const obj = { name: 'A', [tag]: 'hidden', other: 'B' };
+
+Object.keys(obj)                   // ['name', 'other']
+Object.values(obj)                 // ['A', 'B']
+Object.getOwnPropertySymbols(obj)  // [Symbol(tag)]
+Reflect.ownKeys(obj)               // ['name', 'other', Symbol(tag)]
+\`\`\`
+
+**Что написать.** Функцию \`countKeys(obj)\` — возвращает объект \`{ string, symbol, total }\`, где:
+- \`string\` — число строковых ключей,
+- \`symbol\` — число Symbol-ключей,
+- \`total\` — сумма (через \`Reflect.ownKeys\`).
+
+## Требования
+
+1. Используй \`Object.keys\` или \`Object.getOwnPropertyNames\` для строковых.
+2. Используй \`Object.getOwnPropertySymbols\` для Symbol-ключей.
+3. Используй \`Reflect.ownKeys\` для общего счётчика.
+4. Возвращай объект \`{ string, symbol, total }\`.
+5. Экспортируй функцию \`countKeys\`.
+
+## Примеры
+
+\`\`\`js
+countKeys({ a: 1, b: 2 })         // { string: 2, symbol: 0, total: 2 }
+countKeys({ [Symbol()]: 1 })      // { string: 0, symbol: 1, total: 1 }
+countKeys({ a: 1, [Symbol()]: 2 })// { string: 1, symbol: 1, total: 2 }
+\`\`\``,
+    starter: `export function countKeys(obj) {
+  // Object.keys + getOwnPropertySymbols + Reflect.ownKeys
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { countKeys } from './index.js';
+
+describe('countKeys', () => {
+  it('только строковые', () => {
+    expect(countKeys({ a: 1, b: 2 })).toEqual({ string: 2, symbol: 0, total: 2 });
+  });
+
+  it('только Symbol', () => {
+    expect(countKeys({ [Symbol()]: 1 })).toEqual({ string: 0, symbol: 1, total: 1 });
+  });
+
+  it('смешанные', () => {
+    expect(countKeys({ a: 1, [Symbol()]: 2 })).toEqual({ string: 1, symbol: 1, total: 2 });
+  });
+
+  it('пустой объект', () => {
+    expect(countKeys({})).toEqual({ string: 0, symbol: 0, total: 0 });
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { countKeys } from './index.js';
+
+describe('countKeys', () => {
+  it('только строковые', () => {
+    expect(countKeys({ a: 1, b: 2 })).toEqual({ string: 2, symbol: 0, total: 2 });
+  });
+
+  it('только Symbol', () => {
+    expect(countKeys({ [Symbol()]: 1 })).toEqual({ string: 0, symbol: 1, total: 1 });
+  });
+
+  it('смешанные', () => {
+    expect(countKeys({ a: 1, [Symbol()]: 2 })).toEqual({ string: 1, symbol: 1, total: 2 });
+  });
+
+  it('пустой объект', () => {
+    expect(countKeys({})).toEqual({ string: 0, symbol: 0, total: 0 });
+  });
+
+  it('несколько Symbol', () => {
+    const a = Symbol('a');
+    const b = Symbol('b');
+    expect(countKeys({ [a]: 1, [b]: 2 })).toEqual({ string: 0, symbol: 2, total: 2 });
+  });
+
+  it('много строковых ключей', () => {
+    const obj = {};
+    for (let i = 0; i < 5; i++) obj['k' + i] = i;
+    expect(countKeys(obj)).toEqual({ string: 5, symbol: 0, total: 5 });
+  });
+
+  it('Symbol.toStringTag тоже считается', () => {
+    const obj = { name: 'A', [Symbol.toStringTag]: 'X' };
+    expect(countKeys(obj)).toEqual({ string: 1, symbol: 1, total: 2 });
+  });
+});
+`,
+    rank: 3,
+    tags: ["object", "keys", "symbol"],
   }),
 ];

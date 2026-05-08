@@ -37,6 +37,7 @@ const API_BASES = [
 
 let cache = readLocalDatabase();
 let serverReady = false;
+let cachedSortedAttempts: ChallengeAttempt[] | null = null;
 
 function createDatabase(): AppDatabase {
   return {
@@ -74,6 +75,7 @@ function normalizeDatabase(database: Partial<AppDatabase>): AppDatabase {
 
 function writeCache(database: AppDatabase): void {
   cache = normalizeDatabase(database);
+  cachedSortedAttempts = null;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
     window.dispatchEvent(new Event("foruntendo-db-change"));
@@ -188,7 +190,11 @@ if (typeof window !== "undefined") {
 }
 
 export function getAttempts(): ChallengeAttempt[] {
-  return [...cache.attempts].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  if (cachedSortedAttempts) return cachedSortedAttempts;
+  cachedSortedAttempts = [...cache.attempts].sort((left, right) =>
+    right.createdAt.localeCompare(left.createdAt),
+  );
+  return cachedSortedAttempts;
 }
 
 export function addAttempt(attempt: Omit<ChallengeAttempt, "id" | "createdAt">): ChallengeAttempt {

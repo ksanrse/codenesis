@@ -112,7 +112,7 @@ function HomePage() {
   const activityScrollRef = useRef<HTMLDivElement>(null);
   const activityTodayRef = useRef<HTMLSpanElement>(null);
   const { activeCollectionId, attempts } = useDatabaseSnapshot();
-  const challenges = getAllChallenges();
+  const challenges = useMemo(() => getAllChallenges(), []);
   const collections = useMemo(
     () =>
       sortCollections(
@@ -140,16 +140,20 @@ function HomePage() {
     return () => window.cancelAnimationFrame(frame);
   }, [attempts]);
 
-  const passedChallengeIds = getPassedChallengeIds(attempts);
+  const passedChallengeIds = useMemo(() => getPassedChallengeIds(attempts), [attempts]);
   const solved = passedChallengeIds.size;
   const total = challenges.length;
   const solvedPercent = total === 0 ? 0 : Math.round((solved / total) * 100);
-  const activity = buildActivity(attempts);
+  const activity = useMemo(() => buildActivity(attempts), [attempts]);
   const todayKey = toDateKey(new Date());
-  const continueCollections = collections.filter((collection) => {
-    const progress = getCollectionProgress(collection, attempts);
-    return collection.id === activeCollectionId || progress.completed > 0;
-  });
+  const continueCollections = useMemo(
+    () =>
+      collections.filter((collection) => {
+        const progress = getCollectionProgress(collection, attempts);
+        return collection.id === activeCollectionId || progress.completed > 0;
+      }),
+    [collections, attempts, activeCollectionId],
+  );
 
   return (
     <div className="container dashboard">
@@ -211,11 +215,7 @@ function HomePage() {
                       className={`difficulty-ring ${difficultyTotal === 0 ? "empty" : ""}`}
                       title={`${band.label} · ${difficultySolved}/${difficultyTotal}`}
                     >
-                      <svg
-                        className="difficulty-ring-svg"
-                        viewBox="0 0 60 60"
-                        aria-hidden="true"
-                      >
+                      <svg className="difficulty-ring-svg" viewBox="0 0 60 60" aria-hidden="true">
                         <circle
                           className="difficulty-ring-track"
                           cx="30"
@@ -312,13 +312,7 @@ function HomePage() {
                 >
                   <div className="mini-ring">
                     <svg className="mini-ring-svg" viewBox="0 0 60 60" aria-hidden="true">
-                      <circle
-                        className="mini-ring-track"
-                        cx="30"
-                        cy="30"
-                        r="26"
-                        pathLength="100"
-                      />
+                      <circle className="mini-ring-track" cx="30" cy="30" r="26" pathLength="100" />
                       <circle
                         className="mini-ring-progress"
                         cx="30"

@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.mjs",
+    "dev": "node src/server.mjs",
     "start": "node src/server.mjs"
   },
   "dependencies": {
-    "@foruntendo/challenges": "workspace:*",
     "sql.js": "catalog:"
   }
 }

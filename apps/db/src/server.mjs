@@ -3,11 +3,6 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import initSqlJs from "sql.js";
-import {
-  getAllChallenges,
-  getChallengeById,
-  getChallengeCollections,
-} from "@foruntendo/challenges";
 
 const PORT = Number(process.env.FORUNTENDO_DB_PORT ?? 41731);
 const HOST = process.env.FORUNTENDO_DB_HOST ?? "127.0.0.1";
@@ -22,34 +17,8 @@ const database = await openDatabase();
 database.exec(`
   PRAGMA foreign_keys = ON;
 
-  CREATE TABLE IF NOT EXISTS challenges (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    difficulty TEXT NOT NULL,
-    category TEXT NOT NULL,
-    group_name TEXT NOT NULL,
-    languages_json TEXT NOT NULL,
-    rank INTEGER NOT NULL DEFAULT 0,
-    reputation INTEGER NOT NULL,
-    tags_json TEXT NOT NULL,
-    starter_files_json TEXT NOT NULL,
-    test_files_json TEXT NOT NULL,
-    solution_files_json TEXT NOT NULL,
-    dependencies_json TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS collections (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    tag TEXT NOT NULL,
-    skill_label TEXT NOT NULL,
-    challenge_ids_json TEXT NOT NULL,
-    challenge_count INTEGER NOT NULL,
-    updated_at TEXT NOT NULL
-  );
+  DROP TABLE IF EXISTS challenges;
+  DROP TABLE IF EXISTS collections;
 
   CREATE TABLE IF NOT EXISTS attempts (
     id TEXT PRIMARY KEY,
@@ -83,8 +52,6 @@ database.exec(`
   );
 `);
 
-ensureChallengeRankColumn();
-seedCatalog();
 await persist();
 
 createServer(async (request, response) => {
@@ -106,7 +73,8 @@ async function openDatabase() {
   try {
     const file = await readFile(DB_PATH);
     return new SQL.Database(file);
-  } catch {
+  } catch (error) {
+    console.warn("[db] Could not read DB file, starting with empty database:", error?.message ?? error);
     return new SQL.Database();
   }
 }
@@ -114,91 +82,6 @@ async function openDatabase() {
 async function persist() {
   await mkdir(dirname(DB_PATH), { recursive: true });
   await writeFile(DB_PATH, Buffer.from(database.export()));
-}
-
-function seedCatalog() {
-  const now = new Date().toISOString();
-  const challengeStatement = database.prepare(`
-    INSERT INTO challenges (
-      id, title, description, difficulty, category, group_name, languages_json, rank, reputation,
-      tags_json, starter_files_json, test_files_json, solution_files_json, dependencies_json, updated_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      title = excluded.title,
-      description = excluded.description,
-      difficulty = excluded.difficulty,
-      category = excluded.category,
-      group_name = excluded.group_name,
-      languages_json = excluded.languages_json,
-      rank = excluded.rank,
-      reputation = excluded.reputation,
-      tags_json = excluded.tags_json,
-      starter_files_json = excluded.starter_files_json,
-      test_files_json = excluded.test_files_json,
-      solution_files_json = excluded.solution_files_json,
-      dependencies_json = excluded.dependencies_json,
-      updated_at = excluded.updated_at
-  `);
-
-  for (const meta of getAllChallenges()) {
-    const challenge = getChallengeById(meta.id);
-    if (!challenge) continue;
-    challengeStatement.run([
-      challenge.id,
-      challenge.title,
-      challenge.description,
-      challenge.difficulty,
-      challenge.category,
-      challenge.group,
-      JSON.stringify(challenge.languages),
-      challenge.rank,
-      challenge.reputation,
-      JSON.stringify(challenge.tags),
-      JSON.stringify(challenge.starterFiles),
-      JSON.stringify(challenge.testFiles),
-      JSON.stringify(challenge.solutionFiles),
-      JSON.stringify(challenge.dependencies),
-      now,
-    ]);
-  }
-  challengeStatement.free();
-
-  const collectionStatement = database.prepare(`
-    INSERT INTO collections (
-      id, title, description, tag, skill_label, challenge_ids_json, challenge_count, updated_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      title = excluded.title,
-      description = excluded.description,
-      tag = excluded.tag,
-      skill_label = excluded.skill_label,
-      challenge_ids_json = excluded.challenge_ids_json,
-      challenge_count = excluded.challenge_count,
-      updated_at = excluded.updated_at
-  `);
-
-  for (const collection of getChallengeCollections()) {
-    collectionStatement.run([
-      collection.id,
-      collection.title,
-      collection.description,
-      collection.tag,
-      collection.skillLabel,
-      JSON.stringify(collection.challengeIds),
-      collection.challengeCount,
-      now,
-    ]);
-  }
-  collectionStatement.free();
-}
-
-function ensureChallengeRankColumn() {
-  const columns = selectAll("PRAGMA table_info(challenges)");
-  if (!columns.some((column) => column.name === "rank")) {
-    database.exec("ALTER TABLE challenges ADD COLUMN rank INTEGER NOT NULL DEFAULT 0");
-  }
 }
 
 async function route(request, response) {
@@ -210,7 +93,7 @@ async function route(request, response) {
   }
 
   if (request.method === "GET" && url.pathname === "/api/health") {
-    sendJson(response, 200, { ok: true, dbPath: DB_PATH });
+    sendJson(response, 200, { ok: true });
     return;
   }
 
@@ -227,16 +110,6 @@ async function route(request, response) {
     resetUserState();
     await persist();
     sendJson(response, 200, readState());
-    return;
-  }
-
-  if (request.method === "GET" && url.pathname === "/api/challenges") {
-    sendJson(response, 200, readChallenges());
-    return;
-  }
-
-  if (request.method === "GET" && url.pathname === "/api/collections") {
-    sendJson(response, 200, readCollections());
     return;
   }
 
@@ -317,37 +190,6 @@ function readState() {
     drafts,
     activeCollectionId: getSetting("activeCollectionId"),
   };
-}
-
-function readChallenges() {
-  return selectAll("SELECT * FROM challenges ORDER BY id").map((row) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    difficulty: row.difficulty,
-    category: row.category,
-    group: row.group_name,
-    languages: JSON.parse(row.languages_json),
-    rank: row.rank,
-    reputation: row.reputation,
-    tags: JSON.parse(row.tags_json),
-    starterFiles: JSON.parse(row.starter_files_json),
-    testFiles: JSON.parse(row.test_files_json),
-    solutionFiles: JSON.parse(row.solution_files_json),
-    dependencies: JSON.parse(row.dependencies_json),
-  }));
-}
-
-function readCollections() {
-  return selectAll("SELECT * FROM collections ORDER BY title").map((row) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    tag: row.tag,
-    skillLabel: row.skill_label,
-    challengeIds: JSON.parse(row.challenge_ids_json),
-    challengeCount: row.challenge_count,
-  }));
 }
 
 function resetUserState() {
@@ -480,8 +322,9 @@ function sendEmpty(response, statusCode) {
 }
 
 function corsHeaders() {
+  const allowed = process.env.FORUNTENDO_ALLOWED_ORIGINS ?? "http://localhost:5173";
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };

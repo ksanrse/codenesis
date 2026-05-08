@@ -8,6 +8,12 @@ This folder contains project-level scripts used by development, e2e tests, and m
 - Keep e2e ports isolated from the normal dev server: API on `41732`, platform on `5174`.
 - Do not route e2e startup through an ambiguous root dev command if the readiness URL would return a 404 instead of the app.
 
+## Dev Orchestrator (`dev.mjs`)
+
+- Spawns `challenges#dev`, `db#dev`, `platform#dev` in parallel with `stdio: "inherit"`.
+- Child exit does **not** trigger `shutdown()` — only logs `[dev] <name> exited with <code> — restart this process manually`. This is intentional: a transient crash in one process does not kill the others. Do not re-add cascading shutdown.
+- `SIGINT`/`SIGTERM` on the parent kills all children via `shutdown()`.
+
 ## Verification
 
 - After changing Playwright server scripts, run at least one focused `npm.cmd run e2e -- --grep "<test name>"`.

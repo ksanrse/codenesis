@@ -426,6 +426,369 @@ describe('extractName', () => {
 });
 `,
   }),
+  createDataTypesChallenge({
+    id: "data-types-destructuring-nested-rest",
+    title: "Вложенный rest при разборе",
+    description: `Деструктуризация умеет работать рекурсивно. И rest-паттерн (\`...rest\`) забирает «всё остальное» — для массива это хвост, для объекта это все ключи, которые не упомянули.
+
+\`\`\`js
+// Массив: первый, второй, остальные
+const [a, b, ...tail] = [1, 2, 3, 4, 5];
+// a=1, b=2, tail=[3, 4, 5]
+
+// Объект: вытащили id, остальное в meta
+const { id, ...meta } = { id: 1, name: 'A', score: 10 };
+// id=1, meta={ name: 'A', score: 10 }
+
+// Вложенно
+const { user: { name, ...userRest }, ...top } = {
+  user: { name: 'Аня', age: 30, role: 'admin' },
+  active: true,
+};
+// name='Аня', userRest={ age: 30, role: 'admin' }, top={ active: true }
+\`\`\`
+
+**Что написать.** Функцию \`splitTopAndUser(payload)\` — принимает объект формы \`{ user: { name, ...userRest }, ...rest }\` и возвращает \`{ name, userRest, rest }\` через одну деструктуризацию (без ручных удалений ключей).
+
+## Требования
+
+1. Один \`const { ... } = payload\` с вложенной деструктуризацией.
+2. Используй \`...userRest\` для остальных полей \`user\` и \`...rest\` для остальных полей верхнего уровня.
+3. Верни \`{ name, userRest, rest }\`.
+4. Не используй \`delete\` или ручное копирование полей.
+5. Экспортируй функцию \`splitTopAndUser\`.
+
+## Примеры
+
+\`\`\`js
+splitTopAndUser({
+  user: { name: 'Аня', age: 30 },
+  active: true,
+})
+// { name: 'Аня', userRest: { age: 30 }, rest: { active: true } }
+\`\`\``,
+    rank: 3,
+    tags: ["destructuring", "nested", "rest"],
+    starter: `export function splitTopAndUser(payload) {
+  // const { user: { name, ...userRest }, ...rest } = payload;
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { splitTopAndUser } from './index.js';
+
+describe('splitTopAndUser', () => {
+  it('базовый случай', () => {
+    expect(splitTopAndUser({
+      user: { name: 'Аня', age: 30 },
+      active: true,
+    })).toEqual({
+      name: 'Аня',
+      userRest: { age: 30 },
+      rest: { active: true },
+    });
+  });
+
+  it('пустой userRest и rest', () => {
+    expect(splitTopAndUser({ user: { name: 'A' } })).toEqual({
+      name: 'A',
+      userRest: {},
+      rest: {},
+    });
+  });
+
+  it('несколько полей в userRest', () => {
+    const result = splitTopAndUser({
+      user: { name: 'A', age: 30, role: 'admin' },
+    });
+    expect(result.userRest).toEqual({ age: 30, role: 'admin' });
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { splitTopAndUser } from './index.js';
+
+describe('splitTopAndUser', () => {
+  it('базовый случай', () => {
+    expect(splitTopAndUser({
+      user: { name: 'Аня', age: 30 },
+      active: true,
+    })).toEqual({
+      name: 'Аня',
+      userRest: { age: 30 },
+      rest: { active: true },
+    });
+  });
+
+  it('пустой userRest и rest', () => {
+    expect(splitTopAndUser({ user: { name: 'A' } })).toEqual({
+      name: 'A',
+      userRest: {},
+      rest: {},
+    });
+  });
+
+  it('несколько полей в userRest', () => {
+    const result = splitTopAndUser({
+      user: { name: 'A', age: 30, role: 'admin' },
+    });
+    expect(result.userRest).toEqual({ age: 30, role: 'admin' });
+  });
+
+  it('несколько полей в rest', () => {
+    const result = splitTopAndUser({
+      user: { name: 'A' },
+      x: 1,
+      y: 2,
+      z: 3,
+    });
+    expect(result.rest).toEqual({ x: 1, y: 2, z: 3 });
+  });
+
+  it('user и rest независимы', () => {
+    const result = splitTopAndUser({
+      user: { name: 'A', extra: 'in-user' },
+      extra: 'in-top',
+    });
+    expect(result.userRest).toEqual({ extra: 'in-user' });
+    expect(result.rest).toEqual({ extra: 'in-top' });
+  });
+
+  it('не мутирует payload', () => {
+    const payload = {
+      user: { name: 'A', age: 1 },
+      x: 1,
+    };
+    splitTopAndUser(payload);
+    expect(payload).toEqual({ user: { name: 'A', age: 1 }, x: 1 });
+  });
+
+  it('возвращает три ключа', () => {
+    const result = splitTopAndUser({ user: { name: 'A' } });
+    expect(Object.keys(result).sort()).toEqual(['name', 'rest', 'userRest']);
+  });
+});
+`,
+  }),
+  createDataTypesChallenge({
+    id: "data-types-destructuring-rename-default",
+    title: "Переименование плюс default",
+    description: `Финал набора. Все три инструмента деструктуризации в одной строке: вытащить поле, переименовать его, подставить значение по умолчанию, остальное собрать в rest.
+
+\`\`\`js
+const { firstName: name = 'Гость', age = 18, ...meta } = user;
+\`\`\`
+
+Порядок важен. Сначала \`firstName\` — имя поля в объекте. Потом \`:\` — двоеточие переименовывает. Потом \`name\` — новое имя локальной переменной. Потом \`= 'Гость'\` — default, если поле не указано или \`undefined\`. Default срабатывает **только** на \`undefined\`, не на \`null\`/\`0\`/\`''\`.
+
+**Что написать.** Функцию \`describeUser(user)\`. Через одну деструктуризацию вытащи:
+- \`firstName\` под именем \`name\`, default \`'Гость'\`,
+- \`age\` с default \`18\`,
+- остальное — в \`meta\`.
+
+Верни объект \`{ name, age, meta }\`.
+
+## Требования
+
+1. Одна деструктуризация: \`const { firstName: name = 'Гость', age = 18, ...meta } = user\`.
+2. Default \`name\` срабатывает только если \`firstName === undefined\`.
+3. Default \`age\` срабатывает только если \`age === undefined\`.
+4. \`meta\` собирает все ключи кроме \`firstName\` и \`age\`.
+5. Возвращай \`{ name, age, meta }\`.
+6. Экспортируй функцию \`describeUser\`.
+
+## Примеры
+
+\`\`\`js
+describeUser({ firstName: 'Аня', age: 25, role: 'admin' })
+// { name: 'Аня', age: 25, meta: { role: 'admin' } }
+
+describeUser({ role: 'guest' })
+// { name: 'Гость', age: 18, meta: { role: 'guest' } }
+
+describeUser({ firstName: null })
+// { name: null, age: 18, meta: {} }   — null НЕ триггерит default
+
+describeUser({ age: 0 })
+// { name: 'Гость', age: 0, meta: {} } — 0 НЕ триггерит default
+\`\`\``,
+    rank: 3,
+    tags: ["destructuring", "rename", "default", "rest", "finale"],
+    starter: `export function describeUser(user) {
+  // const { firstName: name = 'Гость', age = 18, ...meta } = user;
+  // return { name, age, meta };
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { describeUser } from './index.js';
+
+describe('describeUser', () => {
+  it('все поля присутствуют', () => {
+    expect(describeUser({ firstName: 'Аня', age: 25, role: 'admin' }))
+      .toEqual({ name: 'Аня', age: 25, meta: { role: 'admin' } });
+  });
+
+  it('пусто — оба default', () => {
+    expect(describeUser({}))
+      .toEqual({ name: 'Гость', age: 18, meta: {} });
+  });
+
+  it('null НЕ триггерит default', () => {
+    expect(describeUser({ firstName: null }))
+      .toEqual({ name: null, age: 18, meta: {} });
+  });
+
+  it('age=0 НЕ триггерит default', () => {
+    expect(describeUser({ age: 0 }))
+      .toEqual({ name: 'Гость', age: 0, meta: {} });
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { describeUser } from './index.js';
+
+describe('describeUser', () => {
+  it('все поля присутствуют', () => {
+    expect(describeUser({ firstName: 'Аня', age: 25, role: 'admin' }))
+      .toEqual({ name: 'Аня', age: 25, meta: { role: 'admin' } });
+  });
+
+  it('пусто — оба default', () => {
+    expect(describeUser({}))
+      .toEqual({ name: 'Гость', age: 18, meta: {} });
+  });
+
+  it('null НЕ триггерит default', () => {
+    expect(describeUser({ firstName: null }))
+      .toEqual({ name: null, age: 18, meta: {} });
+  });
+
+  it('age=0 НЕ триггерит default', () => {
+    expect(describeUser({ age: 0 }))
+      .toEqual({ name: 'Гость', age: 0, meta: {} });
+  });
+
+  it('пустая строка для firstName НЕ триггерит default', () => {
+    expect(describeUser({ firstName: '' }))
+      .toEqual({ name: '', age: 18, meta: {} });
+  });
+
+  it('много meta-полей', () => {
+    expect(describeUser({ firstName: 'X', age: 1, a: 1, b: 2, c: 3 }))
+      .toEqual({ name: 'X', age: 1, meta: { a: 1, b: 2, c: 3 } });
+  });
+
+  it('явный undefined для firstName — default', () => {
+    expect(describeUser({ firstName: undefined }))
+      .toEqual({ name: 'Гость', age: 18, meta: {} });
+  });
+
+  it('не мутирует user', () => {
+    const user = { firstName: 'A', extra: 1 };
+    describeUser(user);
+    expect(user).toEqual({ firstName: 'A', extra: 1 });
+  });
+});
+`,
+  }),
+  createDataTypesChallenge({
+    id: "data-types-destructuring-params",
+    title: "Деструктуризация в параметрах",
+    description: `Деструктуризацию можно ставить **прямо в сигнатуре функции**. Это убирает строку \`const {...} = arg\` внутри тела и сразу подсказывает читателю, какие поля используются.
+
+\`\`\`js
+function greet({ name, lang = 'ru' }) {
+  return lang === 'ru' ? \`Привет, \${name}\` : \`Hello, \${name}\`;
+}
+greet({ name: 'Аня' })            // 'Привет, Аня'
+greet({ name: 'Anna', lang: 'en' })  // 'Hello, Anna'
+\`\`\`
+
+**Ловушка.** Если вызвать \`greet()\` без аргументов — JS попытается деструктурировать \`undefined\`, бросит \`TypeError\`. Лечится default-ом для самого аргумента: \`greet({ name = '?' } = {})\` — теперь \`greet()\` работает.
+
+**Что написать.** Функцию \`formatPoint({ x = 0, y = 0, label = 'P' } = {})\`. Возвращает строку \`"\${label}(x, y)"\`. Без аргументов — \`'P(0, 0)'\`.
+
+## Требования
+
+1. Параметры функции — деструктурированный объект.
+2. У каждого поля свой default: \`x=0\`, \`y=0\`, \`label='P'\`.
+3. У всего параметра тоже default \`= {}\` чтобы вызов без аргументов работал.
+4. Возвращай строку \`"\${label}(\${x}, \${y})"\`.
+5. Экспортируй функцию \`formatPoint\`.
+
+## Примеры
+
+\`formatPoint({ x: 1, y: 2 })\` → \`'P(1, 2)'\`
+
+\`formatPoint({ x: 5, y: 10, label: 'A' })\` → \`'A(5, 10)'\`
+
+\`formatPoint()\` → \`'P(0, 0)'\`
+
+\`formatPoint({})\` → \`'P(0, 0)'\``,
+    rank: 3,
+    tags: ["destructuring", "params", "default"],
+    starter: `export function formatPoint({ x = 0, y = 0, label = 'P' } = {}) {
+  // Верни строку label(x, y)
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { formatPoint } from './index.js';
+
+describe('formatPoint', () => {
+  it('базовый вызов', () => {
+    expect(formatPoint({ x: 1, y: 2 })).toBe('P(1, 2)');
+  });
+
+  it('с label', () => {
+    expect(formatPoint({ x: 5, y: 10, label: 'A' })).toBe('A(5, 10)');
+  });
+
+  it('без аргументов', () => {
+    expect(formatPoint()).toBe('P(0, 0)');
+  });
+
+  it('пустой объект', () => {
+    expect(formatPoint({})).toBe('P(0, 0)');
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { formatPoint } from './index.js';
+
+describe('formatPoint', () => {
+  it('базовый вызов', () => {
+    expect(formatPoint({ x: 1, y: 2 })).toBe('P(1, 2)');
+  });
+
+  it('с label', () => {
+    expect(formatPoint({ x: 5, y: 10, label: 'A' })).toBe('A(5, 10)');
+  });
+
+  it('без аргументов', () => {
+    expect(formatPoint()).toBe('P(0, 0)');
+  });
+
+  it('пустой объект', () => {
+    expect(formatPoint({})).toBe('P(0, 0)');
+  });
+
+  it('только label', () => {
+    expect(formatPoint({ label: 'Z' })).toBe('Z(0, 0)');
+  });
+
+  it('отрицательные координаты', () => {
+    expect(formatPoint({ x: -1, y: -2, label: 'Q' })).toBe('Q(-1, -2)');
+  });
+
+  it('null НЕ триггерит default', () => {
+    expect(formatPoint({ x: null, y: 5 })).toBe('P(null, 5)');
+  });
+
+  it('undefined триггерит default', () => {
+    expect(formatPoint({ x: undefined, y: 5 })).toBe('P(0, 5)');
+  });
+});
+`,
+  }),
 ];
 
 export const dateChallenges: ChallengeDefinition[] = [
@@ -791,6 +1154,230 @@ describe('isWeekend', () => {
   it('returns a boolean, not a number', () => {
     const result = isWeekend(new Date('2024-03-16T00:00:00Z'));
     expect(typeof result).toBe('boolean');
+  });
+});
+`,
+  }),
+  createDataTypesChallenge({
+    id: "data-types-date-utc-vs-local",
+    title: "UTC vs локальное время",
+    description: `У \`Date\` есть **две** пары методов: локальные (\`getDate\`, \`getHours\`, \`getMonth\`, \`getDay\`) и UTC (\`getUTCDate\`, \`getUTCHours\`, \`getUTCMonth\`, \`getUTCDay\`). Локальные используют часовой пояс машины, на которой запущен JS. UTC всегда одинаковы.
+
+\`\`\`js
+const d = new Date('2024-01-01T00:00:00Z');
+d.getUTCHours()  // 0   — всегда 0
+d.getHours()     // зависит от пояса браузера/сервера
+
+d.getMonth()     // 0   — январь — НОЛЬ (!)
+d.getUTCMonth()  // 0
+d.getDate()      // 1   — а вот «день месяца» — НЕ нулевой
+\`\`\`
+
+**Главные грабли.**
+1. \`getMonth\` возвращает 0–11 (январь = 0).
+2. \`getDate\` возвращает 1–31 (день месяца, как ожидается).
+3. \`getDay\` возвращает день **недели** 0–6 (воскресенье = 0).
+
+Чтобы код работал одинаково на любом сервере — используй UTC-методы.
+
+**Что написать.** Функцию \`utcParts(date)\` — для переданного объекта \`Date\` возвращает объект \`{ year, month, day, weekday }\`, всё в UTC.
+
+## Требования
+
+1. \`year\` — \`getUTCFullYear()\`.
+2. \`month\` — 1..12 (т.е. \`getUTCMonth() + 1\`).
+3. \`day\` — \`getUTCDate()\` (1..31).
+4. \`weekday\` — \`getUTCDay()\` (0..6, воскресенье = 0).
+5. Не используй \`getMonth\`/\`getDate\`/\`getDay\` без префикса UTC.
+6. Экспортируй функцию \`utcParts\`.
+
+## Примеры
+
+\`\`\`js
+utcParts(new Date('2024-01-15T00:00:00Z'))
+// { year: 2024, month: 1, day: 15, weekday: 1 }   // понедельник
+
+utcParts(new Date('2024-12-31T23:59:59Z'))
+// { year: 2024, month: 12, day: 31, weekday: 2 }
+\`\`\``,
+    rank: 3,
+    tags: ["date", "utc", "timezone"],
+    starter: `export function utcParts(date) {
+  // getUTCFullYear, getUTCMonth + 1, getUTCDate, getUTCDay
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { utcParts } from './index.js';
+
+describe('utcParts', () => {
+  it('15 января 2024', () => {
+    expect(utcParts(new Date('2024-01-15T00:00:00Z')))
+      .toEqual({ year: 2024, month: 1, day: 15, weekday: 1 });
+  });
+
+  it('31 декабря 2024', () => {
+    expect(utcParts(new Date('2024-12-31T23:59:59Z')))
+      .toEqual({ year: 2024, month: 12, day: 31, weekday: 2 });
+  });
+
+  it('воскресенье', () => {
+    expect(utcParts(new Date('2024-03-17T00:00:00Z')).weekday).toBe(0);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { utcParts } from './index.js';
+
+describe('utcParts', () => {
+  it('15 января 2024', () => {
+    expect(utcParts(new Date('2024-01-15T00:00:00Z')))
+      .toEqual({ year: 2024, month: 1, day: 15, weekday: 1 });
+  });
+
+  it('31 декабря 2024', () => {
+    expect(utcParts(new Date('2024-12-31T23:59:59Z')))
+      .toEqual({ year: 2024, month: 12, day: 31, weekday: 2 });
+  });
+
+  it('воскресенье', () => {
+    expect(utcParts(new Date('2024-03-17T00:00:00Z')).weekday).toBe(0);
+  });
+
+  it('первая секунда года', () => {
+    expect(utcParts(new Date('2000-01-01T00:00:00Z')))
+      .toEqual({ year: 2000, month: 1, day: 1, weekday: 6 });
+  });
+
+  it('месяц нумеруется с 1, а не с 0', () => {
+    const result = utcParts(new Date('2024-07-04T00:00:00Z'));
+    expect(result.month).toBe(7);
+  });
+
+  it('возвращает объект с четырьмя ключами', () => {
+    const result = utcParts(new Date('2024-01-01T00:00:00Z'));
+    expect(Object.keys(result).sort()).toEqual(['day', 'month', 'weekday', 'year']);
+  });
+
+  it('одна и та же дата в разных Date-конструкторах', () => {
+    const a = utcParts(new Date(Date.UTC(2024, 5, 10)));
+    expect(a).toEqual({ year: 2024, month: 6, day: 10, weekday: 1 });
+  });
+});
+`,
+  }),
+  createDataTypesChallenge({
+    id: "data-types-date-parse-pitfall",
+    title: "Date-конструктор: ISO vs локальное",
+    description: `\`new Date(string)\` парсит строку. Поведение зависит от **формата** строки:
+
+- \`'2024-01-15'\` (только дата, ISO-формат YYYY-MM-DD) — интерпретируется как **UTC-полночь**.
+- \`'2024-01-15T12:00:00'\` (без \`Z\`/смещения) — интерпретируется как **локальное** время.
+- \`'2024-01-15T12:00:00Z'\` (с \`Z\`) — UTC.
+- \`'01/15/2024'\` или \`'15.01.2024'\` — поведение зависит от движка, не гарантируется.
+
+\`\`\`js
+new Date('2024-01-15').toISOString()
+// '2024-01-15T00:00:00.000Z'   — UTC
+
+new Date('2024-01-15T12:00:00').toISOString()
+// зависит от пояса машины
+
+new Date('15.01.2024')
+// Invalid Date в большинстве движков
+\`\`\`
+
+**Правильный путь.** Если у тебя только день — используй \`Date.UTC(year, monthIndex, day)\` или \`new Date(Date.UTC(...))\`. Не парси произвольные форматы — они не переносимы.
+
+**Что написать.** Функцию \`safeParseDate(input)\` — принимает что-то и возвращает либо \`Date\` (если разобралось в **валидную** дату), либо \`null\`.
+
+## Требования
+
+1. Если \`input\` — строка, попробуй \`new Date(input)\`.
+2. Проверь, что результат валиден через \`Number.isNaN(d.getTime())\`. Если \`getTime()\` это \`NaN\` — возвращай \`null\`.
+3. Если \`input\` — число (миллисекунды) или \`Date\` — тоже принимай.
+4. Иначе — \`null\`.
+5. Экспортируй функцию \`safeParseDate\`.
+
+## Примеры
+
+\`safeParseDate('2024-01-15')\` → \`Date(2024-01-15T00:00:00.000Z)\`
+
+\`safeParseDate('not a date')\` → \`null\`
+
+\`safeParseDate(0)\` → \`Date(1970-01-01T00:00:00.000Z)\` (epoch)
+
+\`safeParseDate(null)\` → \`null\``,
+    rank: 3,
+    tags: ["date", "parse", "iso"],
+    starter: `export function safeParseDate(input) {
+  // string/number/Date → new Date + проверка getTime() на NaN
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { safeParseDate } from './index.js';
+
+describe('safeParseDate', () => {
+  it('ISO-строка YYYY-MM-DD', () => {
+    expect(safeParseDate('2024-01-15').toISOString()).toBe('2024-01-15T00:00:00.000Z');
+  });
+
+  it('мусорная строка → null', () => {
+    expect(safeParseDate('not a date')).toBeNull();
+  });
+
+  it('число — миллисекунды от epoch', () => {
+    expect(safeParseDate(0).toISOString()).toBe('1970-01-01T00:00:00.000Z');
+  });
+
+  it('null → null', () => {
+    expect(safeParseDate(null)).toBeNull();
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { safeParseDate } from './index.js';
+
+describe('safeParseDate', () => {
+  it('ISO-строка YYYY-MM-DD', () => {
+    expect(safeParseDate('2024-01-15').toISOString()).toBe('2024-01-15T00:00:00.000Z');
+  });
+
+  it('мусорная строка → null', () => {
+    expect(safeParseDate('not a date')).toBeNull();
+  });
+
+  it('число — миллисекунды от epoch', () => {
+    expect(safeParseDate(0).toISOString()).toBe('1970-01-01T00:00:00.000Z');
+  });
+
+  it('null → null', () => {
+    expect(safeParseDate(null)).toBeNull();
+  });
+
+  it('undefined → null', () => {
+    expect(safeParseDate(undefined)).toBeNull();
+  });
+
+  it('Date-объект принимается', () => {
+    const d = new Date('2024-06-01');
+    expect(safeParseDate(d).getTime()).toBe(d.getTime());
+  });
+
+  it('Invalid Date через число NaN → null', () => {
+    expect(safeParseDate(NaN)).toBeNull();
+  });
+
+  it('число с плавающей точкой работает', () => {
+    expect(safeParseDate(1700000000000).toISOString()).toBe(new Date(1700000000000).toISOString());
+  });
+
+  it('пустая строка → null', () => {
+    expect(safeParseDate('')).toBeNull();
+  });
+
+  it('строка с миллисекундами Z', () => {
+    const result = safeParseDate('2024-01-15T12:30:45.123Z');
+    expect(result.toISOString()).toBe('2024-01-15T12:30:45.123Z');
   });
 });
 `,
@@ -1162,6 +1749,259 @@ describe('stringifyExcept', () => {
     const obj = { a: 1, password: 'x', nested: { password: 'y', ok: true } };
     const parsed = JSON.parse(stringifyExcept(obj, ['password']));
     expect(parsed).toEqual({ a: 1, nested: { ok: true } });
+  });
+});
+`,
+  }),
+  createDataTypesChallenge({
+    id: "data-types-json-with-reviver",
+    title: "JSON.parse с reviver",
+    description: `\`JSON.parse\` принимает второй аргумент — \`reviver\`. Это функция \`(key, value) => transformed\`, которую JS зовёт для каждой пары при разборе. Возвращаешь значение — оно подставится. Возвращаешь \`undefined\` — ключ удалится.
+
+\`\`\`js
+JSON.parse('{"a":1,"b":2}', (key, value) =>
+  typeof value === 'number' ? value * 10 : value
+);
+// { a: 10, b: 20 }
+\`\`\`
+
+Типичный кейс: даты в JSON хранятся как ISO-строки. С reviver-ом можно автоматически превращать их обратно в \`Date\`:
+
+\`\`\`js
+const isoRe = /^\\d{4}-\\d{2}-\\d{2}T/;
+JSON.parse('{"created":"2024-01-15T00:00:00Z"}', (key, value) =>
+  typeof value === 'string' && isoRe.test(value) ? new Date(value) : value
+);
+\`\`\`
+
+**Что написать.** Функцию \`parseWithDates(json)\` — парсит JSON и автоматически превращает строковые ISO-даты (вида \`YYYY-MM-DDT...\`) в объекты \`Date\`. Остальное оставляет как есть.
+
+## Требования
+
+1. Используй \`JSON.parse(json, reviver)\`.
+2. Проверка ISO-вида: строка соответствует регулярке \`/^\\d{4}-\\d{2}-\\d{2}T/\`.
+3. Подходит — возвращай \`new Date(value)\`.
+4. Иначе — возвращай \`value\`.
+5. Экспортируй функцию \`parseWithDates\`.
+
+## Примеры
+
+\`\`\`js
+parseWithDates('{"a":1}')
+// { a: 1 }
+
+parseWithDates('{"created":"2024-01-15T00:00:00Z"}')
+// { created: Date(2024-01-15T00:00:00.000Z) }
+
+parseWithDates('{"name":"2024-foo"}')
+// { name: '2024-foo' }   — не совпадает с регуляркой
+\`\`\``,
+    rank: 3,
+    tags: ["json", "reviver"],
+    starter: `export function parseWithDates(json) {
+  // JSON.parse(json, (key, value) => ...)
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { parseWithDates } from './index.js';
+
+describe('parseWithDates', () => {
+  it('обычные значения не трогает', () => {
+    expect(parseWithDates('{"a":1}')).toEqual({ a: 1 });
+  });
+
+  it('ISO-строка → Date', () => {
+    const result = parseWithDates('{"created":"2024-01-15T00:00:00Z"}');
+    expect(result.created).toBeInstanceOf(Date);
+    expect(result.created.toISOString()).toBe('2024-01-15T00:00:00.000Z');
+  });
+
+  it('строка без ISO-формата остаётся строкой', () => {
+    expect(parseWithDates('{"name":"2024-foo"}')).toEqual({ name: '2024-foo' });
+  });
+
+  it('массив с ISO-строками', () => {
+    const result = parseWithDates('["2024-01-15T00:00:00Z","abc"]');
+    expect(result[0]).toBeInstanceOf(Date);
+    expect(result[1]).toBe('abc');
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { parseWithDates } from './index.js';
+
+describe('parseWithDates', () => {
+  it('обычные значения не трогает', () => {
+    expect(parseWithDates('{"a":1}')).toEqual({ a: 1 });
+  });
+
+  it('ISO-строка → Date', () => {
+    const result = parseWithDates('{"created":"2024-01-15T00:00:00Z"}');
+    expect(result.created).toBeInstanceOf(Date);
+    expect(result.created.toISOString()).toBe('2024-01-15T00:00:00.000Z');
+  });
+
+  it('строка без ISO-формата остаётся строкой', () => {
+    expect(parseWithDates('{"name":"2024-foo"}')).toEqual({ name: '2024-foo' });
+  });
+
+  it('массив с ISO-строками', () => {
+    const result = parseWithDates('["2024-01-15T00:00:00Z","abc"]');
+    expect(result[0]).toBeInstanceOf(Date);
+    expect(result[1]).toBe('abc');
+  });
+
+  it('вложенный объект с датой', () => {
+    const result = parseWithDates('{"user":{"created":"2024-01-15T00:00:00Z"}}');
+    expect(result.user.created).toBeInstanceOf(Date);
+  });
+
+  it('число и булево не трогаем', () => {
+    expect(parseWithDates('{"n":42,"ok":true}')).toEqual({ n: 42, ok: true });
+  });
+
+  it('null остаётся null', () => {
+    expect(parseWithDates('{"x":null}')).toEqual({ x: null });
+  });
+
+  it('несколько дат в одном объекте', () => {
+    const result = parseWithDates('{"a":"2024-01-01T00:00:00Z","b":"2024-02-01T00:00:00Z"}');
+    expect(result.a).toBeInstanceOf(Date);
+    expect(result.b).toBeInstanceOf(Date);
+  });
+});
+`,
+  }),
+  createDataTypesChallenge({
+    id: "data-types-json-circular-throw",
+    title: "Циклические ссылки и stringify",
+    description: `\`JSON.stringify\` не умеет сериализовать циклические структуры — он зовёт каждое значение, и если внутри есть ссылка на самого себя, бросает \`TypeError\`.
+
+\`\`\`js
+const a = {};
+a.self = a;
+JSON.stringify(a)  // TypeError: Converting circular structure to JSON
+\`\`\`
+
+Идея решения: пройтись по объекту самим, через рекурсию + \`Set\` уже посещённых значений. Если попался уже посещённый объект — заменить его на маркер \`'[Circular]'\`. Иначе — собрать обычный объект/массив.
+
+**Что написать.** Функцию \`safeStringify(value)\` — возвращает строку JSON. Циклические ссылки заменяет на строку \`'[Circular]'\`. Без \`try/catch\` (используй replacer-функцию или собственный обход).
+
+## Требования
+
+1. Возвращай строку JSON.
+2. Циклы — заменяй на \`'[Circular]'\`.
+3. Не используй \`try/catch\`.
+4. Используй \`JSON.stringify\` с replacer-функцией ИЛИ свой обход.
+5. Подсказка: можно завести \`WeakSet\` и в replacer-е, для каждого объектного значения, проверять и добавлять в него.
+6. Экспортируй функцию \`safeStringify\`.
+
+## Примеры
+
+\`\`\`js
+safeStringify({ a: 1 })
+// '{"a":1}'
+
+const a = {};
+a.self = a;
+safeStringify(a)
+// '{"self":"[Circular]"}'
+
+const x = { name: 'X' };
+const y = { name: 'Y', friend: x };
+x.friend = y;
+safeStringify(x)
+// '{"name":"X","friend":{"name":"Y","friend":"[Circular]"}}'
+\`\`\``,
+    rank: 4,
+    tags: ["json", "circular", "weakset"],
+    starter: `export function safeStringify(value) {
+  // WeakSet посещённых, replacer-функция в JSON.stringify
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { safeStringify } from './index.js';
+
+describe('safeStringify', () => {
+  it('обычный объект', () => {
+    expect(safeStringify({ a: 1 })).toBe('{"a":1}');
+  });
+
+  it('самоссылка', () => {
+    const a = {};
+    a.self = a;
+    expect(safeStringify(a)).toBe('{"self":"[Circular]"}');
+  });
+
+  it('взаимная ссылка', () => {
+    const x = { name: 'X' };
+    const y = { name: 'Y', friend: x };
+    x.friend = y;
+    expect(safeStringify(x))
+      .toBe('{"name":"X","friend":{"name":"Y","friend":"[Circular]"}}');
+  });
+
+  it('массив с циклом', () => {
+    const arr = [1, 2];
+    arr.push(arr);
+    expect(safeStringify(arr)).toBe('[1,2,"[Circular]"]');
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { safeStringify } from './index.js';
+
+describe('safeStringify', () => {
+  it('обычный объект', () => {
+    expect(safeStringify({ a: 1 })).toBe('{"a":1}');
+  });
+
+  it('самоссылка', () => {
+    const a = {};
+    a.self = a;
+    expect(safeStringify(a)).toBe('{"self":"[Circular]"}');
+  });
+
+  it('взаимная ссылка', () => {
+    const x = { name: 'X' };
+    const y = { name: 'Y', friend: x };
+    x.friend = y;
+    expect(safeStringify(x))
+      .toBe('{"name":"X","friend":{"name":"Y","friend":"[Circular]"}}');
+  });
+
+  it('массив с циклом', () => {
+    const arr = [1, 2];
+    arr.push(arr);
+    expect(safeStringify(arr)).toBe('[1,2,"[Circular]"]');
+  });
+
+  it('пустой объект', () => {
+    expect(safeStringify({})).toBe('{}');
+  });
+
+  it('вложенный объект без цикла', () => {
+    expect(safeStringify({ a: { b: { c: 1 } } })).toBe('{"a":{"b":{"c":1}}}');
+  });
+
+  it('один и тот же объект на разных ветках — не цикл', () => {
+    const shared = { x: 1 };
+    const root = { left: shared, right: shared };
+    const out = safeStringify(root);
+    expect(out).toContain('"left":{"x":1}');
+    expect(out).toMatch(/"right":(\\{"x":1\\}|"\\[Circular\\]")/);
+  });
+
+  it('число без обёртки', () => {
+    expect(safeStringify(42)).toBe('42');
+  });
+
+  it('строка без обёртки', () => {
+    expect(safeStringify('hello')).toBe('"hello"');
+  });
+
+  it('null', () => {
+    expect(safeStringify(null)).toBe('null');
   });
 });
 `,

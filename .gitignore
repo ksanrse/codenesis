@@ -17,6 +17,7 @@ apps/db/data/*.sqlite
 apps/db/data/*.sqlite-*
 test-results/
 playwright-report/
+.claude/worktrees/
 
 # Editor directories and files
 .vscode/*

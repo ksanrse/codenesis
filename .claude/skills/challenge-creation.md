@@ -32,7 +32,7 @@ Every task description has, in this order:
 2. **The trap or the "why this is interesting"** — what surprises beginners about this. Pose it as a question or as "одна хитрость" / "одна странная штука". Show the surprising fact as code, not as a sentence.
 3. **What to write** — short, direct: `Напиши \`fn(args)\`:` followed by 1-2 sentences. No re-stating the trap from step 2.
 4. **Requirements list** — bullet points, specific enough to test. Include the export rule (`экспортируй \`fn\``).
-5. **Examples** — at least 3, including one edge case. Format: `\`fn(input)\`` → `\`output\`` on separate lines.
+5. **Examples** — at least 3, including one edge case. Format: `\`fn(input)\``→`\`output\`` on separate lines.
 
 ### Voice rules
 
@@ -46,9 +46,11 @@ Every task description has, in this order:
 ### Bad vs good
 
 ❌ **Sukhovoi/textbook:**
+
 > Когда нужно пройтись по всем парам ключ-значение объекта, в JavaScript используют цикл for..in. Этот цикл перебирает имена свойств одно за другим, а значения ты получаешь через obj[key]. for..in - старая, базовая конструкция, и хотя сегодня чаще встречаются Object.keys и Object.entries, понимать for..in всё равно нужно, потому что он лежит в основе многих полифилов.
 
 ✅ **Feynman:**
+
 > Представь объект как коробку с подписанными ящичками: `{ возраст: 25, имя: 'Аня' }`. Пройтись по всем ящикам можно через `for..in`:
 >
 > ```js
@@ -64,7 +66,7 @@ When the function has a JS gotcha (NaN, `typeof null`, `-0`, `==` coercion, muta
 > **Одна хитрость.** Кажется, что [naive idea]. Но в JavaScript [show the surprise as code]:
 >
 > ```js
-> typeof NaN  // 'number'
+> typeof NaN; // 'number'
 > ```
 >
 > Поэтому [the actual rule].

@@ -386,6 +386,210 @@ describe('uniquePush', () => {
     rank: 1,
     tags: ["arrays"],
   }),
+  createDataTypeChallenge({
+    id: "data-types-array-sparse-holes",
+    title: "Разреженный массив с дырами",
+    description: `Массивы в JS могут иметь «дыры» — индексы, в которых ничего нет (не \`undefined\`, а вообще ничего). Это разреженные массивы.
+
+\`\`\`js
+const arr = [];
+arr[5] = 'x';
+arr.length        // 6 — длина выросла до 6
+arr[2]            // undefined — но это «дыра»
+2 in arr          // false — ключа 2 в массиве нет
+5 in arr          // true  — ключ 5 есть
+arr.forEach((v, i) => console.log(i, v));
+// 5 'x' — forEach пропускает дыры!
+
+[1, , 3].length   // 3 — запятая создаёт дыру
+[1, , 3].filter(() => true) // [1, 3] — filter тоже пропускает дыры
+\`\`\`
+
+**Хитрость.** \`Array(3)\` создаёт массив длины 3 с тремя дырами. А вот \`Array.from({length: 3})\` или \`new Array(3).fill(undefined)\` — заполнит реальными \`undefined\`, и \`map\`/\`forEach\` их обойдут.
+
+**Что написать.** Функцию \`countHoles(arr)\` — возвращает количество «дыр» (индексов от 0 до length-1, по которым нет ключа).
+
+## Требования
+
+1. Пройдись по индексам \`0..arr.length-1\`.
+2. Используй \`i in arr\` или \`Object.hasOwn(arr, String(i))\`, чтобы отличить дыру от \`undefined\`.
+3. Возвращай число.
+4. Экспортируй функцию \`countHoles\`.
+
+## Примеры
+
+\`countHoles([1, 2, 3])\` → \`0\`
+
+\`countHoles([1, , 3])\` → \`1\`
+
+\`countHoles(Array(5))\` → \`5\`
+
+\`countHoles([undefined, undefined])\` → \`0\` (это не дыры, а реальные undefined)`,
+    starter: `export function countHoles(arr) {
+  // Цикл по индексам, проверка через 'in'
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { countHoles } from './index.js';
+
+describe('countHoles', () => {
+  it('плотный массив', () => {
+    expect(countHoles([1, 2, 3])).toBe(0);
+  });
+
+  it('одна дыра в середине', () => {
+    expect(countHoles([1, , 3])).toBe(1);
+  });
+
+  it('Array(5) — пять дыр', () => {
+    expect(countHoles(Array(5))).toBe(5);
+  });
+
+  it('реальные undefined — не дыры', () => {
+    expect(countHoles([undefined, undefined])).toBe(0);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { countHoles } from './index.js';
+
+describe('countHoles', () => {
+  it('плотный массив', () => {
+    expect(countHoles([1, 2, 3])).toBe(0);
+  });
+
+  it('одна дыра в середине', () => {
+    expect(countHoles([1, , 3])).toBe(1);
+  });
+
+  it('Array(5) — пять дыр', () => {
+    expect(countHoles(Array(5))).toBe(5);
+  });
+
+  it('реальные undefined — не дыры', () => {
+    expect(countHoles([undefined, undefined])).toBe(0);
+  });
+
+  it('пустой массив', () => {
+    expect(countHoles([])).toBe(0);
+  });
+
+  it('две подряд идущие дыры', () => {
+    expect(countHoles([1, , , 4])).toBe(2);
+  });
+
+  it('массив, удлинённый присваиванием', () => {
+    const arr = [];
+    arr[5] = 'x';
+    expect(countHoles(arr)).toBe(5);
+  });
+
+  it('Array.from с length заполняет undefined', () => {
+    expect(countHoles(Array.from({ length: 3 }))).toBe(0);
+  });
+});
+`,
+    rank: 2,
+    tags: ["arrays", "sparse", "holes"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-array-partition",
+    title: "Разделить надвое",
+    description: `Финал набора. Часто нужно разбить массив на «подходящие» и «не подходящие» по предикату. Это \`partition\` — пары результатов в одном проходе.
+
+\`\`\`js
+partition([1, 2, 3, 4], n => n % 2 === 0)
+// [[2, 4], [1, 3]]
+\`\`\`
+
+Можно собрать через два \`filter\`, но тогда массив проходится дважды. Один \`reduce\` или \`for..of\` справляется за один проход.
+
+**Что написать.** Функцию \`partition(arr, predicate)\` — возвращает массив из двух массивов: первый с элементами, для которых \`predicate(x)\` truthy, второй — с остальными. Порядок сохраняй.
+
+## Требования
+
+1. Пройди по \`arr\` один раз.
+2. Возвращай \`[matched, rest]\`.
+3. Не мутируй исходный массив.
+4. Сохраняй относительный порядок элементов.
+5. Экспортируй функцию \`partition\`.
+
+## Примеры
+
+\`partition([1, 2, 3, 4], n => n % 2 === 0)\` → \`[[2, 4], [1, 3]]\`
+
+\`partition([], () => true)\` → \`[[], []]\`
+
+\`partition([1, 2, 3], () => false)\` → \`[[], [1, 2, 3]]\``,
+    starter: `export function partition(arr, predicate) {
+  // Один проход, два массива
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { partition } from './index.js';
+
+describe('partition', () => {
+  it('разделяет чёт/нечёт', () => {
+    expect(partition([1, 2, 3, 4], n => n % 2 === 0)).toEqual([[2, 4], [1, 3]]);
+  });
+
+  it('пустой массив', () => {
+    expect(partition([], () => true)).toEqual([[], []]);
+  });
+
+  it('всё в "не подходит"', () => {
+    expect(partition([1, 2, 3], () => false)).toEqual([[], [1, 2, 3]]);
+  });
+
+  it('всё в "подходит"', () => {
+    expect(partition([1, 2, 3], () => true)).toEqual([[1, 2, 3], []]);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { partition } from './index.js';
+
+describe('partition', () => {
+  it('разделяет чёт/нечёт', () => {
+    expect(partition([1, 2, 3, 4], n => n % 2 === 0)).toEqual([[2, 4], [1, 3]]);
+  });
+
+  it('пустой массив', () => {
+    expect(partition([], () => true)).toEqual([[], []]);
+  });
+
+  it('всё в "не подходит"', () => {
+    expect(partition([1, 2, 3], () => false)).toEqual([[], [1, 2, 3]]);
+  });
+
+  it('всё в "подходит"', () => {
+    expect(partition([1, 2, 3], () => true)).toEqual([[1, 2, 3], []]);
+  });
+
+  it('сохраняет порядок', () => {
+    expect(partition([3, 1, 4, 1, 5, 9, 2, 6], n => n > 3))
+      .toEqual([[4, 5, 9, 6], [3, 1, 1, 2]]);
+  });
+
+  it('truthy-значения тоже считаются', () => {
+    expect(partition(['a', '', 'b', ''], s => s)).toEqual([['a', 'b'], ['', '']]);
+  });
+
+  it('не мутирует оригинал', () => {
+    const orig = [1, 2, 3];
+    partition(orig, n => n > 1);
+    expect(orig).toEqual([1, 2, 3]);
+  });
+
+  it('предикат получает индекс', () => {
+    expect(partition(['a', 'b', 'c'], (_, i) => i % 2 === 0))
+      .toEqual([['a', 'c'], ['b']]);
+  });
+});
+`,
+    rank: 2,
+    tags: ["arrays", "partition", "finale"],
+  }),
 ];
 
 export const arrayMethodsChallenges: ChallengeDefinition[] = [
@@ -716,6 +920,308 @@ describe('flatten', () => {
 `,
     rank: 3,
     tags: ["array-methods"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-array-methods-find-last",
+    title: "findLast и findLastIndex",
+    description: `\`find\` ищет первый элемент, удовлетворяющий предикату. \`findLast\` — последний. \`findIndex\` и \`findLastIndex\` — то же, но возвращают индекс. Это сэкономит \`reverse()\` или ручной цикл с конца.
+
+\`\`\`js
+[1, 2, 3, 4].find(n => n % 2 === 0)         // 2
+[1, 2, 3, 4].findLast(n => n % 2 === 0)     // 4
+[1, 2, 3, 4].findIndex(n => n % 2 === 0)    // 1
+[1, 2, 3, 4].findLastIndex(n => n % 2 === 0) // 3
+\`\`\`
+
+Если ничего не нашлось — \`find\`/\`findLast\` возвращают \`undefined\`, \`findIndex\`/\`findLastIndex\` возвращают \`-1\`.
+
+**Что написать.** Функцию \`findFirstAndLast(arr, predicate)\` — возвращает \`{ first, last, firstIndex, lastIndex }\`. Используй встроенные методы.
+
+## Требования
+
+1. Используй \`find\`, \`findLast\`, \`findIndex\`, \`findLastIndex\`.
+2. Если ничего не подходит — \`first\` и \`last\` это \`undefined\`, индексы \`-1\`.
+3. Экспортируй функцию \`findFirstAndLast\`.
+
+## Примеры
+
+\`\`\`js
+findFirstAndLast([1, 2, 3, 4], n => n % 2 === 0)
+// { first: 2, last: 4, firstIndex: 1, lastIndex: 3 }
+
+findFirstAndLast([1, 3, 5], n => n % 2 === 0)
+// { first: undefined, last: undefined, firstIndex: -1, lastIndex: -1 }
+\`\`\``,
+    starter: `export function findFirstAndLast(arr, predicate) {
+  // arr.find / findLast / findIndex / findLastIndex
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { findFirstAndLast } from './index.js';
+
+describe('findFirstAndLast', () => {
+  it('находит чётные', () => {
+    expect(findFirstAndLast([1, 2, 3, 4], n => n % 2 === 0))
+      .toEqual({ first: 2, last: 4, firstIndex: 1, lastIndex: 3 });
+  });
+
+  it('ничего не находит', () => {
+    expect(findFirstAndLast([1, 3, 5], n => n % 2 === 0))
+      .toEqual({ first: undefined, last: undefined, firstIndex: -1, lastIndex: -1 });
+  });
+
+  it('один подходящий — first и last совпадают', () => {
+    expect(findFirstAndLast([1, 2, 3], n => n === 2))
+      .toEqual({ first: 2, last: 2, firstIndex: 1, lastIndex: 1 });
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { findFirstAndLast } from './index.js';
+
+describe('findFirstAndLast', () => {
+  it('находит чётные', () => {
+    expect(findFirstAndLast([1, 2, 3, 4], n => n % 2 === 0))
+      .toEqual({ first: 2, last: 4, firstIndex: 1, lastIndex: 3 });
+  });
+
+  it('ничего не находит', () => {
+    expect(findFirstAndLast([1, 3, 5], n => n % 2 === 0))
+      .toEqual({ first: undefined, last: undefined, firstIndex: -1, lastIndex: -1 });
+  });
+
+  it('один подходящий — first и last совпадают', () => {
+    expect(findFirstAndLast([1, 2, 3], n => n === 2))
+      .toEqual({ first: 2, last: 2, firstIndex: 1, lastIndex: 1 });
+  });
+
+  it('пустой массив', () => {
+    expect(findFirstAndLast([], () => true))
+      .toEqual({ first: undefined, last: undefined, firstIndex: -1, lastIndex: -1 });
+  });
+
+  it('первый и последний по позиции', () => {
+    expect(findFirstAndLast(['a', 'b', 'a', 'c', 'a'], s => s === 'a'))
+      .toEqual({ first: 'a', last: 'a', firstIndex: 0, lastIndex: 4 });
+  });
+
+  it('предикат получает индекс', () => {
+    expect(findFirstAndLast([10, 20, 30, 40], (_, i) => i >= 2).firstIndex).toBe(2);
+  });
+});
+`,
+    rank: 3,
+    tags: ["array-methods", "find-last"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-array-methods-includes-nan",
+    title: "includes находит NaN, indexOf — нет",
+    description: `\`Array.prototype.indexOf\` использует \`===\` для сравнения. А \`NaN === NaN\` это \`false\`. Поэтому \`indexOf(NaN)\` всегда возвращает \`-1\`, даже если \`NaN\` в массиве есть.
+
+\`\`\`js
+[NaN].indexOf(NaN)   // -1 (!)
+[NaN].includes(NaN)  // true   — includes использует SameValueZero, который видит NaN
+\`\`\`
+
+\`includes\` использует алгоритм SameValueZero: как \`===\`, но \`NaN === NaN\` считает \`true\`. Различие: \`+0\` и \`-0\` для SameValueZero равны (для \`Object.is\` — нет).
+
+**Что написать.** Функцию \`hasNaN(arr)\` — возвращает \`true\`, если в массиве есть \`NaN\`. Реализуй **через \`includes\`**, не через \`indexOf\` или \`some(Number.isNaN)\`.
+
+## Требования
+
+1. Используй \`arr.includes(NaN)\`.
+2. Не используй \`indexOf\`, \`some\`, \`Number.isNaN\` напрямую для решения.
+3. Экспортируй функцию \`hasNaN\`.
+
+## Примеры
+
+\`hasNaN([1, NaN, 3])\` → \`true\`
+
+\`hasNaN([1, 2, 3])\` → \`false\`
+
+\`hasNaN([])\` → \`false\``,
+    starter: `export function hasNaN(arr) {
+  // arr.includes(NaN)
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { hasNaN } from './index.js';
+
+describe('hasNaN', () => {
+  it('NaN в середине', () => {
+    expect(hasNaN([1, NaN, 3])).toBe(true);
+  });
+
+  it('обычный массив без NaN', () => {
+    expect(hasNaN([1, 2, 3])).toBe(false);
+  });
+
+  it('пустой массив', () => {
+    expect(hasNaN([])).toBe(false);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { hasNaN } from './index.js';
+
+describe('hasNaN', () => {
+  it('NaN в середине', () => {
+    expect(hasNaN([1, NaN, 3])).toBe(true);
+  });
+
+  it('обычный массив без NaN', () => {
+    expect(hasNaN([1, 2, 3])).toBe(false);
+  });
+
+  it('пустой массив', () => {
+    expect(hasNaN([])).toBe(false);
+  });
+
+  it('NaN в самом начале', () => {
+    expect(hasNaN([NaN, 1, 2])).toBe(true);
+  });
+
+  it('NaN в самом конце', () => {
+    expect(hasNaN([1, 2, NaN])).toBe(true);
+  });
+
+  it('массив только из NaN', () => {
+    expect(hasNaN([NaN, NaN, NaN])).toBe(true);
+  });
+
+  it('NaN не находится через indexOf — наглядно', () => {
+    const arr = [NaN];
+    expect(arr.indexOf(NaN)).toBe(-1);
+    expect(hasNaN(arr)).toBe(true);
+  });
+
+  it('строки без NaN', () => {
+    expect(hasNaN(['a', 'b'])).toBe(false);
+  });
+});
+`,
+    rank: 3,
+    tags: ["array-methods", "includes", "nan"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-array-methods-immutable-splice",
+    title: "Финал: иммутабельный splice",
+    description: `Финал набора. \`splice(start, deleteCount, ...items)\` мутирует массив и возвращает удалённые элементы. Это удобно, но в реактивных приложениях (React, Vue) мутация ломает обнаружение изменений.
+
+С 2023 года в JS появились **иммутабельные близнецы**: \`toSorted\`, \`toReversed\`, \`toSpliced\`, \`with\`. Они возвращают новый массив, оригинал не трогают.
+
+\`\`\`js
+const arr = [1, 2, 3, 4];
+const out = arr.toSpliced(1, 2);  // [1, 4]
+arr;                               // [1, 2, 3, 4] — НЕ мутирован
+
+const out2 = arr.toSpliced(1, 0, 'a', 'b');  // [1, 'a', 'b', 2, 3, 4]
+\`\`\`
+
+Если \`toSpliced\` ещё не доступен в окружении — собирают вручную через \`slice\`+\`concat\`. Для тренировки попробуем второй путь.
+
+**Что написать.** Функцию \`spliceImmutable(arr, start, deleteCount, ...items)\` — возвращает **новый** массив, в котором с позиции \`start\` удалено \`deleteCount\` элементов и вставлены \`items\`. Оригинал НЕ мутируется. Реализуй через \`slice\` + spread (без \`splice\`, без \`toSpliced\`).
+
+## Требования
+
+1. Не мутируй \`arr\`.
+2. Не используй \`Array.prototype.splice\` или \`toSpliced\`.
+3. Используй \`slice\` и spread \`[...]\`.
+4. Поддержи отрицательные \`start\` (как у \`splice\`: \`-1\` это последний элемент).
+5. Экспортируй функцию \`spliceImmutable\`.
+
+## Примеры
+
+\`\`\`js
+spliceImmutable([1, 2, 3, 4], 1, 2)
+// [1, 4]
+
+spliceImmutable([1, 2, 3, 4], 1, 0, 'a', 'b')
+// [1, 'a', 'b', 2, 3, 4]
+
+spliceImmutable([1, 2, 3], -1, 1, 'X')
+// [1, 2, 'X']
+\`\`\``,
+    rank: 4,
+    tags: ["array-methods", "immutable", "finale"],
+    starter: `export function spliceImmutable(arr, start, deleteCount, ...items) {
+  // slice + spread, оригинал не трогать
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { spliceImmutable } from './index.js';
+
+describe('spliceImmutable', () => {
+  it('удаляет элементы', () => {
+    expect(spliceImmutable([1, 2, 3, 4], 1, 2)).toEqual([1, 4]);
+  });
+
+  it('вставляет элементы', () => {
+    expect(spliceImmutable([1, 2, 3, 4], 1, 0, 'a', 'b'))
+      .toEqual([1, 'a', 'b', 2, 3, 4]);
+  });
+
+  it('отрицательный start', () => {
+    expect(spliceImmutable([1, 2, 3], -1, 1, 'X')).toEqual([1, 2, 'X']);
+  });
+
+  it('не мутирует оригинал', () => {
+    const arr = [1, 2, 3, 4];
+    spliceImmutable(arr, 1, 2);
+    expect(arr).toEqual([1, 2, 3, 4]);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { spliceImmutable } from './index.js';
+
+describe('spliceImmutable', () => {
+  it('удаляет элементы', () => {
+    expect(spliceImmutable([1, 2, 3, 4], 1, 2)).toEqual([1, 4]);
+  });
+
+  it('вставляет элементы', () => {
+    expect(spliceImmutable([1, 2, 3, 4], 1, 0, 'a', 'b'))
+      .toEqual([1, 'a', 'b', 2, 3, 4]);
+  });
+
+  it('замена через delete + insert', () => {
+    expect(spliceImmutable([1, 2, 3, 4], 1, 2, 'X', 'Y'))
+      .toEqual([1, 'X', 'Y', 4]);
+  });
+
+  it('отрицательный start', () => {
+    expect(spliceImmutable([1, 2, 3], -1, 1, 'X')).toEqual([1, 2, 'X']);
+  });
+
+  it('не мутирует оригинал', () => {
+    const arr = [1, 2, 3, 4];
+    spliceImmutable(arr, 1, 2);
+    expect(arr).toEqual([1, 2, 3, 4]);
+  });
+
+  it('start больше длины — добавляет в конец', () => {
+    expect(spliceImmutable([1, 2], 10, 0, 'X')).toEqual([1, 2, 'X']);
+  });
+
+  it('deleteCount = 0 без items', () => {
+    expect(spliceImmutable([1, 2, 3], 1, 0)).toEqual([1, 2, 3]);
+  });
+
+  it('пустой массив, добавление', () => {
+    expect(spliceImmutable([], 0, 0, 'a', 'b')).toEqual(['a', 'b']);
+  });
+
+  it('start = 0', () => {
+    expect(spliceImmutable([1, 2, 3], 0, 1)).toEqual([2, 3]);
+  });
+
+  it('возвращает новый массив, не ссылку', () => {
+    const arr = [1, 2, 3];
+    expect(spliceImmutable(arr, 0, 0)).not.toBe(arr);
+  });
+});
+`,
   }),
 ];
 
@@ -1075,5 +1581,244 @@ describe('takeWhile', () => {
 `,
     rank: 4,
     tags: ["iterables"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-iterable-yield-delegation",
+    title: "Делегирование через yield*",
+    description: `\`yield*\` внутри генератора — это «вставь сюда всё, что отдаст другой итерируемый объект». Удобно для композиции.
+
+\`\`\`js
+function* a() { yield 1; yield 2; }
+function* b() {
+  yield 0;
+  yield* a();   // 1, 2 — все значения a
+  yield 3;
+}
+[...b()] // [0, 1, 2, 3]
+\`\`\`
+
+\`yield*\` принимает любой iterable, не только генератор: можно делегировать массиву, Set, Map.
+
+**Что написать.** Генератор-функцию \`concatGenerators(...iterables)\`, который последовательно отдаёт значения из всех переданных iterable'ов через \`yield*\`.
+
+## Требования
+
+1. Используй \`function*\` и \`yield*\` (не пиши вручную через \`for..of\`+\`yield\` — это другая задача).
+2. Принимай переменное число аргументов через rest.
+3. Каждый аргумент — iterable.
+4. Результат — генератор.
+5. Экспортируй функцию \`concatGenerators\`.
+
+## Примеры
+
+\`[...concatGenerators([1, 2], [3, 4])]\` → \`[1, 2, 3, 4]\`
+
+\`[...concatGenerators('ab', 'cd')]\` → \`['a', 'b', 'c', 'd']\`
+
+\`[...concatGenerators()]\` → \`[]\`
+
+\`[...concatGenerators(new Set([1, 2]), [3])]\` → \`[1, 2, 3]\``,
+    starter: `export function* concatGenerators(...iterables) {
+  // Используй yield* для каждого iterable
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { concatGenerators } from './index.js';
+
+describe('concatGenerators', () => {
+  it('два массива', () => {
+    expect([...concatGenerators([1, 2], [3, 4])]).toEqual([1, 2, 3, 4]);
+  });
+
+  it('строки тоже iterable', () => {
+    expect([...concatGenerators('ab', 'cd')]).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('без аргументов — пусто', () => {
+    expect([...concatGenerators()]).toEqual([]);
+  });
+
+  it('Set + массив', () => {
+    expect([...concatGenerators(new Set([1, 2]), [3])]).toEqual([1, 2, 3]);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { concatGenerators } from './index.js';
+
+describe('concatGenerators', () => {
+  it('два массива', () => {
+    expect([...concatGenerators([1, 2], [3, 4])]).toEqual([1, 2, 3, 4]);
+  });
+
+  it('строки тоже iterable', () => {
+    expect([...concatGenerators('ab', 'cd')]).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('без аргументов — пусто', () => {
+    expect([...concatGenerators()]).toEqual([]);
+  });
+
+  it('Set + массив', () => {
+    expect([...concatGenerators(new Set([1, 2]), [3])]).toEqual([1, 2, 3]);
+  });
+
+  it('пустые iterables пропускаются', () => {
+    expect([...concatGenerators([], [1], [], [2])]).toEqual([1, 2]);
+  });
+
+  it('один iterable', () => {
+    expect([...concatGenerators([7, 8, 9])]).toEqual([7, 8, 9]);
+  });
+
+  it('возвращает генератор', () => {
+    const g = concatGenerators([1]);
+    expect(typeof g.next).toBe('function');
+    expect(typeof g[Symbol.iterator]).toBe('function');
+  });
+
+  it('делегирование вложенному генератору', () => {
+    function* inner() { yield 10; yield 20; }
+    expect([...concatGenerators(inner(), [30])]).toEqual([10, 20, 30]);
+  });
+
+  it('повторный перебор не возобновляется', () => {
+    const g = concatGenerators([1, 2]);
+    expect([...g]).toEqual([1, 2]);
+    expect([...g]).toEqual([]);
+  });
+});
+`,
+    rank: 4,
+    tags: ["iterables", "generator", "yield-delegation"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-iterable-return-cleanup",
+    title: "Уборка через return()",
+    description: `Иногда итератор открывает ресурс — файл, соединение, таймер. Если перебор прервался (\`break\`, ошибка, ранний выход из spread), хорошо бы это закрыть. JS поддерживает протокол: у итератора может быть метод \`return()\`, который вызовется автоматически в этих случаях.
+
+\`\`\`js
+const iter = {
+  [Symbol.iterator]() {
+    let i = 0;
+    return {
+      next() { return i < 3 ? { value: i++, done: false } : { done: true }; },
+      return(value) {
+        // вызовется при break / ранней остановке
+        return { value, done: true };
+      }
+    };
+  }
+};
+
+for (const x of iter) {
+  if (x === 1) break;  // сработает return()
+}
+\`\`\`
+
+**Что написать.** Функцию \`makeCleanupIterable(values, onCleanup)\` — возвращает iterable, который перебирает \`values\`. Если перебор прерван досрочно (через \`break\` или \`.return()\`), функция \`onCleanup\` должна быть вызвана **ровно один раз**. Если перебор дошёл до конца — \`onCleanup\` НЕ вызывается.
+
+## Требования
+
+1. Возвращай объект с \`[Symbol.iterator]\`.
+2. Итератор должен иметь \`next()\` и \`return()\`.
+3. \`return()\` вызывает \`onCleanup\` и возвращает \`{ value: undefined, done: true }\`.
+4. Гарантируй, что \`onCleanup\` зовётся максимум один раз.
+5. Если перебор завершился сам (закончились значения) — НЕ зовём \`onCleanup\`.
+6. Экспортируй функцию \`makeCleanupIterable\`.
+
+## Примеры
+
+Полный перебор \`[...makeCleanupIterable([1, 2, 3], spy)]\` — \`spy\` НЕ вызывается.
+
+\`break\` после первого — \`spy\` вызвался ровно один раз.`,
+    starter: `export function makeCleanupIterable(values, onCleanup) {
+  // Реализуй [Symbol.iterator] с next() и return()
+}
+`,
+    tests: `import { describe, expect, it, vi } from 'vitest';
+import { makeCleanupIterable } from './index.js';
+
+describe('makeCleanupIterable', () => {
+  it('полный перебор не зовёт cleanup', () => {
+    const spy = vi.fn();
+    [...makeCleanupIterable([1, 2, 3], spy)];
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('break вызывает cleanup', () => {
+    const spy = vi.fn();
+    for (const x of makeCleanupIterable([1, 2, 3], spy)) {
+      if (x === 1) break;
+    }
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('пустой values без break — без cleanup', () => {
+    const spy = vi.fn();
+    [...makeCleanupIterable([], spy)];
+    expect(spy).not.toHaveBeenCalled();
+  });
+});
+`,
+    fullTests: `import { describe, expect, it, vi } from 'vitest';
+import { makeCleanupIterable } from './index.js';
+
+describe('makeCleanupIterable', () => {
+  it('полный перебор не зовёт cleanup', () => {
+    const spy = vi.fn();
+    [...makeCleanupIterable([1, 2, 3], spy)];
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('break вызывает cleanup', () => {
+    const spy = vi.fn();
+    for (const x of makeCleanupIterable([1, 2, 3], spy)) {
+      if (x === 1) break;
+    }
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('return() напрямую вызывает cleanup', () => {
+    const spy = vi.fn();
+    const iter = makeCleanupIterable([1, 2], spy)[Symbol.iterator]();
+    iter.next();
+    iter.return();
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('cleanup зовётся максимум один раз', () => {
+    const spy = vi.fn();
+    const iter = makeCleanupIterable([1, 2, 3], spy)[Symbol.iterator]();
+    iter.return();
+    iter.return();
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('пустой values без break — без cleanup', () => {
+    const spy = vi.fn();
+    [...makeCleanupIterable([], spy)];
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('возвращает значения по порядку', () => {
+    const spy = vi.fn();
+    expect([...makeCleanupIterable([10, 20, 30], spy)]).toEqual([10, 20, 30]);
+  });
+
+  it('return() возвращает { done: true }', () => {
+    const iter = makeCleanupIterable([1, 2], () => {})[Symbol.iterator]();
+    const result = iter.return();
+    expect(result.done).toBe(true);
+  });
+
+  it('итератор имеет return метод', () => {
+    const iter = makeCleanupIterable([1], () => {})[Symbol.iterator]();
+    expect(typeof iter.return).toBe('function');
+  });
+});
+`,
+    rank: 4,
+    tags: ["iterables", "return", "cleanup"],
   }),
 ];

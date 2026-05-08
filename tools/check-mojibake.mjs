@@ -4,7 +4,15 @@ import { join, relative } from "node:path";
 const ROOT = process.cwd();
 const MAX_SNIPPET_LENGTH = 140;
 
-const SKIP_DIRECTORIES = new Set([".git", ".vite", "coverage", "dist", "node_modules", "target"]);
+const SKIP_DIRECTORIES = new Set([
+  ".claude",
+  ".git",
+  ".vite",
+  "coverage",
+  "dist",
+  "node_modules",
+  "target",
+]);
 
 const TEXT_EXTENSIONS = new Set([
   ".cjs",

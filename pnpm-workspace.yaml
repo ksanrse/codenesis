@@ -2,9 +2,10 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+  - "!.claude/**"
 
 catalog:
-  '@fontsource/geist-mono': ^5.2.7
+  "@fontsource/geist-mono": ^5.2.7
   "@playwright/test": ^1.59.1
   "@types/node": ^24
   "@vitejs/plugin-react": ^6.0.1

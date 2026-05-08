@@ -1554,8 +1554,6 @@ describe('myReduce', () => {
   }),
 ];
 
-
-
 export const objectsBasicsChallenges: ChallengeDefinition[] = [
   createLearnJsChallenge({
     id: "objects-create-user",
@@ -1607,7 +1605,7 @@ describe('createUser', () => {
   });
 });
 `,
-    tags: ["objects","literals"],
+    tags: ["objects", "literals"],
   }),
   createLearnJsChallenge({
     id: "objects-read-property",
@@ -1664,7 +1662,7 @@ describe('readProperty', () => {
   });
 });
 `,
-    tags: ["objects","bracket-notation"],
+    tags: ["objects", "bracket-notation"],
   }),
   createLearnJsChallenge({
     id: "objects-computed-key",
@@ -1723,7 +1721,7 @@ describe('makeEntry', () => {
   });
 });
 `,
-    tags: ["objects","computed-properties"],
+    tags: ["objects", "computed-properties"],
   }),
   createLearnJsChallenge({
     id: "objects-has-key",
@@ -1784,7 +1782,7 @@ describe('hasKey', () => {
   });
 });
 `,
-    tags: ["objects","in-operator"],
+    tags: ["objects", "in-operator"],
   }),
   createLearnJsChallenge({
     id: "objects-sum-values",
@@ -1852,7 +1850,7 @@ describe('sumValues', () => {
   });
 });
 `,
-    tags: ["objects","for-in"],
+    tags: ["objects", "for-in"],
   }),
   createLearnJsChallenge({
     id: "polyfill-my-keys",
@@ -1917,7 +1915,7 @@ describe('myKeys', () => {
   });
 });
 `,
-    tags: ["polyfill","objects","object-keys"],
+    tags: ["polyfill", "objects", "object-keys"],
   }),
 ];
 
@@ -1973,7 +1971,7 @@ describe('areSameObject', () => {
   });
 });
 `,
-    tags: ["objects","reference-equality"],
+    tags: ["objects", "reference-equality"],
   }),
   createLearnJsChallenge({
     id: "copy-merge-defaults",
@@ -2039,7 +2037,7 @@ describe('mergeWithDefaults', () => {
   });
 });
 `,
-    tags: ["objects","object-assign"],
+    tags: ["objects", "object-assign"],
   }),
   createLearnJsChallenge({
     id: "copy-shallow-clone",
@@ -2117,7 +2115,7 @@ describe('shallowClone', () => {
   });
 });
 `,
-    tags: ["objects","shallow-copy"],
+    tags: ["objects", "shallow-copy"],
   }),
   createLearnJsChallenge({
     id: "copy-deep-clone",
@@ -2196,7 +2194,7 @@ describe('deepClone', () => {
   });
 });
 `,
-    tags: ["objects","deep-copy"],
+    tags: ["objects", "deep-copy"],
   }),
   createLearnJsChallenge({
     id: "polyfill-my-object-assign",
@@ -2266,7 +2264,7 @@ describe('myObjectAssign', () => {
   });
 });
 `,
-    tags: ["polyfill","objects","object-assign"],
+    tags: ["polyfill", "objects", "object-assign"],
   }),
 ];
 
@@ -2338,7 +2336,7 @@ describe('findReachable', () => {
   });
 });
 `,
-    tags: ["graph-traversal","reachability"],
+    tags: ["graph-traversal", "reachability"],
   }),
   createLearnJsChallenge({
     id: "polyfill-mark-and-sweep",
@@ -2412,7 +2410,7 @@ describe('markAndSweep', () => {
   });
 });
 `,
-    tags: ["polyfill","graph-traversal","mark-and-sweep"],
+    tags: ["polyfill", "graph-traversal", "mark-and-sweep"],
   }),
 ];
 
@@ -2478,7 +2476,7 @@ describe('createGreeter', () => {
   });
 });
 `,
-    tags: ["methods","this"],
+    tags: ["methods", "this"],
   }),
   createLearnJsChallenge({
     id: "methods-counter",
@@ -2549,7 +2547,7 @@ describe('createCounter', () => {
   });
 });
 `,
-    tags: ["methods","this","state"],
+    tags: ["methods", "this", "state"],
   }),
   createLearnJsChallenge({
     id: "methods-call-by-name",
@@ -2628,7 +2626,7 @@ describe('callMethod', () => {
   });
 });
 `,
-    tags: ["methods","this","bracket-call"],
+    tags: ["methods", "this", "bracket-call"],
   }),
   createLearnJsChallenge({
     id: "methods-shape-area",
@@ -2696,7 +2694,7 @@ describe('shape methods', () => {
   });
 });
 `,
-    tags: ["methods","this","shapes"],
+    tags: ["methods", "this", "shapes"],
   }),
   createLearnJsChallenge({
     id: "polyfill-bind-this",
@@ -2779,7 +2777,7 @@ describe('bindThis', () => {
   });
 });
 `,
-    tags: ["polyfill","methods","bind"],
+    tags: ["polyfill", "methods", "bind"],
   }),
 ];
 
@@ -2841,7 +2839,7 @@ describe('User', () => {
   });
 });
 `,
-    tags: ["constructor","new"],
+    tags: ["constructor", "new"],
   }),
   createLearnJsChallenge({
     id: "constructor-with-method",
@@ -2901,7 +2899,7 @@ describe('Greeter', () => {
   });
 });
 `,
-    tags: ["constructor","methods"],
+    tags: ["constructor", "methods"],
   }),
   createLearnJsChallenge({
     id: "constructor-counter",
@@ -2971,7 +2969,7 @@ describe('Counter', () => {
   });
 });
 `,
-    tags: ["constructor","state"],
+    tags: ["constructor", "state"],
   }),
   createLearnJsChallenge({
     id: "constructor-new-target",
@@ -3024,7 +3022,7 @@ describe('Animal', () => {
   });
 });
 `,
-    tags: ["constructor","new-target"],
+    tags: ["constructor", "new-target"],
   }),
   createLearnJsChallenge({
     id: "polyfill-my-new",
@@ -3124,7 +3122,7 @@ describe('myNew', () => {
   });
 });
 `,
-    tags: ["polyfill","constructor","new"],
+    tags: ["polyfill", "constructor", "new"],
   }),
 ];
 
@@ -3193,7 +3191,7 @@ describe('getStreet', () => {
   });
 });
 `,
-    tags: ["optional-chaining","objects"],
+    tags: ["optional-chaining", "objects"],
   }),
   createLearnJsChallenge({
     id: "chain-call-method",
@@ -3255,7 +3253,7 @@ describe('safeStart', () => {
   });
 });
 `,
-    tags: ["optional-chaining","method-call"],
+    tags: ["optional-chaining", "method-call"],
   }),
   createLearnJsChallenge({
     id: "chain-bracket-key",
@@ -3309,7 +3307,7 @@ describe('readByKey', () => {
   });
 });
 `,
-    tags: ["optional-chaining","bracket-notation"],
+    tags: ["optional-chaining", "bracket-notation"],
   }),
   createLearnJsChallenge({
     id: "chain-deep-default",
@@ -3381,7 +3379,7 @@ describe('getNestedValue', () => {
   });
 });
 `,
-    tags: ["optional-chaining","nullish-coalescing"],
+    tags: ["optional-chaining", "nullish-coalescing"],
   }),
   createLearnJsChallenge({
     id: "polyfill-get-path",
@@ -3466,7 +3464,7 @@ describe('getPath', () => {
   });
 });
 `,
-    tags: ["polyfill","optional-chaining"],
+    tags: ["polyfill", "optional-chaining"],
   }),
 ];
 
@@ -3530,7 +3528,7 @@ describe('createMoney', () => {
   });
 });
 `,
-    tags: ["symbol-to-primitive","string-hint"],
+    tags: ["symbol-to-primitive", "string-hint"],
   }),
   createLearnJsChallenge({
     id: "toprim-money-hints",
@@ -3596,7 +3594,7 @@ describe('createMoney with hints', () => {
   });
 });
 `,
-    tags: ["symbol-to-primitive","hints"],
+    tags: ["symbol-to-primitive", "hints"],
   }),
   createLearnJsChallenge({
     id: "toprim-fallback",
@@ -3665,7 +3663,7 @@ describe('createTimer', () => {
   });
 });
 `,
-    tags: ["to-string","value-of"],
+    tags: ["to-string", "value-of"],
   }),
   createLearnJsChallenge({
     id: "polyfill-to-primitive",
@@ -3774,6 +3772,6 @@ describe('toPrimitive', () => {
   });
 });
 `,
-    tags: ["polyfill","symbol-to-primitive","spec"],
+    tags: ["polyfill", "symbol-to-primitive", "spec"],
   }),
 ];

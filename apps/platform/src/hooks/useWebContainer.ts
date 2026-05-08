@@ -5,14 +5,23 @@ import type { RunResult } from "../lib/test-runner.ts";
 import { runTestsInContainer } from "../lib/test-runner.ts";
 import { buildFileTree, getWebContainer } from "../lib/webcontainer.ts";
 
-type Status = "booting" | "installing" | "ready" | "error";
+type Status = "idle" | "booting" | "installing" | "ready" | "error";
 
-export function useWebContainer(files: ChallengeFile[], dependencies: Record<string, string>) {
-  const [status, setStatus] = useState<Status>("booting");
+export function useWebContainer(
+  files: ChallengeFile[],
+  dependencies: Record<string, string>,
+  enabled: boolean = true,
+) {
+  const [status, setStatus] = useState<Status>(enabled ? "booting" : "idle");
   const containerRef = useRef<WebContainer | null>(null);
   const mountedRef = useRef(false);
 
   useEffect(() => {
+    if (!enabled) {
+      setStatus("idle");
+      return;
+    }
+
     let cancelled = false;
 
     async function init() {
@@ -47,7 +56,7 @@ export function useWebContainer(files: ChallengeFile[], dependencies: Record<str
     return () => {
       cancelled = true;
     };
-  }, [files, dependencies]);
+  }, [enabled, files, dependencies]);
 
   const writeFile = useCallback((path: string, content: string) => {
     void containerRef.current?.fs.writeFile(path, content);

@@ -79,8 +79,7 @@
 
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono:
-    "Geist Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas,
-    monospace;
+    "Geist Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas, monospace;
 
   --nav-height: 56px;
   --container-width: 1200px;
@@ -783,7 +782,6 @@ ul {
   aspect-ratio: 1;
   border-radius: 999px;
 }
-
 
 .solved-ring-svg {
   grid-area: 1 / 1;
@@ -3695,7 +3693,9 @@ ul {
   text-transform: uppercase;
   color: var(--text-muted);
   user-select: none;
-  transition: color 0.16s ease, background-color 0.16s ease;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease;
 }
 
 .description-collapsible-summary::-webkit-details-marker {
@@ -5008,6 +5008,13 @@ ul {
     rgb(7, 8, 10) 0 0 0 1px inset,
     rgba(0, 0, 0, 0.28) 0 8px 24px;
   overflow: hidden;
+}
+
+.mosaic-foruntendo .mosaic-window .mosaic-window-toolbar,
+.mosaic-foruntendo .mosaic-window .mosaic-window-body,
+.mosaic-foruntendo .mosaic-window .mosaic-window-additional-actions-bar,
+.mosaic-foruntendo .mosaic-window .mosaic-window-body-overlay {
+  background: var(--bg-subtle);
 }
 
 .mosaic-foruntendo .mosaic-window-title {

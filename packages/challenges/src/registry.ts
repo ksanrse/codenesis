@@ -370,8 +370,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-arrays",
     title: "JS / массивы",
-    description:
-      "4 задачи: removeAt, lastN, chunk и uniquePush — базовые операции с массивами.",
+    description: "4 задачи: removeAt, lastN, chunk и uniquePush — базовые операции с массивами.",
     tag: "JS/dt-arrays",
     skillLabel: "Массивы в JavaScript",
     kind: "set",
@@ -383,8 +382,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-array-methods",
     title: "JS / методы массивов",
-    description:
-      "4 задачи: sumBy, groupBy, sortByKey и flatten — реализация через reduce/forEach.",
+    description: "4 задачи: sumBy, groupBy, sortByKey и flatten — реализация через reduce/forEach.",
     tag: "JS/dt-array-methods",
     skillLabel: "Методы массивов",
     kind: "set",
@@ -396,8 +394,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-iterables",
     title: "JS / итерируемые объекты",
-    description:
-      "4 задачи: range, take, zipWith и takeWhile через протокол итерации и генераторы.",
+    description: "4 задачи: range, take, zipWith и takeWhile через протокол итерации и генераторы.",
     tag: "JS/dt-iterables",
     skillLabel: "Итерируемые объекты",
     kind: "set",
@@ -409,8 +406,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-map-set",
     title: "JS / Map и Set",
-    description:
-      "4 задачи: tallyOccurrences, dedupSet, mergeMaps и intersectSets через Map и Set.",
+    description: "4 задачи: tallyOccurrences, dedupSet, mergeMaps и intersectSets через Map и Set.",
     tag: "JS/dt-map-set",
     skillLabel: "Map и Set",
     kind: "set",
@@ -461,8 +457,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-date",
     title: "JS / Date",
-    description:
-      "4 задачи: formatISO, addDays, daysBetween и isWeekend через объект Date.",
+    description: "4 задачи: formatISO, addDays, daysBetween и isWeekend через объект Date.",
     tag: "JS/dt-date",
     skillLabel: "Дата и время",
     kind: "set",
@@ -487,8 +482,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-symbols",
     title: "JS / Symbol",
-    description:
-      "2 задачи: создание enum через Symbol и итерируемый объект через Symbol.iterator.",
+    description: "2 задачи: создание enum через Symbol и итерируемый объект через Symbol.iterator.",
     tag: "JS/dt-symbols",
     skillLabel: "Symbol",
     kind: "set",
@@ -500,8 +494,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-bigint",
     title: "JS / BigInt",
-    description:
-      "2 задачи: сложение больших чисел и факториал через BigInt.",
+    description: "2 задачи: сложение больших чисел и факториал через BigInt.",
     tag: "JS/dt-bigint",
     skillLabel: "BigInt",
     kind: "set",
@@ -526,8 +519,7 @@ const collectionDefinitions: CollectionDefinition[] = [
   {
     id: "js-dt-advanced-polyfills",
     title: "JS / полифилы типов данных",
-    description:
-      "3 задачи: полифил Array.flat, глубокое клонирование и глубокое сравнение.",
+    description: "3 задачи: полифил Array.flat, глубокое клонирование и глубокое сравнение.",
     tag: "JS/dt-advanced-polyfills",
     skillLabel: "Полифилы типов данных",
     kind: "set",
@@ -558,8 +550,14 @@ const collectionDefinitionMap = new Map(
   collectionDefinitions.map((collection) => [collection.id, collection]),
 );
 
+let cachedAllChallenges: ChallengeMeta[] | null = null;
+let cachedChallengeGroups: string[] | null = null;
+let cachedCollections: ChallengeCollection[] | null = null;
+let cachedCollectionById: Map<string, ChallengeCollection> | null = null;
+
 export function getAllChallenges(): ChallengeMeta[] {
-  return challenges.map((c) => ({
+  if (cachedAllChallenges) return cachedAllChallenges;
+  cachedAllChallenges = challenges.map((c) => ({
     id: c.id,
     title: c.title,
     description: c.description,
@@ -571,6 +569,7 @@ export function getAllChallenges(): ChallengeMeta[] {
     reputation: c.reputation,
     tags: c.tags,
   }));
+  return cachedAllChallenges;
 }
 
 export function getChallengeById(id: string): ChallengeDefinition | undefined {
@@ -627,7 +626,9 @@ export function filterChallenges(options: FilterOptions): ChallengeMeta[] {
 }
 
 export function getChallengeGroups(): string[] {
-  return [...new Set(challenges.map((challenge) => challenge.group))];
+  if (cachedChallengeGroups) return cachedChallengeGroups;
+  cachedChallengeGroups = [...new Set(challenges.map((challenge) => challenge.group))];
+  return cachedChallengeGroups;
 }
 
 function getDirectCollectionChallengeIds(collection: CollectionDefinition): string[] {
@@ -664,9 +665,13 @@ function buildCollection(
 }
 
 export function getChallengeCollections(): ChallengeCollection[] {
-  return collectionDefinitions.map((collection) => buildCollection(collection));
+  if (cachedCollections) return cachedCollections;
+  cachedCollections = collectionDefinitions.map((collection) => buildCollection(collection));
+  cachedCollectionById = new Map(cachedCollections.map((c) => [c.id, c]));
+  return cachedCollections;
 }
 
 export function getChallengeCollectionById(id: string): ChallengeCollection | undefined {
-  return getChallengeCollections().find((collection) => collection.id === id);
+  if (!cachedCollectionById) getChallengeCollections();
+  return cachedCollectionById!.get(id);
 }

@@ -1,4 +1,11 @@
-import { CheckCircle2, ChevronDown, ChevronUp, LoaderCircle, Terminal, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  LoaderCircle,
+  Terminal,
+  XCircle,
+} from "lucide-react";
 import { forwardRef, useEffect, useState } from "react";
 import type { TestResult } from "../../lib/test-runner.ts";
 
@@ -160,9 +167,7 @@ export const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(function
                     />
                   )}
                 </button>
-                {hasDetails && isOpen && (
-                  <pre className="test-result-error">{test.error}</pre>
-                )}
+                {hasDetails && isOpen && <pre className="test-result-error">{test.error}</pre>}
               </div>
             );
           })}

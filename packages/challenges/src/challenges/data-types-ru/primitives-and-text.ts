@@ -383,12 +383,182 @@ describe('toBinary', () => {
   });
 });
 `,
-    rank: 0,
+    rank: 1,
     tags: ["primitives", "number", "toString"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-autobox-strict-fail",
+    title: "Autobox молчит, strict кричит",
+    description: `Autobox: при чтении свойства у примитива JS создаёт временный объект-обёртку. А при **записи** в свойство примитива — обёртка тоже создаётся, в неё записывается, но обёртка тут же выбрасывается. В нестрогом режиме запись просто исчезает. В \`'use strict'\` — выбрасывается \`TypeError\`.
+
+\`\`\`js
+'hello'.length     // 5      — чтение работает (autobox)
+const s = 'hello';
+s.foo = 'bar';     // в нестрогом — тихо игнорируется
+s.foo;             // undefined
+
+'use strict';
+const t = 'hello';
+t.foo = 'bar';     // TypeError: Cannot create property 'foo' on string 'hello'
+\`\`\`
+
+Та же история с числами: \`(5).foo = 1\` в strict — TypeError.
+
+**Что написать.** Функцию \`tryWriteToPrimitive(value, key, val)\` — попытаться записать \`value[key] = val\` под \`'use strict'\`. Если ловится TypeError — верни строку \`'TypeError'\`. Если запись прошла без исключения (значит, value был объектом) — верни сам \`value\`. После записи на примитив исключение должно быть.
+
+## Требования
+
+1. Внутри функции включи \`'use strict'\`.
+2. Используй \`try/catch\`, лови ошибку записи.
+3. Если поймал \`TypeError\` — верни строку \`'TypeError'\`.
+4. Иначе верни \`value\` (для объектов запись работает).
+5. Экспортируй функцию \`tryWriteToPrimitive\`.
+
+## Примеры
+
+\`tryWriteToPrimitive('hello', 'foo', 1)\` → \`'TypeError'\`
+
+\`tryWriteToPrimitive(5, 'foo', 1)\` → \`'TypeError'\`
+
+\`tryWriteToPrimitive({}, 'foo', 1)\` → \`{ foo: 1 }\``,
+    starter: `'use strict';
+export function tryWriteToPrimitive(value, key, val) {
+  // Попробуй value[key] = val в try, поймай TypeError
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { tryWriteToPrimitive } from './index.js';
+
+describe('tryWriteToPrimitive', () => {
+  it('запись на строку — TypeError', () => {
+    expect(tryWriteToPrimitive('hello', 'foo', 1)).toBe('TypeError');
+  });
+
+  it('запись на число — TypeError', () => {
+    expect(tryWriteToPrimitive(5, 'foo', 1)).toBe('TypeError');
+  });
+
+  it('запись на объект работает', () => {
+    const result = tryWriteToPrimitive({}, 'foo', 1);
+    expect(result).toEqual({ foo: 1 });
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { tryWriteToPrimitive } from './index.js';
+
+describe('tryWriteToPrimitive', () => {
+  it('запись на строку — TypeError', () => {
+    expect(tryWriteToPrimitive('hello', 'foo', 1)).toBe('TypeError');
+  });
+
+  it('запись на число — TypeError', () => {
+    expect(tryWriteToPrimitive(5, 'foo', 1)).toBe('TypeError');
+  });
+
+  it('запись на boolean — TypeError', () => {
+    expect(tryWriteToPrimitive(true, 'foo', 1)).toBe('TypeError');
+  });
+
+  it('запись на объект работает', () => {
+    const result = tryWriteToPrimitive({}, 'foo', 1);
+    expect(result).toEqual({ foo: 1 });
+  });
+
+  it('запись на массив работает', () => {
+    const result = tryWriteToPrimitive([], 'foo', 1);
+    expect(result.foo).toBe(1);
+  });
+
+  it('перезапись существующего ключа объекта', () => {
+    const obj = { x: 1 };
+    const result = tryWriteToPrimitive(obj, 'x', 99);
+    expect(result.x).toBe(99);
+  });
+});
+`,
+    rank: 2,
+    tags: ["primitives", "autobox", "strict"],
   }),
 ];
 
 export const numberChallenges: ChallengeDefinition[] = [
+  createDataTypeChallenge({
+    id: "data-types-clamp-number",
+    title: "Зажим в диапазон",
+    description: `Представь: пользователь крутит ползунок громкости. Значение должно остаться в диапазоне от 0 до 100. Если меньше 0 — берём 0, если больше 100 — берём 100. Эта операция называется clamp, и собирается она из двух \`Math\`-функций:
+
+\`\`\`js
+Math.min(Math.max(n, lo), hi)
+// сначала задираем до lo, потом ограничиваем сверху hi
+\`\`\`
+
+**Что написать.** Функцию \`clampNumber(n, lo, hi)\`, которая возвращает \`n\`, зажатое в диапазон \`[lo, hi]\`.
+
+## Требования
+
+1. Используй \`Math.min\` и \`Math.max\`.
+2. Не предполагай, что \`n\` уже в диапазоне.
+3. Экспортируй функцию \`clampNumber\`.
+
+## Примеры
+
+\`clampNumber(50, 0, 100)\` → \`50\`
+
+\`clampNumber(-5, 0, 100)\` → \`0\`
+
+\`clampNumber(150, 0, 100)\` → \`100\``,
+    starter: `export function clampNumber(n, lo, hi) {
+  // Math.min(Math.max(...))
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { clampNumber } from './index.js';
+
+describe('clampNumber', () => {
+  it('пропускает значение в диапазоне', () => {
+    expect(clampNumber(50, 0, 100)).toBe(50);
+  });
+
+  it('подтягивает до нижней границы', () => {
+    expect(clampNumber(-5, 0, 100)).toBe(0);
+  });
+
+  it('обрезает по верхней границе', () => {
+    expect(clampNumber(150, 0, 100)).toBe(100);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { clampNumber } from './index.js';
+
+describe('clampNumber', () => {
+  it('пропускает значение в диапазоне', () => {
+    expect(clampNumber(50, 0, 100)).toBe(50);
+  });
+
+  it('подтягивает до нижней границы', () => {
+    expect(clampNumber(-5, 0, 100)).toBe(0);
+  });
+
+  it('обрезает по верхней границе', () => {
+    expect(clampNumber(150, 0, 100)).toBe(100);
+  });
+
+  it('работает на самой границе', () => {
+    expect(clampNumber(0, 0, 100)).toBe(0);
+    expect(clampNumber(100, 0, 100)).toBe(100);
+  });
+
+  it('работает с отрицательным диапазоном', () => {
+    expect(clampNumber(-50, -100, -10)).toBe(-50);
+    expect(clampNumber(0, -100, -10)).toBe(-10);
+  });
+});
+`,
+    rank: 1,
+    tags: ["number", "math", "clamp"],
+  }),
   createDataTypeChallenge({
     id: "data-types-parse-int-strict",
     title: "Строгий parseInt",
@@ -561,82 +731,6 @@ describe('floatEquals', () => {
     tags: ["number", "float", "epsilon"],
   }),
   createDataTypeChallenge({
-    id: "data-types-clamp-number",
-    title: "Зажим в диапазон",
-    description: `Представь: пользователь крутит ползунок громкости. Значение должно остаться в диапазоне от 0 до 100. Если меньше 0 — берём 0, если больше 100 — берём 100. Эта операция называется clamp, и собирается она из двух \`Math\`-функций:
-
-\`\`\`js
-Math.min(Math.max(n, lo), hi)
-// сначала задираем до lo, потом ограничиваем сверху hi
-\`\`\`
-
-**Что написать.** Функцию \`clampNumber(n, lo, hi)\`, которая возвращает \`n\`, зажатое в диапазон \`[lo, hi]\`.
-
-## Требования
-
-1. Используй \`Math.min\` и \`Math.max\`.
-2. Не предполагай, что \`n\` уже в диапазоне.
-3. Экспортируй функцию \`clampNumber\`.
-
-## Примеры
-
-\`clampNumber(50, 0, 100)\` → \`50\`
-
-\`clampNumber(-5, 0, 100)\` → \`0\`
-
-\`clampNumber(150, 0, 100)\` → \`100\``,
-    starter: `export function clampNumber(n, lo, hi) {
-  // Math.min(Math.max(...))
-}
-`,
-    tests: `import { describe, expect, it } from 'vitest';
-import { clampNumber } from './index.js';
-
-describe('clampNumber', () => {
-  it('пропускает значение в диапазоне', () => {
-    expect(clampNumber(50, 0, 100)).toBe(50);
-  });
-
-  it('подтягивает до нижней границы', () => {
-    expect(clampNumber(-5, 0, 100)).toBe(0);
-  });
-
-  it('обрезает по верхней границе', () => {
-    expect(clampNumber(150, 0, 100)).toBe(100);
-  });
-});
-`,
-    fullTests: `import { describe, expect, it } from 'vitest';
-import { clampNumber } from './index.js';
-
-describe('clampNumber', () => {
-  it('пропускает значение в диапазоне', () => {
-    expect(clampNumber(50, 0, 100)).toBe(50);
-  });
-
-  it('подтягивает до нижней границы', () => {
-    expect(clampNumber(-5, 0, 100)).toBe(0);
-  });
-
-  it('обрезает по верхней границе', () => {
-    expect(clampNumber(150, 0, 100)).toBe(100);
-  });
-
-  it('работает на самой границе', () => {
-    expect(clampNumber(0, 0, 100)).toBe(0);
-    expect(clampNumber(100, 0, 100)).toBe(100);
-  });
-
-  it('работает с отрицательным диапазоном', () => {
-    expect(clampNumber(-50, -100, -10)).toBe(-50);
-    expect(clampNumber(0, -100, -10)).toBe(-10);
-  });
-});
-`,
-    rank: 1,
-    tags: ["number", "math", "clamp"],
-  }),
-  createDataTypeChallenge({
     id: "data-types-round-cents",
     title: "Округление до копеек",
     description: `Представь: у тебя цена в рублях, например \`1.005\`. Хочется получить целое число копеек — \`101\`. Наивный путь — \`Math.round(rubles * 100)\`. Но тут вылезает та самая ловушка двоичной арифметики:
@@ -720,6 +814,349 @@ describe('roundCents', () => {
 `,
     rank: 2,
     tags: ["number", "math", "rounding"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-number-is-finite",
+    title: "isFinite vs Number.isFinite",
+    description: `В JS две функции с почти одинаковым именем — и они ведут себя по-разному. Глобальная \`isFinite(x)\` сначала **приводит** \`x\` к числу через \`Number(x)\`, и только потом проверяет. Статическая \`Number.isFinite(x)\` приводит **только** если уже число.
+
+\`\`\`js
+isFinite('5')           // true  — '5' → 5, 5 конечно
+Number.isFinite('5')    // false — '5' не число, не конечно
+
+isFinite('')            // true  — '' → 0
+Number.isFinite('')     // false
+
+isFinite(null)          // true  — null → 0
+Number.isFinite(null)   // false
+
+isFinite(Infinity)      // false
+Number.isFinite(Infinity) // false  — оба согласны
+
+isFinite(NaN)           // false
+Number.isFinite(NaN)    // false  — оба согласны
+\`\`\`
+
+**Главная мысль.** \`Number.isFinite\` — строгий, без сюрпризов. Глобальный \`isFinite\` — с приведением, может зацепить нечисловые входы.
+
+**Что написать.** Функцию \`strictIsFinite(x)\` — повторяет поведение \`Number.isFinite\`, но без использования самого \`Number.isFinite\`.
+
+## Требования
+
+1. Если \`typeof x !== 'number'\` — \`false\`.
+2. Если \`Number.isNaN(x)\` — \`false\`.
+3. Если \`x === Infinity\` или \`x === -Infinity\` — \`false\`.
+4. Иначе — \`true\`.
+5. Не используй \`Number.isFinite\` или глобальный \`isFinite\`.
+6. Экспортируй функцию \`strictIsFinite\`.
+
+## Примеры
+
+\`strictIsFinite(5)\` → \`true\`
+
+\`strictIsFinite('5')\` → \`false\`
+
+\`strictIsFinite(Infinity)\` → \`false\`
+
+\`strictIsFinite(NaN)\` → \`false\`
+
+\`strictIsFinite(null)\` → \`false\``,
+    starter: `export function strictIsFinite(x) {
+  // typeof + isNaN-проверка + проверка на Infinity
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { strictIsFinite } from './index.js';
+
+describe('strictIsFinite', () => {
+  it('обычное число — true', () => {
+    expect(strictIsFinite(5)).toBe(true);
+  });
+
+  it('строка с числом — false', () => {
+    expect(strictIsFinite('5')).toBe(false);
+  });
+
+  it('Infinity — false', () => {
+    expect(strictIsFinite(Infinity)).toBe(false);
+  });
+
+  it('NaN — false', () => {
+    expect(strictIsFinite(NaN)).toBe(false);
+  });
+
+  it('null — false', () => {
+    expect(strictIsFinite(null)).toBe(false);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { strictIsFinite } from './index.js';
+
+describe('strictIsFinite', () => {
+  it('обычное число — true', () => {
+    expect(strictIsFinite(5)).toBe(true);
+  });
+
+  it('ноль — true', () => {
+    expect(strictIsFinite(0)).toBe(true);
+  });
+
+  it('отрицательное — true', () => {
+    expect(strictIsFinite(-3.14)).toBe(true);
+  });
+
+  it('строка с числом — false', () => {
+    expect(strictIsFinite('5')).toBe(false);
+  });
+
+  it('пустая строка — false', () => {
+    expect(strictIsFinite('')).toBe(false);
+  });
+
+  it('Infinity — false', () => {
+    expect(strictIsFinite(Infinity)).toBe(false);
+  });
+
+  it('-Infinity — false', () => {
+    expect(strictIsFinite(-Infinity)).toBe(false);
+  });
+
+  it('NaN — false', () => {
+    expect(strictIsFinite(NaN)).toBe(false);
+  });
+
+  it('null — false', () => {
+    expect(strictIsFinite(null)).toBe(false);
+  });
+
+  it('undefined — false', () => {
+    expect(strictIsFinite(undefined)).toBe(false);
+  });
+
+  it('boolean — false', () => {
+    expect(strictIsFinite(true)).toBe(false);
+    expect(strictIsFinite(false)).toBe(false);
+  });
+});
+`,
+    rank: 2,
+    tags: ["number", "is-finite", "type-check"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-number-trunc-vs-round",
+    title: "trunc, floor, round для отрицательных",
+    description: `У всех трёх — \`Math.trunc\`, \`Math.floor\`, \`Math.round\` — нет отличий для положительных чисел. Различия видны на отрицательных:
+
+\`\`\`js
+Math.trunc(1.9)   // 1   — отрезаем дробную часть
+Math.floor(1.9)   // 1
+Math.round(1.9)   // 2   — округляем
+
+Math.trunc(-1.5)  // -1  — отрезаем к НУЛЮ
+Math.floor(-1.5)  // -2  — округляем вниз (к -∞)
+Math.round(-1.5)  // -1  — round в JS округляет к +∞ для серединных значений (!)
+
+Math.trunc(-1.9)  // -1
+Math.floor(-1.9)  // -2
+Math.round(-1.9)  // -2
+\`\`\`
+
+**Ловушка \`round\`.** \`Math.round(0.5) === 1\`, \`Math.round(-0.5) === 0\` (а не \`-1\`). JS округляет половину **в сторону +∞**, а не «от нуля». Для финансов или статистики это может удивить.
+
+**Что написать.** Функцию \`classifyRounding(x)\` — возвращает объект \`{ trunc, floor, round }\` с тремя версиями округления для одного \`x\`. Используй \`Math.trunc\`, \`Math.floor\`, \`Math.round\`.
+
+## Требования
+
+1. Возвращай объект с тремя ключами.
+2. Используй встроенные \`Math\`-методы.
+3. Экспортируй функцию \`classifyRounding\`.
+
+## Примеры
+
+\`classifyRounding(1.5)\` → \`{ trunc: 1, floor: 1, round: 2 }\`
+
+\`classifyRounding(-1.5)\` → \`{ trunc: -1, floor: -2, round: -1 }\`
+
+\`classifyRounding(-0.5)\` → \`{ trunc: 0, floor: -1, round: 0 }\`
+
+\`classifyRounding(2.0)\` → \`{ trunc: 2, floor: 2, round: 2 }\``,
+    starter: `export function classifyRounding(x) {
+  // Math.trunc, Math.floor, Math.round
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { classifyRounding } from './index.js';
+
+describe('classifyRounding', () => {
+  it('положительная дробь', () => {
+    expect(classifyRounding(1.5)).toEqual({ trunc: 1, floor: 1, round: 2 });
+  });
+
+  it('отрицательная половина', () => {
+    expect(classifyRounding(-1.5)).toEqual({ trunc: -1, floor: -2, round: -1 });
+  });
+
+  it('минус половина', () => {
+    expect(classifyRounding(-0.5)).toEqual({ trunc: 0, floor: -1, round: 0 });
+  });
+
+  it('целое число', () => {
+    expect(classifyRounding(2)).toEqual({ trunc: 2, floor: 2, round: 2 });
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { classifyRounding } from './index.js';
+
+describe('classifyRounding', () => {
+  it('положительная дробь', () => {
+    expect(classifyRounding(1.5)).toEqual({ trunc: 1, floor: 1, round: 2 });
+  });
+
+  it('отрицательная половина', () => {
+    expect(classifyRounding(-1.5)).toEqual({ trunc: -1, floor: -2, round: -1 });
+  });
+
+  it('минус половина', () => {
+    expect(classifyRounding(-0.5)).toEqual({ trunc: 0, floor: -1, round: 0 });
+  });
+
+  it('целое число', () => {
+    expect(classifyRounding(2)).toEqual({ trunc: 2, floor: 2, round: 2 });
+  });
+
+  it('1.9 — trunc и floor совпадают для положительных', () => {
+    expect(classifyRounding(1.9)).toEqual({ trunc: 1, floor: 1, round: 2 });
+  });
+
+  it('-1.9 — все три разные', () => {
+    expect(classifyRounding(-1.9)).toEqual({ trunc: -1, floor: -2, round: -2 });
+  });
+
+  it('ноль', () => {
+    expect(classifyRounding(0)).toEqual({ trunc: 0, floor: 0, round: 0 });
+  });
+
+  it('очень малая дробь', () => {
+    expect(classifyRounding(0.1)).toEqual({ trunc: 0, floor: 0, round: 0 });
+  });
+});
+`,
+    rank: 2,
+    tags: ["number", "math", "rounding"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-number-safe-integer",
+    title: "Финал: контроль безопасных целых",
+    description: `Финал набора. \`Number.MAX_SAFE_INTEGER\` = 9007199254740991. До этого числа целочисленная арифметика точная. Выше — некоторые соседние целые перестают быть представимыми, и сложение/умножение начинает врать.
+
+\`\`\`js
+Number.MAX_SAFE_INTEGER === 9007199254740991      // true
+Number.MAX_SAFE_INTEGER + 1 === 9007199254740992  // true (последнее точное)
+Number.MAX_SAFE_INTEGER + 2 === 9007199254740993  // false (!) — равно ...992
+
+Number.isSafeInteger(9007199254740991)  // true
+Number.isSafeInteger(9007199254740993)  // false
+\`\`\`
+
+Если складываешь идентификаторы из БД, размеры файлов, время в наносекундах — точность важна. При выходе за границу нужно либо переключаться на \`BigInt\`, либо явно сообщать об ошибке.
+
+**Что написать.** Функцию \`safeAddOrNull(a, b)\` — складывает два целых числа. Если оба входа \`Number.isSafeInteger\` И результат тоже safe-integer — возвращает сумму. Иначе возвращает \`null\`.
+
+## Требования
+
+1. Проверь \`Number.isSafeInteger(a)\` и \`Number.isSafeInteger(b)\`.
+2. Сложи и проверь, что результат тоже \`Number.isSafeInteger\`.
+3. Иначе — \`null\`.
+4. Экспортируй функцию \`safeAddOrNull\`.
+
+## Примеры
+
+\`safeAddOrNull(1, 2)\` → \`3\`
+
+\`safeAddOrNull(Number.MAX_SAFE_INTEGER, 1)\` → \`9007199254740992\` ← это всё ещё safe? Нет, \`+1\` уже за пределами. Должен вернуть \`null\`.
+
+\`safeAddOrNull(1.5, 2)\` → \`null\` (не safe-integer)
+
+\`safeAddOrNull('1', 2)\` → \`null\``,
+    starter: `export function safeAddOrNull(a, b) {
+  // isSafeInteger обоих + результата, иначе null
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { safeAddOrNull } from './index.js';
+
+describe('safeAddOrNull', () => {
+  it('обычное сложение', () => {
+    expect(safeAddOrNull(1, 2)).toBe(3);
+  });
+
+  it('переполнение MAX_SAFE_INTEGER', () => {
+    expect(safeAddOrNull(Number.MAX_SAFE_INTEGER, 1)).toBeNull();
+  });
+
+  it('дробное число — null', () => {
+    expect(safeAddOrNull(1.5, 2)).toBeNull();
+  });
+
+  it('строка — null', () => {
+    expect(safeAddOrNull('1', 2)).toBeNull();
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { safeAddOrNull } from './index.js';
+
+describe('safeAddOrNull', () => {
+  it('обычное сложение', () => {
+    expect(safeAddOrNull(1, 2)).toBe(3);
+  });
+
+  it('ноль плюс ноль', () => {
+    expect(safeAddOrNull(0, 0)).toBe(0);
+  });
+
+  it('отрицательные числа', () => {
+    expect(safeAddOrNull(-5, -3)).toBe(-8);
+  });
+
+  it('переполнение MAX_SAFE_INTEGER', () => {
+    expect(safeAddOrNull(Number.MAX_SAFE_INTEGER, 1)).toBeNull();
+  });
+
+  it('переполнение в минус', () => {
+    expect(safeAddOrNull(Number.MIN_SAFE_INTEGER, -1)).toBeNull();
+  });
+
+  it('граничный safe', () => {
+    expect(safeAddOrNull(Number.MAX_SAFE_INTEGER - 1, 1)).toBe(Number.MAX_SAFE_INTEGER);
+  });
+
+  it('дробное число — null', () => {
+    expect(safeAddOrNull(1.5, 2)).toBeNull();
+  });
+
+  it('строка — null', () => {
+    expect(safeAddOrNull('1', 2)).toBeNull();
+  });
+
+  it('NaN — null', () => {
+    expect(safeAddOrNull(NaN, 1)).toBeNull();
+  });
+
+  it('Infinity — null', () => {
+    expect(safeAddOrNull(Infinity, 1)).toBeNull();
+  });
+
+  it('null/undefined — null', () => {
+    expect(safeAddOrNull(null, 1)).toBeNull();
+    expect(safeAddOrNull(undefined, 1)).toBeNull();
+  });
+});
+`,
+    rank: 3,
+    tags: ["number", "safe-integer", "finale"],
   }),
 ];
 
@@ -960,6 +1397,109 @@ describe('wordCount', () => {
     tags: ["string", "split", "regex"],
   }),
   createDataTypeChallenge({
+    id: "data-types-surrogate-length",
+    title: "Длина строки с эмодзи",
+    description: `\`s.length\` — это число **UTF-16 кодовых юнитов**, а не символов. ASCII и кириллица занимают по одному юниту. А вот эмодзи и редкие иероглифы — по два (суррогатная пара).
+
+\`\`\`js
+'abc'.length    // 3 — каждый по 1
+'я'.length      // 1
+'😀'.length      // 2 (!) — один эмодзи, но length=2
+'a😀'.length     // 3 — буква (1) + эмодзи (2)
+\`\`\`
+
+**Хитрость.** Чтобы получить «настоящее» количество символов, нужно перебирать по код-поинтам. Самый простой способ — \`Array.from(s)\` или \`[...s]\`: и тот, и другой используют итератор строки, который правильно склеивает суррогаты.
+
+\`\`\`js
+[...'😀'].length   // 1 — корректно
+[...'a😀b'].length  // 3
+\`\`\`
+
+**Что написать.** Функцию \`codePointLength(s)\` — возвращает количество код-поинтов в строке.
+
+## Требования
+
+1. Используй \`[...s].length\` или \`Array.from(s).length\`.
+2. Не используй \`s.length\` напрямую.
+3. Экспортируй функцию \`codePointLength\`.
+
+## Примеры
+
+\`codePointLength('abc')\` → \`3\`
+
+\`codePointLength('😀')\` → \`1\`
+
+\`codePointLength('a😀b')\` → \`3\`
+
+\`codePointLength('')\` → \`0\``,
+    starter: `export function codePointLength(s) {
+  // [...s].length
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { codePointLength } from './index.js';
+
+describe('codePointLength', () => {
+  it('обычная ASCII', () => {
+    expect(codePointLength('abc')).toBe(3);
+  });
+
+  it('одинокий эмодзи', () => {
+    expect(codePointLength('😀')).toBe(1);
+  });
+
+  it('смесь буквы и эмодзи', () => {
+    expect(codePointLength('a😀b')).toBe(3);
+  });
+
+  it('пустая строка', () => {
+    expect(codePointLength('')).toBe(0);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { codePointLength } from './index.js';
+
+describe('codePointLength', () => {
+  it('обычная ASCII', () => {
+    expect(codePointLength('abc')).toBe(3);
+  });
+
+  it('одинокий эмодзи', () => {
+    expect(codePointLength('😀')).toBe(1);
+  });
+
+  it('смесь буквы и эмодзи', () => {
+    expect(codePointLength('a😀b')).toBe(3);
+  });
+
+  it('пустая строка', () => {
+    expect(codePointLength('')).toBe(0);
+  });
+
+  it('кириллица', () => {
+    expect(codePointLength('привет')).toBe(6);
+  });
+
+  it('несколько эмодзи подряд', () => {
+    expect(codePointLength('😀😀😀')).toBe(3);
+  });
+
+  it('редкий иероглиф (тоже суррогатная пара)', () => {
+    expect(codePointLength('𝕏')).toBe(1);
+  });
+
+  it('s.length для эмодзи — НЕ совпадает', () => {
+    const s = '😀';
+    expect(codePointLength(s)).toBe(1);
+    expect(s.length).toBe(2);
+  });
+});
+`,
+    rank: 2,
+    tags: ["string", "unicode", "surrogate"],
+  }),
+  createDataTypeChallenge({
     id: "data-types-first-codepoint",
     title: "Первый код-поинт",
     description: `Представь: тебе надо узнать, какой первый символ строки в Юникоде. Кажется, \`s.charCodeAt(0)\` — но это UTF-16 код-юнит, а у эмодзи и редких символов код-поинт занимает два таких юнита (суррогатная пара).
@@ -1043,7 +1583,102 @@ describe('firstCodePoint', () => {
   });
 });
 `,
-    rank: 2,
+    rank: 3,
     tags: ["string", "unicode", "codePointAt"],
+  }),
+  createDataTypeChallenge({
+    id: "data-types-string-locale-compare",
+    title: "Сортировка по алфавиту локали",
+    description: `Обычное сравнение строк через \`<\`/\`>\` идёт по код-поинтам Unicode. Для русского это работает плохо: \`'Ё' > 'Я'\` (потому что \`'Ё'\` имеет более высокий код, чем \`'Я'\` в Unicode), хотя в алфавите \`Ё\` идёт после \`Е\`.
+
+\`\`\`js
+['Я', 'Ё', 'А'].sort()
+// ['А', 'Я', 'Ё']  — Ё уехало в конец, как и должно по код-поинтам
+
+['Я', 'Ё', 'А'].sort((a, b) => a.localeCompare(b, 'ru'))
+// ['А', 'Ё', 'Я']  — алфавитный порядок
+\`\`\`
+
+\`localeCompare\` возвращает отрицательное / ноль / положительное, как \`compareFn\` для \`sort\`. Принимает локаль вторым аргументом.
+
+**Что написать.** Функцию \`sortRussian(arr)\` — возвращает **новый** массив строк, отсортированный по русскому алфавиту через \`localeCompare\`.
+
+## Требования
+
+1. Не мутируй входной массив (\`[...arr].sort\` или \`arr.toSorted\`).
+2. \`compareFn\` использует \`a.localeCompare(b, 'ru')\`.
+3. Регистронезависимо НЕ требуется — поведение по умолчанию.
+4. Экспортируй функцию \`sortRussian\`.
+
+## Примеры
+
+\`sortRussian(['Я', 'Ё', 'А'])\` → \`['А', 'Ё', 'Я']\`
+
+\`sortRussian(['банан', 'яблоко', 'абрикос'])\` → \`['абрикос', 'банан', 'яблоко']\`
+
+\`sortRussian([])\` → \`[]\``,
+    starter: `export function sortRussian(arr) {
+  // [...arr].sort((a, b) => a.localeCompare(b, 'ru'))
+}
+`,
+    tests: `import { describe, expect, it } from 'vitest';
+import { sortRussian } from './index.js';
+
+describe('sortRussian', () => {
+  it('Ё попадает после Е', () => {
+    expect(sortRussian(['Я', 'Ё', 'А'])).toEqual(['А', 'Ё', 'Я']);
+  });
+
+  it('обычные слова', () => {
+    expect(sortRussian(['банан', 'яблоко', 'абрикос']))
+      .toEqual(['абрикос', 'банан', 'яблоко']);
+  });
+
+  it('пустой массив', () => {
+    expect(sortRussian([])).toEqual([]);
+  });
+});
+`,
+    fullTests: `import { describe, expect, it } from 'vitest';
+import { sortRussian } from './index.js';
+
+describe('sortRussian', () => {
+  it('Ё попадает после Е', () => {
+    expect(sortRussian(['Я', 'Ё', 'А'])).toEqual(['А', 'Ё', 'Я']);
+  });
+
+  it('обычные слова', () => {
+    expect(sortRussian(['банан', 'яблоко', 'абрикос']))
+      .toEqual(['абрикос', 'банан', 'яблоко']);
+  });
+
+  it('пустой массив', () => {
+    expect(sortRussian([])).toEqual([]);
+  });
+
+  it('один элемент', () => {
+    expect(sortRussian(['слово'])).toEqual(['слово']);
+  });
+
+  it('латиница и кириллица не смешиваются непредсказуемо', () => {
+    const result = sortRussian(['яблоко', 'apple']);
+    expect(result.length).toBe(2);
+    expect(result).toContain('яблоко');
+    expect(result).toContain('apple');
+  });
+
+  it('не мутирует оригинал', () => {
+    const orig = ['Я', 'Ё', 'А'];
+    sortRussian(orig);
+    expect(orig).toEqual(['Я', 'Ё', 'А']);
+  });
+
+  it('одинаковые слова сохраняют дубликаты', () => {
+    expect(sortRussian(['а', 'а', 'б'])).toEqual(['а', 'а', 'б']);
+  });
+});
+`,
+    rank: 3,
+    tags: ["string", "locale", "sort"],
   }),
 ];
