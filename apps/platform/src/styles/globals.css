@@ -1,3 +1,33 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--bg-subtle);
+  --color-surface-muted: var(--bg-muted);
+  --color-card: var(--bg-card);
+  --color-foreground: var(--text-heading);
+  --color-content: var(--text);
+  --color-muted: var(--text-muted);
+  --color-dim: var(--text-dim);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-hover);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-info: var(--accent-info);
+  --color-success: var(--success);
+  --color-warning: var(--accent-warning);
+  --color-danger: var(--error);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-card);
+  --radius-2xl: var(--radius-panel);
+  --shadow-panel: var(--shadow-md);
+  --shadow-float: var(--shadow-lg);
+}
+
 /* ==============================
    Design Tokens — Voidzero-inspired
    Dark-first, sharp lines, monochrome + subtle accent
@@ -86,6 +116,24 @@
   --radius: 6px;
   --radius-lg: 8px;
   --radius-card: 12px;
+  --radius-sm: 4px;
+  --radius-panel: 16px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --page-x: clamp(16px, 3vw, 32px);
+  --page-y: clamp(24px, 4vw, 48px);
+  --panel-padding: clamp(16px, 2vw, 24px);
+  --focus-ring: #94a3b8;
+  --duration-fast: 140ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
   --success: var(--raycast-green);
   --error: var(--raycast-red);

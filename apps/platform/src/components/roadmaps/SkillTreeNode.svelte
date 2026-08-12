@@ -28,15 +28,33 @@
   let circumference = $derived(2 * Math.PI * radius);
   let dashOffset = $derived(circumference * (1 - progress));
   let logoLanguage = $derived(data.tone === "database" ? "database" : data.tone);
+  let toneColor = $derived(
+    data.tone === "html"
+      ? "#e44d26"
+      : data.tone === "css"
+        ? "#1572b6"
+        : data.tone === "javascript"
+          ? "#f7df1e"
+          : data.tone === "python"
+            ? "#3776ab"
+            : "#94a3b8",
+  );
 </script>
 
 <article
-  class={`skill-tree-node ${selected ? "selected" : ""} ${data.dimmed ? "dimmed" : ""} ${data.active ? "active" : ""} ${data.kind}-node tone-${data.tone}`}
+  class={`skill-tree-node ${selected ? "selected" : ""} ${data.dimmed ? "dimmed" : ""} ${data.active ? "active" : ""} ${data.kind === "role" ? "skill-tree-role" : "skill-tree-skill"} tone-${data.tone}`}
+  style={`--skill-tone:${toneColor};`}
   aria-label={`${data.title}: ${Math.round(progress * 100)}%`}
 >
   {#if data.hasTarget}<Handle type="target" position={Position.Top} {isConnectable} aria-hidden="true" tabindex={-1} />{/if}
-  <span class="node-main">
-    {#if data.kind === "role" && data.markUrl}<img class="role-mark" src={data.markUrl} alt="" aria-hidden="true" />{/if}
+  <span
+    class={`node-main ${data.kind === "role"
+      ? "flex h-full w-full flex-col items-center justify-center rounded-[var(--radius-md)] border border-border bg-card px-4 py-4 text-center shadow-panel"
+      : "flex h-full w-full items-center justify-center"}`}
+  >
+    {#if data.kind === "role" && data.markUrl}
+      <img class="role-mark" src={data.markUrl} alt="" aria-hidden="true" />
+    {/if}
     {#if data.kind === "skill"}
       <span class="ring-wrap">
         <svg class="progress-ring" viewBox="0 0 112 112" aria-hidden="true">
@@ -49,9 +67,11 @@
         </span>
       </span>
     {:else}
-      <span class="role-percent">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>
+      <span class="node-copy">
+        <span class="role-percent">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>
+        <strong>{data.title}</strong>
+      </span>
     {/if}
-    <span class="node-copy"><strong>{data.title}</strong></span>
   </span>
   {#if data.hasSource}<Handle type="source" position={Position.Bottom} {isConnectable} aria-hidden="true" tabindex={-1} />{/if}
 </article>
@@ -59,6 +79,24 @@
 <style>
   .skill-tree-node {
     position: relative;
+    color: var(--text-heading);
+    cursor: pointer;
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      background var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard),
+      opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+  .skill-tree-node.dimmed { opacity: .28; filter: saturate(.4); }
+  .skill-tree-node:hover,
+  .skill-tree-node.selected {
+    border-color: color-mix(in srgb, var(--skill-tone) 40%, var(--border-hover));
+    background: color-mix(in srgb, var(--skill-tone) 8%, var(--bg-card));
+    box-shadow: var(--shadow-float);
+  }
+  .skill-tree-role,
+  .skill-tree-skill {
     display: flex;
     width: 124px;
     height: 124px;
@@ -67,61 +105,77 @@
     justify-content: center;
     gap: 2px;
     padding: 10px;
-    border: 1px solid #384555;
+    border: 1px solid var(--border);
     border-radius: 50%;
-    background: #11161e;
-    color: #f7f9fc;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .28);
-    cursor: pointer;
-    transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    background: var(--bg-card);
   }
-  .skill-tree-node.dimmed { opacity: .28; filter: saturate(.35); }
-  .skill-tree-node:hover,
-  .skill-tree-node.selected { border-color: #94a3b8; background: #1a2330; box-shadow: 0 0 0 2px rgb(148 163 184 / 16%), 0 16px 38px rgb(0 0 0 / 36%); }
-  .role-node { width: 220px; height: 170px; box-sizing: border-box; flex-direction: column; justify-content: flex-start; gap: 0; padding: 0; overflow: visible; border-color: transparent; border-radius: 0; }
-  .role-node:hover,
-  .role-node.selected { border-color: transparent; background: transparent; box-shadow: none; }
-  .role-percent { flex: 0 0 auto; margin-bottom: 2px; color: #dbe5f2; font: 700 12px/1 var(--font-mono); text-align: left; }
-  .node-main { display: flex; align-items: center; justify-content: center; gap: 14px; }
-  .role-node .node-main { width: 100%; height: 170px; min-height: 170px; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 0; margin: 0; padding: 16px 14px; border: 1px solid #384555; border-radius: 8px; background: #11161e; text-align: center; }
-  .role-mark { display: block; width: 100%; height: auto; max-height: 88px; flex: 0 1 auto; margin-bottom: 12px; border-radius: 4px; object-fit: contain; object-position: center; }
-  .ring-wrap { position: relative; display: grid; width: 88px; height: 88px; flex: 0 0 auto; place-items: center; }
-  .role-node .ring-wrap { width: 64px; height: 64px; }
-  .progress-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform: rotate(90deg); }
-  .ring-track, .ring-progress { fill: none; stroke-width: 8; }
-  .ring-track { stroke: #27303b; }
-  .ring-progress { stroke: var(--skill-tone); stroke-linecap: round; }
-  .skill-icon {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    width: 56px;
-    height: 56px;
-    place-items: center;
+  .skill-tree-role {
+    width: 220px;
+    height: 170px;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0;
+    overflow: visible;
     border: 0;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--skill-tone) 14%, #11161e);
-    color: #f5f7fa;
-    font: 800 15px/1 var(--font-mono);
-    letter-spacing: -.06em;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
-  .node-copy { position: relative; z-index: 1; display: grid; gap: 5px; text-align: center; }
-  .role-node .node-copy { text-align: center; }
-  .skill-tree-node strong { font-size: 12px; line-height: 1.1; }
-  .role-node strong { font-size: 18px; }
-  .skill-node .node-copy { display: none; }
-  .skill-node { padding: 0; border-color: transparent; background: #11161e; box-shadow: none; }
-  .skill-node .ring-wrap { width: 120px; height: 120px; overflow: hidden; border: 1px solid #384555; border-radius: 50%; background: #11161e; box-shadow: 0 10px 24px rgb(0 0 0 / 20%); }
+  .skill-tree-role:hover,
+  .skill-tree-role.selected {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+  .node-main { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .role-mark {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 88px;
+    flex: 0 1 auto;
+    margin-bottom: 14px;
+    border-radius: var(--radius-sm);
+    object-fit: contain;
+    object-position: center;
+  }
+  .role-percent {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-heading);
+    font: 700 11px/1 var(--font-mono);
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+  .node-copy { display: grid; gap: 0; justify-items: center; text-align: center; }
+  .skill-tree-role .node-copy { margin-top: 0; }
+  .skill-tree-role strong { font-size: 18px; line-height: 1.1; }
+  .ring-wrap { position: relative; display: grid; width: 88px; height: 88px; flex: 0 0 auto; place-items: center; }
+  .progress-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform: rotate(90deg); }
+  .ring-track,
+  .ring-progress { fill: none; stroke-width: 8; }
+  .ring-track { stroke: color-mix(in srgb, var(--text-heading) 12%, transparent); }
+  .ring-progress { stroke: var(--skill-tone); stroke-linecap: round; }
+  .skill-node {
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+  .skill-node .ring-wrap {
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-panel);
+  }
   .skill-node .progress-ring { display: none; }
-  .liquid-fill { position: absolute; right: 0; bottom: 0; left: 0; z-index: 2; background: var(--skill-tone); opacity: .62; transition: height 180ms ease; }
+  .liquid-fill { position: absolute; right: 0; bottom: 0; left: 0; z-index: 2; background: var(--skill-tone); opacity: .72; transition: height 180ms ease; }
   .skill-logo-wrap { position: relative; z-index: 1; display: block; width: 46px; height: 46px; }
-  .skill-logo-wrap :global(.skill-logo) { position: absolute; inset: 0; filter: grayscale(1) saturate(0) brightness(1.8); opacity: .95; }
-  .tone-frontend, .tone-fullstack, .tone-backend, .tone-ml { --skill-tone: #94a3b8; }
-  .skill-node.tone-html { --skill-tone: #e44d26; }
-  .skill-node.tone-css { --skill-tone: #1572b6; }
-  .skill-node.tone-javascript { --skill-tone: #f7df1e; }
-  .skill-node.tone-python { --skill-tone: #3776ab; }
-  .skill-node.tone-database { --skill-tone: #94a3b8; }
+  .skill-logo-wrap :global(.skill-logo) { position: absolute; inset: 0; filter: brightness(0) invert(1); opacity: .98; }
   :global(.svelte-flow__handle) { width: 1px; height: 1px; border: 0; background: transparent; opacity: 0; pointer-events: none; }
   @media (prefers-reduced-motion: reduce) { .skill-tree-node { transition: none; } }
 </style>

@@ -64,27 +64,29 @@
 
 <svelte:window on:keydown={(event) => event.key === "Escape" && (open = false)} />
 
-<div class="select-menu" bind:this={root}>
+<div class="relative min-w-0" bind:this={root}>
   <button
-    class="select-trigger"
     type="button"
     aria-haspopup="listbox"
     aria-expanded={open}
     aria-label={ariaLabel}
     on:click|stopPropagation={toggle}
     on:keydown={onTriggerKeydown}
+    class:border-border-strong={open}
+    class:bg-surface-muted={open}
+    class="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 text-left text-[12px] font-medium leading-none text-content transition-colors duration-150 ease-[var(--ease-standard)] hover:border-border-strong hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--focus-ring)] focus-visible:outline-offset-2"
   >
     <span>{selected?.label ?? label}</span>
-    <span class="select-chevron" aria-hidden="true">⌄</span>
+    <span class="text-dim text-sm leading-none" aria-hidden="true">⌄</span>
   </button>
 
   {#if open}
-    <div class="select-content" role="listbox" aria-label={ariaLabel}>
+    <div class="absolute left-0 right-0 top-full z-50 mt-1.5 grid max-h-[360px] overflow-y-auto rounded-lg border border-border-strong bg-background p-1 shadow-float" role="listbox" aria-label={ariaLabel}>
       {#each options as option, index (option.value)}
         <button
           class:selected={option.value === value}
           class:highlighted={index === highlightedIndex}
-          class="select-item"
+          class="flex min-h-8 items-center justify-between gap-3 rounded-md px-2.5 text-left text-[12px] font-medium leading-[1.25] text-content transition-colors duration-150 ease-[var(--ease-standard)] hover:bg-surface-muted hover:text-foreground"
           type="button"
           role="option"
           aria-selected={option.value === value}
@@ -92,66 +94,9 @@
           on:click={() => choose(option.value)}
         >
           <span>{option.label}</span>
-          {#if option.value === value}<span class="select-check" aria-hidden="true">✓</span>{/if}
+          {#if option.value === value}<span class="text-dim font-semibold" aria-hidden="true">✓</span>{/if}
         </button>
       {/each}
     </div>
   {/if}
 </div>
-
-<style>
-  .select-menu { position: relative; min-width: 0; }
-  .select-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-height: 38px;
-    gap: 10px;
-    padding: 0 11px;
-    border: 1px solid #3b4655;
-    border-radius: 7px;
-    background: #151a21;
-    color: #e8edf3;
-    cursor: pointer;
-    font: 500 12px/1 var(--font-sans);
-    text-align: left;
-  }
-  .select-trigger:hover,
-  .select-trigger[aria-expanded="true"] { border-color: #9dbdff; background: #202b3b; }
-  .select-trigger:focus-visible { outline: 2px solid #b7d4ff; outline-offset: 2px; }
-  .select-chevron { color: #b7d4ff; font-size: 14px; line-height: 1; }
-  .select-content {
-    position: absolute;
-    z-index: 80;
-    top: calc(100% + 6px);
-    right: 0;
-    left: 0;
-    display: grid;
-    max-height: 360px;
-    overflow-y: auto;
-    padding: 4px;
-    border: 1px solid #53657d;
-    border-radius: 8px;
-    background: #11161e;
-    box-shadow: 0 18px 44px rgba(0, 0, 0, .45);
-  }
-  .select-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 34px;
-    padding: 0 9px;
-    border: 0;
-    border-radius: 5px;
-    background: transparent;
-    color: #dfe7f2;
-    cursor: pointer;
-    font: 500 12px/1.25 var(--font-sans);
-    text-align: left;
-  }
-  .select-item:hover,
-  .select-item.highlighted { background: #2a3a50; color: #fff; }
-  .select-item.selected { color: #d7e6ff; font-weight: 700; }
-  .select-check { color: #b7d4ff; font-weight: 800; }
-</style>

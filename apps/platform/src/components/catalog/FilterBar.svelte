@@ -46,8 +46,14 @@
   ];
 </script>
 
-<div class="filter-bar">
-  <input class="filter-search" type="text" placeholder="Поиск задач..." bind:value={search} on:input={() => onSearchChange(search)} />
+<div class="relative z-20 mb-5 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(220px,1.6fr)_repeat(5,minmax(120px,1fr))]">
+  <input
+    class="min-h-9 min-w-0 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-foreground outline-none transition-colors duration-150 ease-[var(--ease-standard)] placeholder:text-dim focus:border-border-strong focus:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--focus-ring)] focus-visible:outline-offset-2"
+    type="text"
+    placeholder="Поиск задач..."
+    bind:value={search}
+    on:input={() => onSearchChange(search)}
+  />
   <SelectMenu label="Все уровни" ariaLabel="Уровень" options={rankOptions} value={rankRange} onChange={(next) => { rankRange = next; onRankRangeChange(next); }} />
   <SelectMenu label="Все категории" ariaLabel="Категория" options={categoryOptions} value={category} onChange={(next) => { category = next as Category | ""; onCategoryChange(category); }} />
   <SelectMenu label="Все группы" ariaLabel="Группа" options={groupOptions} value={group} onChange={(next) => { group = next; onGroupChange(next); }} />

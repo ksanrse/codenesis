@@ -24,7 +24,6 @@
         session = await Promise.race([getAuthSession(), timeout]);
         if (session.user) setDatabaseUser(session.user.id);
       } catch {
-        // Keep local development usable when the optional API is offline.
         session = {
           authenticated: true,
           user: { id: "codenesis-local-user", name: "Local", role: "owner" },
@@ -85,7 +84,16 @@
   {#if currentPage}
     <svelte:component this={currentPage} />
   {:else}
-    <div class="container"><div class="page-header"><h1>Страница не найдена</h1><a class="inline-link" href="#/">Вернуться на главную</a></div></div>
+    <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[var(--container-width)] flex-col justify-center px-[var(--page-x)] py-[var(--page-y)]">
+      <div class="rounded-2xl border border-border bg-surface p-8 shadow-panel">
+        <div class="space-y-3">
+          <h1 class="text-3xl font-semibold tracking-tight text-foreground">Страница не найдена</h1>
+          <a class="inline-flex items-center text-sm font-medium text-muted transition-colors hover:text-foreground" href="#/">
+            Вернуться на главную
+          </a>
+        </div>
+      </div>
+    </div>
   {/if}
 </main>
 
