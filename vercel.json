@@ -1,7 +1,7 @@
 {
   "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter platform build",
+  "buildCommand": "pnpm --filter @codenesis/challenges build && pnpm --filter platform build",
   "outputDirectory": "apps/platform/dist",
   "rewrites": [
     {
