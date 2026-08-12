@@ -30,6 +30,7 @@
 
   const nodeTypes = { skillTree: SkillTreeNode };
   const edgeTypes = { floating: FloatingEdge };
+  const activeTrackStorageKey = "codenesis:roadmap:active-track";
   const rolePositions: Record<string, { x: number; y: number }> = {
     "fullstack-role": { x: 410, y: 10 },
     "frontend-role": { x: 100, y: 230 },
@@ -50,6 +51,7 @@
   let activeRoleId: string | null = null;
   let demoMode = false;
   let holdProgress = 0;
+  let cancelCompleted = false;
   let cancelHoldTimer: ReturnType<typeof setTimeout> | null = null;
   let cancelHoldInterval: ReturnType<typeof setInterval> | null = null;
   const roleDisplayNames: Record<string, string> = {
@@ -90,6 +92,13 @@
       return [role.id, connectedSkills.length ? connectedSkills.reduce((sum, value) => sum + value, 0) / connectedSkills.length : 0];
     }),
   );
+  $: activeSkillIds = new Set(
+    activeRoleId
+      ? skillTreeConnections
+          .filter((connection) => connection.roleId === activeRoleId)
+          .map((connection) => connection.skillId)
+      : [],
+  );
   $: nodes = [
     ...skillTreeRoles.map((role) => ({
       id: role.id,
@@ -129,6 +138,7 @@
         meta: `${Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%`,
         hasTarget: true,
         hasSource: false,
+        dimmed: Boolean(activeRoleId && !activeSkillIds.has(skill.id)),
       },
       draggable: true,
       connectable: false,
@@ -176,19 +186,34 @@
   };
 
   function selectTrack(role: SkillTreeRole) {
-    activeRoleId = activeRoleId === role.id ? null : role.id;
+    setActiveTrack(activeRoleId === role.id ? null : role.id);
     selectedRole = role;
     selectedSkill = null;
   }
 
+  function setActiveTrack(roleId: string | null) {
+    activeRoleId = roleId;
+    try {
+      if (roleId) {
+        window.localStorage.setItem(activeTrackStorageKey, roleId);
+      } else {
+        window.localStorage.removeItem(activeTrackStorageKey);
+      }
+    } catch {
+      // The selection still works when browser storage is unavailable.
+    }
+  }
+
   function startCancelHold() {
-    if (!selectedRole || activeRoleId !== selectedRole.id) return;
+    if (!selectedRole || activeRoleId !== selectedRole.id || cancelHoldTimer) return;
+    cancelCompleted = false;
     holdProgress = 0;
     cancelHoldInterval = setInterval(() => {
       holdProgress = Math.min(100, holdProgress + 100 / 900 * 30);
     }, 30);
     cancelHoldTimer = setTimeout(() => {
-      activeRoleId = null;
+      cancelCompleted = true;
+      setActiveTrack(null);
       holdProgress = 100;
       stopCancelHold(false);
     }, 900);
@@ -203,13 +228,43 @@
   }
 
   function handleTrackAction() {
+    if (cancelCompleted) {
+      cancelCompleted = false;
+      holdProgress = 0;
+      return;
+    }
     if (!selectedRole) return;
     if (activeRoleId === selectedRole.id) return;
     selectTrack(selectedRole);
   }
 
+  function handleTrackKeyDown(event: KeyboardEvent) {
+    if ((event.key === " " || event.key === "Enter") && selectedRole && activeRoleId === selectedRole.id) {
+      event.preventDefault();
+      startCancelHold();
+    }
+  }
+
+  function handleTrackKeyUp(event: KeyboardEvent) {
+    if ((event.key === " " || event.key === "Enter") && selectedRole && activeRoleId === selectedRole.id) {
+      event.preventDefault();
+      stopCancelHold();
+      handleTrackAction();
+    }
+  }
+
   onMount(() => {
     routeHash = window.location.hash;
+    try {
+      const savedRoleId = window.localStorage.getItem(activeTrackStorageKey);
+      if (savedRoleId && skillTreeRoles.some((role) => role.id === savedRoleId)) {
+        activeRoleId = savedRoleId;
+      } else if (savedRoleId) {
+        window.localStorage.removeItem(activeTrackStorageKey);
+      }
+    } catch {
+      // Storage can be disabled without blocking the roadmap.
+    }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         legendOpen = false;
@@ -326,6 +381,8 @@
         onpointerup={() => stopCancelHold()}
         onpointercancel={() => stopCancelHold()}
         onpointerleave={() => stopCancelHold()}
+        onkeydown={handleTrackKeyDown}
+        onkeyup={handleTrackKeyUp}
         onclick={handleTrackAction}
       >{activeRoleId === selectedRole.id ? "Зажмите, чтобы отменить трек" : "Выбрать трек"}</button>
     </div>

@@ -55,7 +55,7 @@
     {#if data.kind === "skill"}
       <span class={`relative grid size-[120px] place-items-center overflow-hidden rounded-full border bg-card shadow-panel transition ${selected ? "border-border-strong shadow-float" : "border-border hover:border-border-strong"}`}>
         <span class="absolute inset-x-0 bottom-0 z-2 bg-[var(--skill-tone)] opacity-70 transition-[height] duration-200" style={`height: ${Math.round(progress * 100)}%`} aria-hidden="true"></span>
-        <span class="relative z-3 block size-12 [&_.skill-logo]:absolute [&_.skill-logo]:inset-0 [&_.skill-logo]:brightness-0 [&_.skill-logo]:invert">
+        <span class="relative z-3 block size-12 [&_.skill-logo]:absolute [&_.skill-logo]:inset-0 [&_.skill-logo]:size-full [&_.skill-logo]:object-contain [&_.skill-logo]:brightness-0 [&_.skill-logo]:invert">
           <LanguageIcon language={logoLanguage} size={46} className="skill-logo" />
         </span>
       </span>
