@@ -11,7 +11,7 @@ const child = spawn("vp dev --host 127.0.0.1 --port 5174", {
   env: {
     ...process.env,
     FORCE_COLOR: "1",
-    VITE_FORUNTENDO_API_URL: "http://127.0.0.1:41732/api",
+    VITE_CODENESIS_API_URL: "http://127.0.0.1:41732/api",
   },
 });
 

@@ -1,6 +1,6 @@
 ---
 name: challenge-creation
-description: Create, review, or improve Foruntendo programming challenges, including task prose, examples, starter code, solution, public tests, full tests, hidden edge cases, and lightweight Vitest execution strategy. Use when adding new tasks, expanding a collection, rewriting unclear task descriptions, deciding how many tests are enough, or checking that a task cannot be solved by a cheap hardcoded shortcut.
+description: Create, review, or improve Codenesis programming challenges, including task prose, examples, starter code, solution, public tests, full tests, hidden edge cases, and lightweight Vitest execution strategy. Use when adding new tasks, expanding a collection, rewriting unclear task descriptions, deciding how many tests are enough, or checking that a task cannot be solved by a cheap hardcoded shortcut.
 ---
 
 # Challenge Creation

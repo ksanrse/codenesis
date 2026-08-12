@@ -15,13 +15,14 @@ This folder contains the local API and persistence layer. Also follow the reposi
 
 ## API Surface
 
-- Endpoints: `GET /api/health`, `GET /api/state`, `POST /api/attempts`, `PUT|DELETE /api/drafts/:challengeId/:language`, `PUT /api/settings/active-collection`, plus `POST /api/test/reset` (gated by `FORUNTENDO_E2E=1`).
-- Challenge/collection metadata is **not** served from this app. Platform imports it directly from `@foruntendo/challenges` — do not re-add `/api/challenges` or `/api/collections`.
+- Endpoints: `GET /api/health`, authenticated `GET /api/state`, `POST /api/attempts`, `PUT|DELETE /api/drafts/:challengeId/:language`, WebAuthn `/api/auth/passkey/*` and recovery `/api/auth/recovery/*`, plus `POST /api/test/reset` (gated by `CODENESIS_E2E=1`).
+- Challenge/collection metadata is **not** served from this app. Platform imports it directly from `@codenesis/challenges` — do not re-add `/api/challenges` or `/api/collections`.
 - `GET /api/health` returns `{ ok: true }` only. Do not add `dbPath` or other path/host details to the response — leaks server filesystem layout.
 
 ## Security
 
-- CORS origin is controlled by `FORUNTENDO_ALLOWED_ORIGINS` (default `http://localhost:5173`). Do not revert to `*` — broadens attack surface to any origin.
+- CORS origin is controlled by `CODENESIS_ALLOWED_ORIGINS` (default `http://localhost:5173`). Do not revert to `*` — broadens attack surface to any origin.
+- State mutations and reads require the server-issued `codenesis_session` cookie. WebAuthn origin/RP ID are controlled by `CODENESIS_WEBAUTHN_ORIGIN` and `CODENESIS_WEBAUTHN_RP_ID`; recovery phrases are only stored as scrypt hashes.
 - DB path failures (`readFile` error in `openDatabase`) log via `console.warn` and start a fresh empty DB. Do not silently swallow — masks corruption.
 
 ## Verification

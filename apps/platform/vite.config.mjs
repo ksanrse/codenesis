@@ -1,13 +1,10 @@
-import react from "@vitejs/plugin-react";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    dedupe: ["react", "react-dom"],
-  },
+  plugins: [svelte()],
   optimizeDeps: {
-    exclude: ["@foruntendo/challenges"],
+    exclude: ["@codenesis/challenges"],
   },
   build: {
     chunkSizeWarningLimit: 1000,
@@ -15,23 +12,10 @@ export default defineConfig({
       output: {
         codeSplitting: {
           groups: [
-            {
-              name: "react-vendor",
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-            },
-            { name: "router", test: /[\\/]node_modules[\\/]@tanstack[\\/]/ },
             { name: "monaco", test: /[\\/]node_modules[\\/](monaco-editor|@monaco-editor)[\\/]/ },
             {
-              name: "mosaic",
-              test: /[\\/]node_modules[\\/](react-mosaic-component|react-dnd|react-dnd-html5-backend|dnd-core)[\\/]/,
-            },
-            {
-              name: "markdown",
-              test: /[\\/]node_modules[\\/](react-markdown|remark-gfm|micromark|mdast-util-.*|unified|hast-util-.*)[\\/]/,
-            },
-            {
               name: "challenges",
-              test: /[\\/](?:node_modules[\\/]@foruntendo[\\/]challenges|packages[\\/]challenges)[\\/]/,
+              test: /[\\/](?:node_modules[\\/]@codenesis[\\/]challenges|packages[\\/]challenges)[\\/]/,
             },
             { name: "fonts", test: /[\\/]node_modules[\\/]@fontsource[\\/]/ },
           ],
@@ -51,7 +35,7 @@ export default defineConfig({
       },
     },
     watch: {
-      ignored: ["!**/node_modules/@foruntendo/challenges/dist/**"],
+      ignored: ["!**/node_modules/@codenesis/challenges/dist/**"],
     },
   },
   test: {

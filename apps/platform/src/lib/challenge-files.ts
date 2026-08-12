@@ -1,4 +1,4 @@
-import type { ChallengeDefinition, Language } from "@foruntendo/challenges";
+import type { ChallengeDefinition, Language } from "@codenesis/challenges";
 
 type ChallengeFiles = ChallengeDefinition["starterFiles"][Language];
 

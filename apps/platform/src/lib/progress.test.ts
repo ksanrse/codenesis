@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vite-plus/test";
-import { CHALLENGE_LEVEL_MMR } from "@foruntendo/challenges";
+import { CHALLENGE_LEVEL_MMR } from "@codenesis/challenges";
 import type { ChallengeAttempt } from "./local-db.ts";
 import { getMmrScore, getPassedChallengeIds } from "./progress.ts";
 

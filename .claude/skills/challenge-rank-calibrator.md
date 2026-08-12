@@ -15,7 +15,7 @@ Use this skill before adding or changing a coding challenge difficulty. Read the
 4. If prose and tests disagree, flag the task as needing content repair before final ranking.
 5. Explain the decision in one short paragraph: main difficulty driver, why lower levels are insufficient, and whether the rank should be changed.
 
-For Foruntendo challenge source files, remember that `rank` is zero-based: `rank: 0` renders as F1, `rank: 7` renders as F8.
+For Codenesis challenge source files, remember that `rank` is zero-based: `rank: 0` renders as F1, `rank: 7` renders as F8.
 
 ## F-Level Rubric
 

@@ -1,9 +1,10 @@
 {
-  "name": "foruntendo",
+  "name": "codenesis",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
+    "pocketbase:sync": "vp run -r build && node tools/pocketbase-sync.mjs",
     "check:mojibake": "node tools/check-mojibake.mjs",
     "e2e": "playwright test --config playwright.config.mjs",
     "ready": "vp run check:mojibake && vp check && vp run -r test && vp run -r build",
@@ -16,7 +17,7 @@
     "vite-plus": "catalog:"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": "^22.18.0 || >=24.11.0"
   },
   "volta": {
     "node": "22.22.2"

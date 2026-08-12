@@ -1,6 +1,9 @@
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  fmt: {
+    ignorePatterns: [".claude/**", ".lh/**"],
+  },
   staged: {
     "*": "vp check --fix",
   },

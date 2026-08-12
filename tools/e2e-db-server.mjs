@@ -10,9 +10,10 @@ const child = spawn("node", ["src/server.mjs"], {
   env: {
     ...process.env,
     FORCE_COLOR: "1",
-    FORUNTENDO_DB_PORT: "41732",
-    FORUNTENDO_DB_PATH: "data/e2e.sqlite",
-    FORUNTENDO_E2E: "1",
+    CODENESIS_DB_PORT: "41732",
+    CODENESIS_DB_PATH: "data/e2e.sqlite",
+    CODENESIS_E2E: "1",
+    CODENESIS_ALLOWED_ORIGINS: "http://127.0.0.1:5174",
   },
 });
 

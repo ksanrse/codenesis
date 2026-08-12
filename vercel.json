@@ -1,0 +1,12 @@
+{
+  "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter platform build",
+  "outputDirectory": "apps/platform/dist",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://codenesis-api.159-195-17-180.nip.io/api/:path*"
+    }
+  ]
+}

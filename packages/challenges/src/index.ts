@@ -5,12 +5,6 @@ export type {
   ChallengeFile,
   ChallengeMeta,
   Difficulty,
-  KnowledgeAnswerOption,
-  KnowledgeDatabase,
-  KnowledgeQuestion,
-  KnowledgeQuestionType,
-  KnowledgeTopic,
-  KnowledgeTopicMeta,
   Language,
 } from "./types.ts";
 
@@ -23,7 +17,6 @@ export {
   getChallengeGroups,
   sortChallenges,
 } from "./registry.ts";
-export { getKnowledgeTopicById, getKnowledgeTopics } from "./knowledge.ts";
 export {
   getCompletedChallengeIds,
   getMmrScoreForChallengeIds,

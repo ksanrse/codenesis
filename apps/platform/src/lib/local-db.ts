@@ -1,4 +1,4 @@
-import type { Language } from "@foruntendo/challenges";
+import type { Language } from "@codenesis/challenges";
 
 export interface ChallengeAttempt {
   id: string;
@@ -25,16 +25,18 @@ export interface AppDatabase {
   version: 1;
   attempts: ChallengeAttempt[];
   drafts: Record<string, DraftRecord>;
-  activeCollectionId?: string;
 }
 
-const STORAGE_KEY = "foruntendo:db:v1";
+const STORAGE_KEY = "codenesis:db:v1";
+const LEGACY_STORAGE_KEYS = ["foruntendo:db:v1"];
+const PRIMARY_USER_ID = "codenesis-local-user";
 const API_BASES = [
-  import.meta.env.VITE_FORUNTENDO_API_URL as string | undefined,
+  import.meta.env.VITE_CODENESIS_API_URL as string | undefined,
   "/api",
   "http://127.0.0.1:41731/api",
 ].filter(Boolean) as string[];
 
+let activeUserId = PRIMARY_USER_ID;
 let cache = readLocalDatabase();
 let serverReady = false;
 let cachedSortedAttempts: ChallengeAttempt[] | null = null;
@@ -50,26 +52,50 @@ function createDatabase(): AppDatabase {
 function readLocalDatabase(): AppDatabase {
   if (typeof window === "undefined") return createDatabase();
 
+  const databases = localStorageKeys()
+    .map(readStoredDatabase)
+    .filter((database): database is AppDatabase => database !== null);
+
+  if (!databases.length) return createDatabase();
+
+  const attempts = new Map<string, ChallengeAttempt>();
+  const drafts: Record<string, DraftRecord> = {};
+
+  for (const database of databases) {
+    for (const attempt of database.attempts) attempts.set(attempt.id, attempt);
+    for (const [key, draft] of Object.entries(database.drafts)) {
+      if (!drafts[key] || drafts[key].updatedAt < draft.updatedAt) drafts[key] = draft;
+    }
+  }
+
+  return normalizeDatabase({ attempts: [...attempts.values()], drafts });
+}
+
+function localStorageKeys(): string[] {
+  if (activeUserId === PRIMARY_USER_ID) return [STORAGE_KEY, ...LEGACY_STORAGE_KEYS];
+  return [`${STORAGE_KEY}:${activeUserId}`];
+}
+
+function activeStorageKey(): string {
+  return activeUserId === PRIMARY_USER_ID ? STORAGE_KEY : `${STORAGE_KEY}:${activeUserId}`;
+}
+
+function readStoredDatabase(key: string): AppDatabase | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return createDatabase();
-    const parsed = JSON.parse(raw) as AppDatabase;
-    return normalizeDatabase(parsed);
+    const raw = window.localStorage.getItem(key);
+    return raw ? normalizeDatabase(JSON.parse(raw) as Partial<AppDatabase>) : null;
   } catch {
-    return createDatabase();
+    return null;
   }
 }
 
 function normalizeDatabase(database: Partial<AppDatabase>): AppDatabase {
-  const activeCollectionId = database.activeCollectionId?.trim() || undefined;
-
   return {
     ...createDatabase(),
     ...database,
     version: 1,
     attempts: database.attempts ?? [],
     drafts: database.drafts ?? {},
-    activeCollectionId,
   };
 }
 
@@ -77,8 +103,8 @@ function writeCache(database: AppDatabase): void {
   cache = normalizeDatabase(database);
   cachedSortedAttempts = null;
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
-    window.dispatchEvent(new Event("foruntendo-db-change"));
+    window.localStorage.setItem(activeStorageKey(), JSON.stringify(cache));
+    window.dispatchEvent(new Event("codenesis-db-change"));
   }
 }
 
@@ -96,6 +122,7 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
     try {
       const response = await fetch(`${base}${path}`, {
         ...init,
+        credentials: "include",
         headers,
       });
 
@@ -114,9 +141,11 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 async function syncFromServer(): Promise<void> {
+  const userId = activeUserId;
   try {
     const localDatabase = readLocalDatabase();
     const database = await apiRequest<AppDatabase>("/state");
+    if (activeUserId !== userId) return;
     serverReady = true;
     writeCache(database);
     await migrateLocalState(localDatabase, database);
@@ -165,28 +194,24 @@ async function migrateLocalState(
     }
   }
 
-  if (
-    localDatabase.activeCollectionId &&
-    localDatabase.activeCollectionId !== serverDatabase.activeCollectionId
-  ) {
-    try {
-      await apiRequest("/settings/active-collection", {
-        method: "PUT",
-        body: JSON.stringify({ collectionId: localDatabase.activeCollectionId }),
-      });
-      changed = true;
-    } catch {
-      return;
-    }
-  }
-
   if (changed) {
     await syncFromServer();
   }
 }
 
-if (typeof window !== "undefined") {
-  void syncFromServer();
+export function setDatabaseUser(userId: string): void {
+  if (!userId || userId === activeUserId) {
+    void syncFromServer();
+    return;
+  }
+  activeUserId = userId;
+  cache = readLocalDatabase();
+  cachedSortedAttempts = null;
+  serverReady = false;
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("codenesis-db-change"));
+    void syncFromServer();
+  }
 }
 
 export function getAttempts(): ChallengeAttempt[] {
@@ -268,23 +293,6 @@ export function clearDraft(challengeId: string, language: Language): void {
   if (serverReady) {
     void apiRequest(`/drafts/${encodeURIComponent(challengeId)}/${encodeURIComponent(language)}`, {
       method: "DELETE",
-    }).catch(() => {
-      serverReady = false;
-    });
-  }
-}
-
-export function getActiveCollectionId(): string | undefined {
-  return cache.activeCollectionId;
-}
-
-export function setActiveCollectionId(collectionId: string | undefined): void {
-  writeCache({ ...cache, activeCollectionId: collectionId });
-
-  if (serverReady) {
-    void apiRequest("/settings/active-collection", {
-      method: "PUT",
-      body: JSON.stringify({ collectionId }),
     }).catch(() => {
       serverReady = false;
     });

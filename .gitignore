@@ -17,6 +17,7 @@ apps/db/data/*.sqlite
 apps/db/data/*.sqlite-*
 test-results/
 playwright-report/
+.lh/
 .claude/worktrees/
 
 # Editor directories and files
@@ -29,3 +30,6 @@ playwright-report/
 *.njsproj
 *.sln
 *.sw?
+.omx/
+.vercel
+.env*

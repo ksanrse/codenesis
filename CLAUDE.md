@@ -1,6 +1,6 @@
-# Foruntendo — Agent Guide
+# Codenesis — Agent Guide
 
-Educational coding platform. pnpm monorepo on Vite+, React 19, Monaco, WebContainer. Russian-language UI and challenge content. Raycast-inspired dark theme.
+Educational coding platform. pnpm monorepo on Vite+, Svelte 5, Monaco, and a browser-side JavaScript test runner. Russian-language UI and challenge content. Raycast-inspired dark theme.
 
 > Nested guides override scope:
 >
@@ -14,23 +14,23 @@ Educational coding platform. pnpm monorepo on Vite+, React 19, Monaco, WebContai
 
 ```
 apps/
-  platform/      React app — editor, catalog, routing
+  platform/      Svelte app — editor, roadmaps, catalog, routing
   db/            sql.js HTTP server for progress/profile
 packages/
-  challenges/    Source of truth for tasks, tests, solutions, collections, ranks
+  challenges/    Source of truth for tasks, tests, solutions, practice groups, ranks
   utils/         Shared helpers
 tools/           dev orchestrator, e2e servers, mojibake check
 data/            sqlite snapshots
 ```
 
-Workspace pkg name typo is permanent: `@foruntendo/challenges` (not `forutenudo`). Don't "fix" it.
+Workspace package name: `@codenesis/challenges`.
 
 ## Tech Stack
 
 - Vite+ (`vp` CLI) wraps Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt
 - pnpm 10 with `catalog:` versions in `pnpm-workspace.yaml`
-- React 19, TanStack Router (hash routing), Monaco Editor, WebContainer API
-- Browser-side test runner (`apps/platform/src/lib/browser-test-runner.ts`) for JS challenges; falls back to WebContainer + vitest for the rest
+- Svelte 5, hash routing, Monaco Editor, and Svelte Flow for interactive roadmaps
+- Browser-side test runner (`apps/platform/src/lib/browser-test-runner.ts`) for supported JavaScript challenges
 - TypeScript everywhere, `react-markdown` + `remark-gfm` for descriptions
 
 ## Commands
@@ -56,19 +56,18 @@ After editing challenge content or ranking, rebuild: `vp run -r build`. Consumer
 - **Russian** in user-facing text (descriptions, UI labels, errors). English for identifiers and language terms.
 - **Voice (challenges)**: Feynman-style — bytovoy metaphor → trap/gotcha → "Что написать" → `## Требования` → `## Примеры`. See `.claude/skills/challenge-creation.md`.
 - **Ranks** zero-based: `rank: 0` → F1 ... `rank: 7` → F8. Calibrate by reasoning, not topic. F8 reserved for polyfills/interpreters.
-- **Imports** use workspace name `@foruntendo/challenges`.
+- **Imports** use workspace name `@codenesis/challenges`.
 - **Styles** live in `apps/platform/src/styles/globals.css` (single global stylesheet). No CSS modules.
 - **Routing** is hash-based; new routes go under `apps/platform/src/routes/`.
-- **lucide-react** for icons (catalog version).
 - **No new docs files** without explicit ask.
 
 ## Challenge Pipeline
 
-Editor (`ChallengeLayout.tsx`) → file tree → Monaco → `runBrowserTests` (JS) or WebContainer + vitest → `parseTestResults` / direct results → `OutputPanel` rows with inline error details.
+Editor (`ChallengeLayout.svelte`) → file tree → Monaco → `runBrowserTests` → `OutputPanel.svelte` rows with inline error details.
 
 `TestResult` carries optional `error` for inline expansion. Browser runner records per-assertion results; vitest output is parsed line-by-line.
 
-Last challenge in a collection swaps the "Следующее задание" button for "Перейти к списку" → routes to `/collections/$collectionId`.
+Roadmap stages link to exercises from `@codenesis/challenges`; roadmap content itself lives in `apps/platform/src/lib/roadmaps.ts`.
 
 ## Verification Checklist
 
@@ -86,10 +85,22 @@ This project is using Vite+, a unified toolchain built on top of Vite, Rolldown,
 
 Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 
+## Built-in Commands vs Scripts
+
+`vp <name>` runs a built-in command. `vp run <name>` runs a `package.json` script or a `vite.config.ts` task. Scripts cannot overwrite built-ins, so `vp dev` and `vp run dev` may do different things. Check `package.json` and `vite.config.ts` first, and run `vp run <name>` when the project defines a script or task with that name.
+
+## Tool Versions
+
+Run `vp toolchain` to show versions and relationships in the active Vite+
+release. Add a tool name to select part of the graph. For example, run
+`vp toolchain vite`. Use `--global` to ignore the local `vite-plus` package. Use
+`vp why <package>` to show the package-manager dependency graph.
+
 ## Review Checklist
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
 - [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
 - [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
+- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->

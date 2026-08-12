@@ -11,7 +11,7 @@ const tsSolution: ChallengeFile[] = [
 
 type Filter = 'all' | 'active' | 'completed';
 
-const STORAGE_KEY = 'foruntendo-todos';
+const STORAGE_KEY = 'codenesis-todos';
 
 function loadTodos(): Todo[] {
   try {

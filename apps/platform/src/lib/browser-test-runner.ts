@@ -1,5 +1,16 @@
-import type { ChallengeFile } from "@foruntendo/challenges";
-import type { RunResult, TestResult } from "./test-runner.ts";
+import type { ChallengeFile } from "@codenesis/challenges";
+
+export interface TestResult {
+  name: string;
+  status: "pass" | "fail";
+  error?: string;
+}
+
+export interface RunResult {
+  raw: string;
+  exitCode: number;
+  skipped?: boolean;
+}
 
 interface BrowserRunResult extends RunResult {
   results: TestResult[];

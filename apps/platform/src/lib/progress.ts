@@ -1,4 +1,4 @@
-import { getCompletedChallengeIds, getMmrScoreForCompletions } from "@foruntendo/challenges";
+import { getCompletedChallengeIds, getMmrScoreForCompletions } from "@codenesis/challenges";
 import type { ChallengeAttempt } from "./local-db.ts";
 
 export function getPassedChallengeIds(attempts: ChallengeAttempt[]): Set<string> {
