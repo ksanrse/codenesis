@@ -46,8 +46,10 @@
     <path fill="#3776ab" d="M11.8 2C7.5 2 7.7 3.9 7.7 3.9v2.3h4.2v.7H6.1S2 6.4 2 10.7c0 4.3 3.6 4.1 3.6 4.1h2.1v-2.4s-.1-3.6 3.5-3.6h4.1s2.3 0 2.3-2.2V4.4S18 2 11.8 2Zm-2.3 1.4a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z"/><path fill="#ffd343" d="M12.2 22c4.3 0 4.1-1.9 4.1-1.9v-2.3h-4.2v-.7h5.8s4.1.5 4.1-3.8-3.6-4.1-3.6-4.1h-2.1v2.4s.1 3.6-3.5 3.6H8.7s-2.3 0-2.3 2.2v2.2S6 22 12.2 22Zm2.3-1.4a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Z"/>
   </svg>
 {:else if language === "database"}
-  <svg class={`block shrink-0 ${className}`} width={size} height={size} viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Databases">
-    <ellipse cx="12" cy="5" rx="9" ry="3" fill="#94a3b8"/><path fill="#64748b" d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5c0 1.7-4 3-9 3S3 6.7 3 5Z"/><path fill="#475569" d="M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7c0 1.7-4 3-9 3s-9-1.3-9-3Z"/>
+  <svg class={`block shrink-0 ${className}`} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Databases">
+    <ellipse cx="12" cy="5" rx="8" ry="3" />
+    <path d="M4 5v7c0 1.66 3.58 3 8 3s8-1.34 8-3V5" />
+    <path d="M4 12v7c0 1.66 3.58 3 8 3s8-1.34 8-3v-7" />
   </svg>
 {:else}
   <span

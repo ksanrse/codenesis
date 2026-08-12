@@ -60,9 +60,9 @@
         </span>
       </span>
     {:else}
-      <span class="grid justify-items-center text-center">
-        <span class="mb-1 font-mono text-[11px] font-bold tracking-[0.08em] text-foreground">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>
-        <strong class="text-lg leading-tight">{data.title}</strong>
+      <span class="grid justify-items-center gap-0 text-center">
+        <span class="font-mono text-[11px] font-bold leading-none tracking-[0.08em] text-foreground">{String(Math.round(progress * 100)).padStart(3, "0")}%</span>
+        <strong class="text-lg leading-[1.15]">{data.title}</strong>
       </span>
     {/if}
   </span>
