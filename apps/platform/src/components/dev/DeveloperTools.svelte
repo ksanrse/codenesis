@@ -136,85 +136,101 @@
   }
 </script>
 
-<button class="dev-trigger" type="button" aria-expanded={open} on:click={() => (open = !open)}>
-  DEV <span>{solved.size}/{challenges.length}</span>
+<button
+  class="fixed bottom-4 right-4 z-80 inline-flex h-9 items-center gap-2 rounded-xl border border-border-strong bg-card px-3 text-[10px] font-bold tracking-[0.08em] text-foreground shadow-float transition-colors hover:border-white/70 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+  type="button"
+  aria-expanded={open}
+  on:click={() => (open = !open)}
+>
+  <span class="font-mono">DEV</span>
+  <span class="text-muted">{solved.size}/{challenges.length}</span>
 </button>
 
 {#if open}
-  <aside class="dev-panel" aria-label="Developer tools">
-    <header>
-      <div><span>Локальный профиль</span><h2>Developer</h2></div>
-      <button type="button" aria-label="Закрыть" on:click={() => (open = false)}>×</button>
+  <aside
+    class="fixed bottom-[58px] right-4 top-[72px] z-[79] flex w-[min(390px,calc(100vw-32px))] flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border-strong bg-card shadow-float"
+    aria-label="Developer tools"
+  >
+    <header class="flex items-start justify-between gap-4 border-b border-border px-4 py-4">
+      <div>
+        <span class="block font-mono text-[9px] font-bold uppercase tracking-[0.1em] text-muted">Локальный профиль</span>
+        <h2 class="mt-1 text-[18px] font-semibold text-foreground">Developer</h2>
+      </div>
+      <button
+        class="grid h-7 w-7 place-items-center rounded-md border border-border bg-surface text-[18px] leading-none text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        type="button"
+        aria-label="Закрыть"
+        on:click={() => (open = false)}
+      >
+        ×
+      </button>
     </header>
 
-    <section class="dev-summary">
-      <strong>{Math.round((solved.size / Math.max(1, challenges.length)) * 100)}%</strong>
-      <span>{solved.size} решено · {challenges.length - solved.size} не решено</span>
+    <section class="flex items-baseline gap-2 px-4 pb-2 pt-3">
+      <strong class="font-mono text-[24px] font-bold text-warning">{Math.round((solved.size / Math.max(1, challenges.length)) * 100)}%</strong>
+      <span class="text-[11px] text-muted">{solved.size} решено · {challenges.length - solved.size} не решено</span>
     </section>
 
-    <div class="dev-presets" aria-label="Быстрый прогресс">
+    <div class="grid grid-cols-5 gap-1.5 px-4 pb-3 pt-1" aria-label="Быстрый прогресс">
       {#each [0, 25, 50, 75, 100] as percent}
-        <button type="button" on:click={() => setPercent(percent)}>{percent}%</button>
+        <button
+          class="min-h-8 rounded-md border border-border bg-surface px-2 text-[10px] font-semibold text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          type="button"
+          on:click={() => setPercent(percent)}
+        >
+          {percent}%
+        </button>
       {/each}
     </div>
 
-    <div class="skill-controls" aria-label="Прогресс дерева">
+    <div class="grid gap-2 border-t border-border px-4 py-3" aria-label="Прогресс дерева">
       {#each skills as [skillId, title]}
-        <label>
-          <span>{title}<strong>{skillProgress[skillId] ?? 0}%</strong></span>
-          <input type="range" min="0" max="100" step="5" value={skillProgress[skillId] ?? 0} on:input={(event) => setSkillProgress(skillId, Number(event.currentTarget.value))} />
+        <label class="grid grid-cols-[100px_minmax(0,1fr)] items-center gap-2">
+          <span class="flex items-center justify-between gap-1 text-[10px] text-muted">
+            {title}
+            <strong class="font-mono text-[9px] font-semibold text-warning">{skillProgress[skillId] ?? 0}%</strong>
+          </span>
+          <input
+            class="w-full accent-warning"
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            value={skillProgress[skillId] ?? 0}
+            on:input={(event) => setSkillProgress(skillId, Number(event.currentTarget.value))}
+          />
         </label>
       {/each}
     </div>
 
-    <input class="dev-search" type="search" bind:value={query} placeholder="Найти задачу" />
+    <input
+      class="mx-4 mb-3 min-h-9 rounded-md border border-border bg-background px-3 text-[12px] text-content outline-none transition-colors placeholder:text-dim focus:border-border-strong focus:ring-2 focus:ring-primary/25"
+      type="search"
+      bind:value={query}
+      placeholder="Найти задачу"
+    />
 
-    <div class="dev-list">
+    <div class="min-h-0 flex-1 overflow-y-auto border-t border-border">
       {#each filtered as challenge}
-        <label>
-          <input type="checkbox" checked={solved.has(challenge.id)} on:change={() => toggle(challenge.id)} />
-          <span><strong>{challenge.title}</strong><small>{challenge.category} · F{challenge.rank + 1}</small></span>
+        <label class="grid min-h-12 cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-center gap-2.5 border-b border-border/70 px-4 py-2 transition-colors hover:bg-surface-muted">
+          <input class="h-[15px] w-[15px] accent-warning" type="checkbox" checked={solved.has(challenge.id)} on:change={() => toggle(challenge.id)} />
+          <span class="grid min-w-0 gap-1">
+            <strong class="truncate text-[11px] text-content">{challenge.title}</strong>
+            <small class="font-mono text-[9px] text-dim">{challenge.category} · F{challenge.rank + 1}</small>
+          </span>
         </label>
       {/each}
     </div>
 
-    <footer>
-      <button class="save" type="button" disabled={saving} on:click={save}>
+    <footer class="border-t border-border px-4 py-3">
+      <button
+        class="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-warning bg-warning px-4 text-[12px] font-bold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
+        type="button"
+        disabled={saving}
+        on:click={save}
+      >
         {saving ? "Сохраняем…" : saved ? "Сохранено" : "Применить прогресс"}
       </button>
     </footer>
   </aside>
 {/if}
-
-<style>
-  .dev-trigger { position: fixed; z-index: 80; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px; border: 1px solid #4b596b; border-radius: 6px; background: #161c24; color: #f4f7fb; box-shadow: 0 10px 28px rgb(0 0 0 / 34%); font: 700 10px/1 var(--font-mono); cursor: pointer; }
-  .dev-trigger:hover { border-color: #d8e5f7; background: #263244; }
-  .dev-trigger span { color: #9fb0c7; font-weight: 500; }
-  .dev-panel { position: fixed; z-index: 79; top: 72px; right: 16px; bottom: 58px; display: flex; width: min(390px, calc(100vw - 32px)); flex-direction: column; overflow: hidden; border: 1px solid #394555; border-radius: 12px; background: #10151c; box-shadow: 0 24px 70px rgb(0 0 0 / 58%); }
-  header { display: flex; align-items: start; justify-content: space-between; padding: 16px; border-bottom: 1px solid #29313c; }
-  header span { color: #90a0b5; font: 700 9px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
-  h2 { margin: 4px 0 0; color: #f4f7fb; font-size: 18px; }
-  header button { width: 28px; height: 28px; border: 1px solid #35404e; border-radius: 6px; background: #171e27; color: #c0cad7; font-size: 18px; cursor: pointer; }
-  .dev-summary { display: flex; align-items: baseline; gap: 10px; padding: 14px 16px 8px; }
-  .dev-summary strong { color: #f4d35e; font: 700 24px/1 var(--font-mono); }
-  .dev-summary span { color: #9ba7b7; font-size: 11px; }
-  .dev-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 6px 16px 12px; }
-  .dev-presets button { min-height: 30px; border: 1px solid #303b49; border-radius: 6px; background: #171e27; color: #cbd4df; font: 600 10px/1 var(--font-mono); cursor: pointer; }
-  .dev-presets button:hover { border-color: #d8e5f7; background: #263244; color: #fff; }
-  .skill-controls { display: grid; gap: 7px; padding: 10px 16px 12px; border-top: 1px solid #242c36; }
-  .skill-controls label { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 10px; }
-  .skill-controls span { display: flex; justify-content: space-between; gap: 6px; color: #aeb8c5; font-size: 10px; }
-  .skill-controls strong { color: #f4d35e; font: 600 9px/1 var(--font-mono); }
-  .skill-controls input { width: 100%; accent-color: #f4d35e; }
-  .dev-search { min-height: 36px; margin: 0 16px 10px; padding: 0 10px; border: 1px solid #303b49; border-radius: 7px; background: #0c1117; color: #edf1f6; font: inherit; font-size: 12px; }
-  .dev-list { min-height: 0; flex: 1; overflow-y: auto; border-top: 1px solid #242c36; }
-  .dev-list label { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 9px; min-height: 48px; padding: 7px 16px; border-bottom: 1px solid #202832; cursor: pointer; }
-  .dev-list label:hover { background: #1c2531; }
-  .dev-list input { width: 15px; height: 15px; accent-color: #f4d35e; }
-  .dev-list span { display: grid; gap: 3px; min-width: 0; }
-  .dev-list strong { overflow: hidden; color: #e8edf3; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-  .dev-list small { color: #8491a2; font: 9px/1 var(--font-mono); }
-  footer { padding: 12px 16px; border-top: 1px solid #29313c; }
-  .save { width: 100%; min-height: 38px; border: 1px solid #f4d35e; border-radius: 7px; background: #f4d35e; color: #111318; font-weight: 700; cursor: pointer; }
-  .save:disabled { cursor: wait; opacity: .6; }
-</style>
