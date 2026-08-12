@@ -21,6 +21,7 @@
   import { getPassedChallengeIds } from "../../lib/progress";
   import {
     skillTreeConnections,
+    skillTreeDependencies,
     skillTreeRoles,
     skillTreeSkills,
     optionalSkillTreeConnectionKeys,
@@ -38,11 +39,15 @@
     "ml-role": { x: 760, y: 230 },
   };
   const skillPositions: Record<string, { x: number; y: number }> = {
-    "html-skill": { x: 35, y: 445 },
-    "css-skill": { x: 215, y: 445 },
-    "javascript-skill": { x: 395, y: 445 },
-    "python-skill": { x: 650, y: 445 },
-    "databases-skill": { x: 830, y: 445 },
+    "html-skill": { x: 20, y: 445 },
+    "css-skill": { x: 165, y: 445 },
+    "javascript-skill": { x: 355, y: 445 },
+    "python-skill": { x: 760, y: 445 },
+    "databases-skill": { x: 905, y: 445 },
+    "react-skill": { x: 190, y: 630 },
+    "vue-skill": { x: 335, y: 630 },
+    "svelte-skill": { x: 480, y: 630 },
+    "solid-skill": { x: 625, y: 630 },
   };
   let routeHash = typeof window === "undefined" ? "" : window.location.hash;
   let selectedRole: SkillTreeRole | null = null;
@@ -66,6 +71,10 @@
     html: "bg-language-html",
     css: "bg-language-css",
     javascript: "bg-language-javascript text-primary-foreground",
+    react: "bg-language-react",
+    vue: "bg-language-vue",
+    svelte: "bg-language-svelte",
+    solid: "bg-language-solid",
     python: "bg-language-python",
     database: "bg-language-database",
   };
@@ -98,6 +107,11 @@
           .filter((connection) => connection.roleId === activeRoleId)
           .map((connection) => connection.skillId)
       : [],
+  );
+  $: activeDependencySkillIds = new Set(
+    skillTreeDependencies
+      .filter((dependency) => activeSkillIds.has(dependency.sourceSkillId))
+      .map((dependency) => dependency.targetSkillId),
   );
   $: nodes = [
     ...skillTreeRoles.map((role) => ({
@@ -137,8 +151,14 @@
         kind: "skill" as const,
         meta: `${Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%`,
         hasTarget: true,
-        hasSource: false,
-        dimmed: Boolean(activeRoleId && !activeSkillIds.has(skill.id)),
+        hasSource: skillTreeDependencies.some(
+          (dependency) => dependency.sourceSkillId === skill.id,
+        ),
+        dimmed: Boolean(
+          activeRoleId &&
+            !activeSkillIds.has(skill.id) &&
+            !activeDependencySkillIds.has(skill.id),
+        ),
       },
       draggable: true,
       connectable: false,
@@ -158,9 +178,17 @@
           optional: optionalSkillTreeConnectionKeys.has(`${connection.roleId}:${connection.skillId}`),
         };
       }),
+    ...skillTreeDependencies.map((dependency) => ({
+      source: dependency.sourceSkillId,
+      target: dependency.targetSkillId,
+    })),
   ];
   $: edges = visualConnections.map((connection) => {
-    const edgeDimmed = Boolean(activeRoleId && connection.source !== activeRoleId);
+    const edgeDimmed = Boolean(
+      activeRoleId &&
+        connection.source !== activeRoleId &&
+        !activeSkillIds.has(connection.source),
+    );
     return {
       id: `${connection.source}-${connection.target}`,
       source: connection.source,
@@ -344,6 +372,8 @@
       <p class="text-sm leading-6 text-content">{selectedSkill.description}</p>
       {#if selectedSkill.exerciseIds.length}
         <p class="text-xs text-muted">Прогресс считается по решённым упражнениям Codenesis.</p>
+      {:else if selectedSkill.kind === "internal"}
+        <p class="rounded-md border border-border bg-card px-3 py-3 text-xs leading-5 text-muted">Программа уже доступна. Профильные упражнения добавляются отдельно, поэтому прогресс пока начинается с 0%.</p>
       {/if}
       {#if selectedSkill.kind === "external"}
         <a class="mt-auto flex min-h-13 items-center border-t border-border bg-surface-muted px-5 font-semibold text-foreground hover:bg-card" href={selectedSkill.href} target="_blank" rel="noreferrer">Открыть roadmap {selectedSkill.title} ↗</a>

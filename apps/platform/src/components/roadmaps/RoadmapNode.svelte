@@ -4,7 +4,7 @@
   export type RoadmapNodeData = {
     title: string;
     meta?: string;
-    tone?: "html" | "css" | "javascript";
+    tone?: string;
     hasTarget: boolean;
     hasSource: boolean;
   };

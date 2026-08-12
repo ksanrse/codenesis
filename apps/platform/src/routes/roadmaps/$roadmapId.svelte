@@ -29,6 +29,7 @@
   $: roadmapId = routeHash.split("/")[2]?.split("?")[0] ?? "";
   $: roadmap = getRoadmapById(roadmapId);
   $: childRoadmaps = roadmap?.children ?? [];
+  $: nextRoadmaps = roadmap?.next ?? [];
   $: flowItems = childRoadmaps.length ? childRoadmaps : roadmap?.stages ?? [];
   $: flowHeight = Math.max(760, flowItems.length * 142 + 120);
   $: flowColor = roadmap?.tone === "javascript" ? "var(--accent-warning)" : "var(--accent-info)";
@@ -99,6 +100,7 @@
       <a class="text-xs text-muted hover:text-foreground" href="#/roadmaps">← Все roadmaps</a>
       <div>
         <h1 class="text-[clamp(2rem,5vw,3rem)] font-semibold tracking-[-0.04em] text-foreground">{roadmap.title}</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-muted">{roadmap.description}</p>
       </div>
     </header>
 
@@ -123,6 +125,23 @@
         <Controls showLock={false} />
       </SvelteFlow>
     </div>
+
+    {#if nextRoadmaps.length}
+      <section class="grid gap-3 border-t border-border pt-5" aria-labelledby="framework-specializations">
+        <div>
+          <h2 id="framework-specializations" class="text-lg font-semibold text-foreground">Следующая специализация</h2>
+          <p class="mt-1 text-sm text-muted">Фреймворки прокачиваются отдельно и не меняют прогресс Vanilla JavaScript.</p>
+        </div>
+        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {#each nextRoadmaps as nextRoadmap}
+            <a class="group grid min-h-28 content-between rounded-lg border border-border bg-card p-4 transition hover:border-border-strong hover:bg-surface-muted" href={`#/roadmaps/${nextRoadmap.roadmapId}`}>
+              <strong class="text-base font-semibold text-foreground">{nextRoadmap.title}</strong>
+              <span class="text-xs leading-5 text-muted">{nextRoadmap.description}</span>
+            </a>
+          {/each}
+        </div>
+      </section>
+    {/if}
   </div>
 
   {#if selectedChild}
@@ -155,17 +174,21 @@
           <h3 class="text-xs font-semibold text-foreground">Коротко</h3>
           <p class="text-xs leading-6 text-muted">{selectedStage.description}</p>
         </section>
-        <section class="grid gap-2">
-          <h3 class="text-xs font-semibold text-foreground">Упражнения</h3>
-          <div class="grid gap-2">
-            {#each exercises as exercise}
-              <a class={`grid grid-cols-[12px_1fr] items-center gap-2 rounded-md border bg-card px-3 py-3 ${passedChallengeIds.has(exercise.id) ? "border-success/50" : "border-border hover:border-border-strong"}`} href={`#/challenges/${exercise.id}`}>
-                <span class={`size-2 rounded-full border ${passedChallengeIds.has(exercise.id) ? "border-success bg-success shadow-[0_0_0_3px_var(--success-light)]" : "border-muted"}`} aria-label={passedChallengeIds.has(exercise.id) ? "Решено" : "Не решено"}></span>
-                <strong class="text-xs font-semibold text-foreground">{exercise.title}</strong>
-              </a>
-            {/each}
-          </div>
-        </section>
+        {#if exercises.length}
+          <section class="grid gap-2">
+            <h3 class="text-xs font-semibold text-foreground">Упражнения</h3>
+            <div class="grid gap-2">
+              {#each exercises as exercise}
+                <a class={`grid grid-cols-[12px_1fr] items-center gap-2 rounded-md border bg-card px-3 py-3 ${passedChallengeIds.has(exercise.id) ? "border-success/50" : "border-border hover:border-border-strong"}`} href={`#/challenges/${exercise.id}`}>
+                  <span class={`size-2 rounded-full border ${passedChallengeIds.has(exercise.id) ? "border-success bg-success shadow-[0_0_0_3px_var(--success-light)]" : "border-muted"}`} aria-label={passedChallengeIds.has(exercise.id) ? "Решено" : "Не решено"}></span>
+                  <strong class="text-xs font-semibold text-foreground">{exercise.title}</strong>
+                </a>
+              {/each}
+            </div>
+          </section>
+        {:else}
+          <p class="rounded-md border border-border bg-card px-3 py-3 text-xs leading-5 text-muted">Профильные упражнения этого этапа ещё готовятся. Они будут считать прогресс отдельно от Vanilla JavaScript.</p>
+        {/if}
         {#if exercises[0]}
           <a class="mt-auto rounded-md border border-warning/50 bg-warning/10 px-4 py-3 text-xs text-warning hover:bg-warning/15" href={`#/challenges/${exercises[0].id}`}>Перейти к курсу →</a>
         {/if}

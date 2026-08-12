@@ -21,6 +21,10 @@
   --color-language-html: var(--language-html);
   --color-language-css: var(--language-css);
   --color-language-javascript: var(--language-javascript);
+  --color-language-react: var(--language-react);
+  --color-language-vue: var(--language-vue);
+  --color-language-svelte: var(--language-svelte);
+  --color-language-solid: var(--language-solid);
   --color-language-python: var(--language-python);
   --color-language-database: var(--language-database);
   --font-sans: var(--ds-font-sans);
@@ -112,6 +116,10 @@
   --language-html: #e44d26;
   --language-css: #1572b6;
   --language-javascript: #f7df1e;
+  --language-react: #61dafb;
+  --language-vue: #42b883;
+  --language-svelte: #ff3e00;
+  --language-solid: #76b3e1;
   --language-python: #3776ab;
   --language-database: #64748b;
 

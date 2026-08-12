@@ -18,13 +18,21 @@
     "html-skill": 0,
     "css-skill": 0,
     "javascript-skill": 0,
+    "react-skill": 0,
+    "vue-skill": 0,
+    "svelte-skill": 0,
+    "solid-skill": 0,
     "python-skill": 0,
     "databases-skill": 0,
   };
   const skills = [
     ["html-skill", "HTML"],
     ["css-skill", "CSS"],
-    ["javascript-skill", "JavaScript"],
+    ["javascript-skill", "Vanilla JS"],
+    ["react-skill", "React"],
+    ["vue-skill", "Vue"],
+    ["svelte-skill", "Svelte"],
+    ["solid-skill", "Solid"],
     ["python-skill", "Python"],
     ["databases-skill", "Databases"],
   ] as const;

@@ -14,6 +14,7 @@
     react: "React",
     svelte: "Svelte",
     vue: "Vue",
+    solid: "Solid",
   };
 
   $: label = labels[language] ?? language;
@@ -31,6 +32,27 @@
   <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label}>
     <rect width="24" height="24" rx="3" fill="#3178C6" />
     <text x="12" y="17" text-anchor="middle" fill="white" font-size="10" font-weight="700">TS</text>
+  </svg>
+{:else if language === "react"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label} fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" />
+    <ellipse cx="12" cy="12" rx="9" ry="3.5" />
+    <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)" />
+    <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)" />
+  </svg>
+{:else if language === "vue"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label}>
+    <path fill="currentColor" d="M1.5 3.5h5L12 13l5.5-9.5h5L12 21 1.5 3.5Z" />
+    <path fill="var(--bg-card)" d="M6.5 3.5h3L12 8l2.5-4.5h3L12 13 6.5 3.5Z" />
+  </svg>
+{:else if language === "svelte"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label} fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+    <path d="M16.5 4.5 10 2.8a4 4 0 0 0-4.6 2.3L4.7 7a4 4 0 0 0 2.6 5.3l7.4 2a2 2 0 0 1 1.3 2.6l-.2.5a2 2 0 0 1-2.3 1.1L7 16.8" />
+    <path d="m7.5 19.5 6.5 1.7a4 4 0 0 0 4.6-2.3l.7-1.9a4 4 0 0 0-2.6-5.3l-7.4-2A2 2 0 0 1 8 7.1l.2-.5a2 2 0 0 1 2.3-1.1L17 7.2" />
+  </svg>
+{:else if language === "solid"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label}>
+    <path fill="currentColor" d="m3 7 7.5-5L21 5.5l-7.5 5L3 7Zm0 3.5 10.5 3.5L21 9v4l-7.5 5L3 14.5v-4Zm0 7 10.5 3.5L21 16v3l-7.5 5L3 20.5v-3Z" />
   </svg>
 {:else if language === "html"}
   <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label="HTML">

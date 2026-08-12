@@ -11,11 +11,13 @@ export type RoadmapChild = {
   id: string;
   title: string;
   description: string;
-  tone: "html" | "css" | "javascript";
+  tone: RoadmapTone;
   kind: "external" | "internal";
   href?: string;
   roadmapId?: string;
 };
+
+export type RoadmapTone = "html" | "css" | "javascript" | "react" | "vue" | "svelte" | "solid";
 
 export type Roadmap = {
   id: string;
@@ -24,6 +26,7 @@ export type Roadmap = {
   audience: string;
   stages: RoadmapStage[];
   children?: RoadmapChild[];
+  next?: RoadmapChild[];
   tone?: RoadmapChild["tone"];
 };
 
@@ -41,7 +44,16 @@ export type SkillTreeSkill = {
   title: string;
   shortLabel: string;
   description: string;
-  tone: "html" | "css" | "javascript" | "python" | "database";
+  tone:
+    | "html"
+    | "css"
+    | "javascript"
+    | "react"
+    | "vue"
+    | "svelte"
+    | "solid"
+    | "python"
+    | "database";
   kind: "external" | "internal";
   href?: string;
   roadmapId?: string;
@@ -53,13 +65,52 @@ export type SkillTreeConnection = {
   skillId: SkillTreeSkill["id"];
 };
 
+export type SkillTreeDependency = {
+  sourceSkillId: SkillTreeSkill["id"];
+  targetSkillId: SkillTreeSkill["id"];
+};
+
 const javascriptRoadmap: Roadmap = {
   id: "javascript",
-  title: "JavaScript",
+  title: "Vanilla JavaScript",
   description:
-    "Путь от первых строк JavaScript до уверенной работы с браузером, сетью и архитектурой приложений.",
-  audience: "С нуля до самостоятельного frontend-разработчика",
+    "Самостоятельный путь по JavaScript без фреймворков: язык, браузер, сеть, хранение данных и production-практика.",
+  audience: "Фундамент перед React, Vue, Svelte или Solid",
   tone: "javascript",
+  next: [
+    {
+      id: "react",
+      title: "React",
+      description: "Компоненты, hooks и большая экосистема.",
+      tone: "react",
+      kind: "internal",
+      roadmapId: "react",
+    },
+    {
+      id: "vue",
+      title: "Vue",
+      description: "Composition API и декларативные шаблоны.",
+      tone: "vue",
+      kind: "internal",
+      roadmapId: "vue",
+    },
+    {
+      id: "svelte",
+      title: "Svelte",
+      description: "Компиляция, runes и минимум runtime-кода.",
+      tone: "svelte",
+      kind: "internal",
+      roadmapId: "svelte",
+    },
+    {
+      id: "solid",
+      title: "Solid",
+      description: "Signals и fine-grained реактивность.",
+      tone: "solid",
+      kind: "internal",
+      roadmapId: "solid",
+    },
+  ],
   stages: [
     {
       id: "javascript-basics",
@@ -262,6 +313,118 @@ const javascriptRoadmap: Roadmap = {
   ],
 };
 
+function createFrameworkRoadmap(
+  id: "react" | "vue" | "svelte" | "solid",
+  title: string,
+  concepts: {
+    components: string[];
+    state: string[];
+    ecosystem: string[];
+  },
+): Roadmap {
+  return {
+    id,
+    title,
+    description: `Специализация ${title} поверх уверенного Vanilla JavaScript. Прогресс этого трека считается отдельно.`,
+    audience: "После основ JavaScript, DOM, модулей и асинхронности",
+    tone: id,
+    stages: [
+      {
+        id: `${id}-foundation`,
+        title: "Модель фреймворка",
+        description: `Понимаем, какую задачу решает ${title} и как устроен его runtime.`,
+        why: "Фреймворк полезен только тогда, когда разработчик понимает его модель обновления интерфейса, а не просто повторяет синтаксис из примера.",
+        topics: [
+          "Создание проекта",
+          "Структура приложения",
+          "Рендеринг интерфейса",
+          ...concepts.components,
+        ],
+        exerciseIds: [],
+      },
+      {
+        id: `${id}-state`,
+        title: "Состояние и реактивность",
+        description: "Связываем данные с интерфейсом и контролируем обновления.",
+        why: "Большинство ошибок в приложениях появляется на границе состояния и представления. Этот этап формирует предсказуемую модель данных.",
+        topics: [
+          "Локальное состояние",
+          "Производные значения",
+          "Побочные эффекты",
+          ...concepts.state,
+        ],
+        exerciseIds: [],
+      },
+      {
+        id: `${id}-composition`,
+        title: "Композиция интерфейса",
+        description: "Собираем крупные экраны из независимых компонентов.",
+        why: "Композиция определяет, насколько легко интерфейс расширять, тестировать и переиспользовать без скрытых связей между частями приложения.",
+        topics: [
+          "Передача данных",
+          "Композиция компонентов",
+          "Формы",
+          "Доступность",
+          "Обработка ошибок",
+        ],
+        exerciseIds: [],
+      },
+      {
+        id: `${id}-data`,
+        title: "Данные и маршруты",
+        description: "Подключаем приложение к API и нескольким экранам.",
+        why: "Production-интерфейс живёт дольше одного рендера: он загружает данные, переживает ошибки сети и синхронизирует состояние с URL.",
+        topics: [
+          "Маршрутизация",
+          "Запросы к API",
+          "Состояния загрузки",
+          "Кэширование",
+          ...concepts.ecosystem,
+        ],
+        exerciseIds: [],
+      },
+      {
+        id: `${id}-quality`,
+        title: "Качество и production",
+        description: "Проверяем поведение и готовим приложение к реальным пользователям.",
+        why: "Уверенное владение фреймворком проявляется не в количестве API, а в способности выпускать доступный, быстрый и проверяемый продукт.",
+        topics: [
+          "Компонентные тесты",
+          "Интеграционные тесты",
+          "Производительность",
+          "Code splitting",
+          "Сборка и деплой",
+        ],
+        exerciseIds: [],
+      },
+    ],
+  };
+}
+
+const reactRoadmap = createFrameworkRoadmap("react", "React", {
+  components: ["JSX", "Функциональные компоненты", "Props"],
+  state: ["Hooks", "useState и useReducer", "Контекст"],
+  ecosystem: ["React Router", "Server Components как следующий уровень"],
+});
+
+const vueRoadmap = createFrameworkRoadmap("vue", "Vue", {
+  components: ["Single-File Components", "Template syntax", "Props и emits"],
+  state: ["Composition API", "ref и reactive", "Pinia"],
+  ecosystem: ["Vue Router", "Nuxt как следующий уровень"],
+});
+
+const svelteRoadmap = createFrameworkRoadmap("svelte", "Svelte", {
+  components: ["Svelte-компоненты", "Шаблон и директивы", "Props и snippets"],
+  state: ["Runes", "Stores", "Контекст"],
+  ecosystem: ["SvelteKit routing", "Load-функции и actions"],
+});
+
+const solidRoadmap = createFrameworkRoadmap("solid", "Solid", {
+  components: ["JSX", "Компоненты без повторного рендера", "Props"],
+  state: ["Signals", "Memos", "Effects и stores"],
+  ecosystem: ["Solid Router", "SolidStart как следующий уровень"],
+});
+
 const frontendRoadmap: Roadmap = {
   id: "frontend",
   title: "Фронтенд",
@@ -288,8 +451,8 @@ const frontendRoadmap: Roadmap = {
     },
     {
       id: "javascript",
-      title: "JavaScript",
-      description: "Язык, браузерные API, асинхронность и логика интерфейсов.",
+      title: "Vanilla JavaScript",
+      description: "Язык, браузерные API и интерфейсы без фреймворков.",
       tone: "javascript",
       kind: "internal",
       roadmapId: "javascript",
@@ -352,13 +515,53 @@ export const skillTreeSkills: SkillTreeSkill[] = [
   },
   {
     id: "javascript-skill",
-    title: "JavaScript",
+    title: "Vanilla JS",
     shortLabel: "JS",
-    description: "Язык, браузерные API, асинхронность и логика интерфейсов.",
+    description: "Язык, DOM, сеть и интерфейсы без фреймворков — общая база для специализаций.",
     tone: "javascript",
     kind: "internal",
     roadmapId: "javascript",
     exerciseIds: [...new Set(javascriptRoadmap.stages.flatMap((stage) => stage.exerciseIds))],
+  },
+  {
+    id: "react-skill",
+    title: "React",
+    shortLabel: "R",
+    description: "Компоненты, hooks и экосистема React поверх Vanilla JavaScript.",
+    tone: "react",
+    kind: "internal",
+    roadmapId: "react",
+    exerciseIds: [],
+  },
+  {
+    id: "vue-skill",
+    title: "Vue",
+    shortLabel: "V",
+    description: "Composition API, реактивность и экосистема Vue.",
+    tone: "vue",
+    kind: "internal",
+    roadmapId: "vue",
+    exerciseIds: [],
+  },
+  {
+    id: "svelte-skill",
+    title: "Svelte",
+    shortLabel: "S",
+    description: "Компилируемые компоненты, runes и SvelteKit.",
+    tone: "svelte",
+    kind: "internal",
+    roadmapId: "svelte",
+    exerciseIds: [],
+  },
+  {
+    id: "solid-skill",
+    title: "Solid",
+    shortLabel: "S",
+    description: "Fine-grained реактивность, signals и SolidStart.",
+    tone: "solid",
+    kind: "internal",
+    roadmapId: "solid",
+    exerciseIds: [],
   },
   {
     id: "python-skill",
@@ -406,10 +609,22 @@ export const optionalSkillTreeConnectionKeys = new Set([
   "ml-role:databases-skill",
 ]);
 
-export const roadmaps: Roadmap[] = [frontendRoadmap];
-const roadmapIndex = new Map<string, Roadmap>(
-  [frontendRoadmap, javascriptRoadmap].map((roadmap) => [roadmap.id, roadmap]),
-);
+export const skillTreeDependencies: SkillTreeDependency[] = [
+  { sourceSkillId: "javascript-skill", targetSkillId: "react-skill" },
+  { sourceSkillId: "javascript-skill", targetSkillId: "vue-skill" },
+  { sourceSkillId: "javascript-skill", targetSkillId: "svelte-skill" },
+  { sourceSkillId: "javascript-skill", targetSkillId: "solid-skill" },
+];
+
+export const roadmaps: Roadmap[] = [
+  frontendRoadmap,
+  javascriptRoadmap,
+  reactRoadmap,
+  vueRoadmap,
+  svelteRoadmap,
+  solidRoadmap,
+];
+const roadmapIndex = new Map<string, Roadmap>(roadmaps.map((roadmap) => [roadmap.id, roadmap]));
 
 export function getRoadmapById(id: string): Roadmap | undefined {
   return roadmapIndex.get(id);

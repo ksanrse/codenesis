@@ -5,6 +5,7 @@ import {
   getRoadmapTopicCount,
   roadmaps,
   skillTreeConnections,
+  skillTreeDependencies,
   skillTreeRoles,
   skillTreeSkills,
 } from "./roadmaps";
@@ -21,7 +22,11 @@ describe("roadmaps", () => {
   it("groups HTML, CSS and JavaScript under the frontend roadmap", () => {
     const frontend = getRoadmapById("frontend");
 
-    expect(frontend?.children?.map((child) => child.title)).toEqual(["HTML", "CSS", "JavaScript"]);
+    expect(frontend?.children?.map((child) => child.title)).toEqual([
+      "HTML",
+      "CSS",
+      "Vanilla JavaScript",
+    ]);
     expect(frontend?.children?.find((child) => child.id === "javascript")?.roadmapId).toBe(
       "javascript",
     );
@@ -34,13 +39,30 @@ describe("roadmaps", () => {
     }
   });
 
-  it("links every stage to existing exercises and an explanation", () => {
-    for (const roadmap of roadmaps) {
-      for (const stage of roadmap.stages) {
-        expect(stage.why.length).toBeGreaterThan(40);
-        expect(stage.exerciseIds.length).toBeGreaterThan(0);
-        expect(stage.exerciseIds.every((id) => getChallengeById(id))).toBe(true);
-      }
+  it("links every released Vanilla JavaScript stage to existing exercises", () => {
+    const vanilla = getRoadmapById("javascript");
+
+    for (const stage of vanilla?.stages ?? []) {
+      expect(stage.why.length).toBeGreaterThan(40);
+      expect(stage.exerciseIds.length).toBeGreaterThan(0);
+      expect(stage.exerciseIds.every((id) => getChallengeById(id))).toBe(true);
+    }
+  });
+
+  it("keeps framework specializations independent from Vanilla JavaScript", () => {
+    const vanilla = getRoadmapById("javascript");
+
+    expect(vanilla?.title).toBe("Vanilla JavaScript");
+    expect(vanilla?.next?.map(({ roadmapId }) => roadmapId)).toEqual([
+      "react",
+      "vue",
+      "svelte",
+      "solid",
+    ]);
+    for (const id of ["react", "vue", "svelte", "solid"]) {
+      const framework = getRoadmapById(id);
+      expect(framework?.stages).toHaveLength(5);
+      expect(framework?.stages.every((stage) => stage.exerciseIds.length === 0)).toBe(true);
     }
   });
 
@@ -54,7 +76,11 @@ describe("roadmaps", () => {
     expect(skillTreeSkills.map((skill) => skill.title)).toEqual([
       "HTML",
       "CSS",
-      "JavaScript",
+      "Vanilla JS",
+      "React",
+      "Vue",
+      "Svelte",
+      "Solid",
       "Python",
       "Databases",
     ]);
@@ -66,5 +92,11 @@ describe("roadmaps", () => {
         { roleId: "ml-role", skillId: "python-skill" },
       ]),
     );
+    expect(skillTreeDependencies).toEqual([
+      { sourceSkillId: "javascript-skill", targetSkillId: "react-skill" },
+      { sourceSkillId: "javascript-skill", targetSkillId: "vue-skill" },
+      { sourceSkillId: "javascript-skill", targetSkillId: "svelte-skill" },
+      { sourceSkillId: "javascript-skill", targetSkillId: "solid-skill" },
+    ]);
   });
 });
