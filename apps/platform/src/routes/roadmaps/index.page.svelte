@@ -337,7 +337,7 @@
 {:else if selectedSkill}
   <aside class="fixed bottom-4 right-[max(16px,calc((100vw-var(--container-width))/2+16px))] top-[70px] z-45 flex w-[min(360px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-float max-md:inset-x-[10px] max-md:top-16 max-md:w-auto" aria-label={`Навык: ${selectedSkill.title}`}>
     <header class="flex items-start justify-between gap-5 border-b border-border p-5">
-      <div><span class="font-mono text-[10px] font-bold uppercase tracking-widest text-info">Навык · {Math.round((progressBySkill.get(selectedSkill.id) ?? 0) * 100)}%</span><h2 class="mt-1 text-xl font-semibold text-foreground">{selectedSkill.title}</h2></div>
+      <div><h2 class="text-xl font-semibold text-foreground">{selectedSkill.title}</h2></div>
       <button class="grid size-8 place-items-center rounded-md border border-border bg-surface-muted text-xl text-muted hover:border-border-strong hover:text-foreground" type="button" aria-label="Закрыть описание" onclick={() => (selectedSkill = null)}>×</button>
     </header>
     <div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
@@ -365,7 +365,7 @@
         {#each selectedRoleSkills as skill}
           <button class="grid min-h-11 grid-cols-[32px_1fr_auto] items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5 text-left text-xs text-content hover:border-border-strong hover:bg-surface-muted" type="button" onclick={() => { selectedRole = null; selectedSkill = skill; }}>
             <span class={`grid size-8 place-items-center rounded-md text-white ${skillToneClasses[skill.tone] ?? "bg-surface-muted"}`}>
-              <LanguageIcon language={skill.tone === "database" ? "database" : skill.tone} size={18} />
+              <LanguageIcon language={skill.tone === "database" ? "database" : skill.tone} size={18} className="brightness-0 invert" />
             </span>
             <span>{skill.title}</span>
             <small class="font-mono text-[10px] text-muted">{Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%</small>

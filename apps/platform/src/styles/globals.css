@@ -39,7 +39,7 @@
    Dark-first, sharp lines, monochrome + subtle accent
    ============================== */
 :root {
-  --raycast-bg: #07080a;
+  --raycast-bg: #111111;
   --raycast-surface: #101111;
   --raycast-surface-raised: #1b1c1e;
   --raycast-surface-muted: #151617;
