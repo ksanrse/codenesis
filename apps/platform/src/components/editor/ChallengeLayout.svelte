@@ -78,7 +78,7 @@
   onMount(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); void run(); } }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); });
 </script>
 
-<div class="mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-4 px-[var(--page-x)] py-[var(--page-y)]">
+<div class="mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
   <div class="grid min-h-[calc(100vh-7rem)] gap-4 xl:grid-cols-[minmax(300px,0.86fr)_minmax(0,1.14fr)]">
     <section class="rounded-2xl border border-border bg-card p-[var(--panel-padding)] shadow-panel">
       <div class="space-y-4">

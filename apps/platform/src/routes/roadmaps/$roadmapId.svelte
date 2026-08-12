@@ -31,7 +31,7 @@
   $: childRoadmaps = roadmap?.children ?? [];
   $: flowItems = childRoadmaps.length ? childRoadmaps : roadmap?.stages ?? [];
   $: flowHeight = Math.max(760, flowItems.length * 142 + 120);
-  $: flowColor = roadmap?.tone === "javascript" ? "#d7b83f" : "#658bd2";
+  $: flowColor = roadmap?.tone === "javascript" ? "var(--accent-warning)" : "var(--accent-info)";
   $: nodes = flowItems.map((item, index, items) => {
     const child = "kind" in item ? (item as RoadmapChild) : null;
     const stage = child ? null : (item as RoadmapStage);
@@ -94,15 +94,15 @@
 <svelte:window onhashchange={() => (routeHash = window.location.hash)} />
 
 {#if roadmap}
-  <div class="container roadmap-page">
-    <header class="roadmap-header">
-      <a class="back-link" href="#/roadmaps">← Все roadmaps</a>
-      <div class="title-row">
-        <h1>{roadmap.title}</h1>
+  <div class="container mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <header class="grid gap-3">
+      <a class="text-xs text-muted hover:text-foreground" href="#/roadmaps">← Все roadmaps</a>
+      <div>
+        <h1 class="text-[clamp(2rem,5vw,3rem)] font-semibold tracking-[-0.04em] text-foreground">{roadmap.title}</h1>
       </div>
     </header>
 
-    <div class="roadmap-map" style:height={`${flowHeight}px`}>
+    <div class="min-h-[760px] overflow-hidden rounded-xl border border-border bg-background shadow-panel max-md:mx-[-12px] max-md:min-h-[620px]" style:height={`${flowHeight}px`}>
       <SvelteFlow
         bind:nodes
         bind:edges
@@ -118,97 +118,60 @@
         onnodeclick={selectStage}
         colorMode="dark"
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#28313d" />
-        <MiniMap pannable zoomable nodeColor="#253653" maskColor="rgba(7, 8, 10, .76)" />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--border-hover)" />
+        <MiniMap pannable zoomable nodeColor="var(--bg-muted)" maskColor="var(--bg)" />
         <Controls showLock={false} />
       </SvelteFlow>
     </div>
   </div>
 
   {#if selectedChild}
-    <aside class="stage-sheet" aria-label={`Подробнее: ${selectedChild.title}`}>
-      <header class="sheet-header">
-        <div><span>Mini-roadmap</span><h2>{selectedChild.title}</h2></div>
-        <button type="button" aria-label="Закрыть описание" on:click={() => (selectedChild = null)}>×</button>
+    <aside class="fixed bottom-4 right-[max(16px,calc((100vw-var(--container-width))/2+16px))] top-[70px] z-45 flex w-[min(390px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-float max-md:inset-x-[10px] max-md:top-16 max-md:w-auto" aria-label={`Подробнее: ${selectedChild.title}`}>
+      <header class="flex items-start justify-between gap-5 border-b border-border p-5">
+        <div><span class="font-mono text-[10px] font-bold uppercase tracking-widest text-info">Mini-roadmap</span><h2 class="mt-1 text-xl font-semibold text-foreground">{selectedChild.title}</h2></div>
+        <button class="grid size-8 place-items-center rounded-md border border-border bg-surface-muted text-xl text-muted hover:text-foreground" type="button" aria-label="Закрыть описание" on:click={() => (selectedChild = null)}>×</button>
       </header>
-      <div class="sheet-scroll">
-        <section>
-          <h3>Коротко</h3>
-          <p>{selectedChild.description}</p>
+      <div class="flex flex-1 flex-col gap-5 overflow-y-auto p-5">
+        <section class="grid gap-2">
+          <h3 class="text-xs font-semibold text-foreground">Коротко</h3>
+          <p class="text-xs leading-6 text-muted">{selectedChild.description}</p>
         </section>
         {#if selectedChild.kind === "external"}
-          <a class="sheet-action" href={selectedChild.href} target="_blank" rel="noreferrer">Открыть {selectedChild.title} на roadmap.sh ↗</a>
+          <a class="mt-auto rounded-md border border-border px-4 py-3 text-xs text-foreground hover:bg-surface-muted" href={selectedChild.href} target="_blank" rel="noreferrer">Открыть {selectedChild.title} на roadmap.sh ↗</a>
         {:else}
-          <a class="sheet-action" href={`#/roadmaps/${selectedChild.roadmapId}`}>Открыть карту {selectedChild.title} →</a>
+          <a class="mt-auto rounded-md border border-border px-4 py-3 text-xs text-foreground hover:bg-surface-muted" href={`#/roadmaps/${selectedChild.roadmapId}`}>Открыть карту {selectedChild.title} →</a>
         {/if}
       </div>
     </aside>
   {:else if selectedStage}
-    <aside class="stage-sheet" aria-label={`Подробнее: ${selectedStage.title}`}>
-      <header class="sheet-header">
-        <div><span>Курс</span><h2>{selectedStage.title}</h2></div>
-        <button type="button" aria-label="Закрыть описание" on:click={() => (selectedStage = null)}>×</button>
+    <aside class="fixed bottom-4 right-[max(16px,calc((100vw-var(--container-width))/2+16px))] top-[70px] z-45 flex w-[min(390px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-float max-md:inset-x-[10px] max-md:top-16 max-md:w-auto" aria-label={`Подробнее: ${selectedStage.title}`}>
+      <header class="flex items-start justify-between gap-5 border-b border-border p-5">
+        <div><span class="font-mono text-[10px] font-bold uppercase tracking-widest text-info">Курс</span><h2 class="mt-1 text-xl font-semibold text-foreground">{selectedStage.title}</h2></div>
+        <button class="grid size-8 place-items-center rounded-md border border-border bg-surface-muted text-xl text-muted hover:text-foreground" type="button" aria-label="Закрыть описание" on:click={() => (selectedStage = null)}>×</button>
       </header>
 
-      <div class="sheet-scroll">
-        <section>
-          <h3>Коротко</h3>
-          <p>{selectedStage.description}</p>
+      <div class="flex flex-1 flex-col gap-5 overflow-y-auto p-5">
+        <section class="grid gap-2">
+          <h3 class="text-xs font-semibold text-foreground">Коротко</h3>
+          <p class="text-xs leading-6 text-muted">{selectedStage.description}</p>
         </section>
-        <section>
-          <h3>Упражнения</h3>
-          <div class="exercise-list">
+        <section class="grid gap-2">
+          <h3 class="text-xs font-semibold text-foreground">Упражнения</h3>
+          <div class="grid gap-2">
             {#each exercises as exercise}
-              <a class:completed={passedChallengeIds.has(exercise.id)} href={`#/challenges/${exercise.id}`}>
-                <span class="exercise-status" class:completed={passedChallengeIds.has(exercise.id)} aria-label={passedChallengeIds.has(exercise.id) ? "Решено" : "Не решено"}></span>
-                <strong>{exercise.title}</strong>
+              <a class={`grid grid-cols-[12px_1fr] items-center gap-2 rounded-md border bg-card px-3 py-3 ${passedChallengeIds.has(exercise.id) ? "border-success/50" : "border-border hover:border-border-strong"}`} href={`#/challenges/${exercise.id}`}>
+                <span class={`size-2 rounded-full border ${passedChallengeIds.has(exercise.id) ? "border-success bg-success shadow-[0_0_0_3px_var(--success-light)]" : "border-muted"}`} aria-label={passedChallengeIds.has(exercise.id) ? "Решено" : "Не решено"}></span>
+                <strong class="text-xs font-semibold text-foreground">{exercise.title}</strong>
               </a>
             {/each}
           </div>
         </section>
         {#if exercises[0]}
-          <a class="sheet-action" href={`#/challenges/${exercises[0].id}`}>Перейти к курсу →</a>
+          <a class="mt-auto rounded-md border border-warning/50 bg-warning/10 px-4 py-3 text-xs text-warning hover:bg-warning/15" href={`#/challenges/${exercises[0].id}`}>Перейти к курсу →</a>
         {/if}
       </div>
     </aside>
   {/if}
 {:else}
-  <div class="container"><div class="page-header"><h1>Roadmap не найдена</h1><a class="inline-link" href="#/roadmaps">Вернуться к списку</a></div></div>
+  <div class="mx-auto w-full max-w-[var(--container-width)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10"><div class="grid gap-3"><h1 class="text-3xl font-semibold text-foreground">Roadmap не найдена</h1><a class="text-sm text-info hover:underline" href="#/roadmaps">Вернуться к списку</a></div></div>
 {/if}
-
-<style>
-  .roadmap-page { padding-top: 28px; padding-bottom: 70px; }
-  .roadmap-header { display: grid; gap: 20px; margin-bottom: 20px; }
-  .back-link { color: #8e98a7; font-size: 12px; }
-  .back-link:hover { color: #e5e9ef; }
-  .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; }
-  h1 { margin: 0; color: #f5f7fa; font-size: clamp(30px, 5vw, 48px); letter-spacing: -.04em; }
-  .roadmap-map { min-height: 760px; overflow: hidden; border: 1px solid #2a323e; border-radius: 12px; background: #0a0d11; }
-  :global(.roadmap-map .svelte-flow) { --xy-background-color: #0a0d11; --xy-controls-button-background-color: #151b24; --xy-controls-button-background-color-hover: #202938; --xy-controls-button-color: #b8c1ce; --xy-controls-button-border-color: #2d3744; --xy-minimap-background-color: #0d1117; }
-  :global(.roadmap-map .svelte-flow__attribution) { display: none; }
-  .stage-sheet { position: fixed; z-index: 45; top: 70px; right: max(16px, calc((100vw - 1200px) / 2 + 16px)); bottom: 16px; display: flex; width: min(390px, calc(100vw - 32px)); flex-direction: column; overflow: hidden; border: 1px solid #374253; border-radius: 14px; background: #11161e; box-shadow: 0 24px 70px rgba(0, 0, 0, .58); }
-  .sheet-header { display: flex; align-items: start; justify-content: space-between; gap: 18px; padding: 20px 20px 16px; border-bottom: 1px solid #29313c; }
-  .sheet-header span { color: #8fb4ff; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-  .sheet-header h2 { margin: 5px 0 0; color: #f2f5f8; font-size: 21px; }
-  .sheet-header button { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border: 1px solid #303946; border-radius: 7px; background: #171d26; color: #a9b1bd; font-size: 20px; cursor: pointer; }
-  .sheet-header button:hover { border-color: #566276; color: #fff; }
-  .sheet-scroll { display: grid; gap: 26px; overflow-y: auto; padding: 20px; }
-  .sheet-scroll section { display: grid; gap: 10px; }
-  .sheet-scroll h3 { margin: 0; color: #e9edf2; font-size: 12px; }
-  .sheet-scroll p { margin: 0; color: #949eac; font-size: 12px; line-height: 1.65; }
-  .exercise-list { display: grid; gap: 8px; }
-  .exercise-list a { display: grid; grid-template-columns: 12px minmax(0, 1fr); align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid #2c3542; border-radius: 8px; background: #151b24; }
-  .exercise-list a:hover,
-  .exercise-list a.completed { border-color: #52627b; }
-  .exercise-list strong { color: #e3e8ef; font-size: 12px; font-weight: 600; }
-  .exercise-status { width: 9px; height: 9px; border: 1px solid #758194; border-radius: 50%; background: transparent; }
-  .exercise-status.completed { border-color: #b8d46a; background: #b8d46a; box-shadow: 0 0 0 3px rgba(184, 212, 106, .12); }
-  .sheet-action { display: block; padding: 12px 14px; border: 1px solid #59692b; border-radius: 8px; color: #f4d35e; background: #211d0c; font-size: 12px; }
-  .sheet-action:hover { border-color: #d7b83f; background: #2b250d; }
-  @media (max-width: 720px) {
-    .title-row { align-items: start; flex-direction: column; }
-    .roadmap-map { margin-right: -12px; margin-left: -12px; }
-    .stage-sheet { top: 64px; right: 10px; bottom: 10px; width: calc(100vw - 20px); }
-    :global(.roadmap-map .svelte-flow__minimap) { display: none; }
-  }
-</style>

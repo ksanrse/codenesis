@@ -8,18 +8,30 @@
   };
 </script>
 
-<div class="container mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-7 px-[var(--page-x)] py-[var(--page-y)]">
-  <section class="overflow-hidden rounded-[var(--radius-panel)] border border-border bg-surface shadow-panel">
+<div class="mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-7 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+  <section class="overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card shadow-panel">
     <div class="grid gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:p-10 lg:p-12">
       <div class="flex max-w-2xl flex-col gap-6">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-info">Codenesis</p>
         <div class="space-y-4">
-          <h1 class="text-balance text-[clamp(2.4rem,5.2vw,4.6rem)] font-semibold leading-[0.96] tracking-[-0.06em] text-foreground">Практика, которая остаётся с вами</h1>
+          <h1 class="text-balance text-[clamp(2.25rem,4.4vw,3.8rem)] font-semibold leading-[1.02] tracking-[-0.055em] text-foreground">Практика, которая остаётся с вами</h1>
           <p class="max-w-xl text-base leading-7 text-muted">Решайте задачи, запускайте тесты прямо в браузере и собирайте свой прогресс по рангам.</p>
         </div>
         <div class="flex flex-wrap gap-3">
-          <button class="btn btn-primary" type="button" on:click={() => go("/challenges")}>Открыть задачи</button>
-          <button class="btn btn-outline" type="button" on:click={() => go("/roadmaps")}>Открыть roadmap</button>
+          <button
+            class="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border border-primary bg-primary px-[14px] py-[7px] text-[13px] font-semibold leading-none text-primary-foreground transition-colors duration-150 ease-[var(--ease-standard)] hover:border-primary-hover hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--primary)] focus-visible:outline-offset-2"
+            type="button"
+            on:click={() => go("/challenges")}
+          >
+            Открыть задачи
+          </button>
+          <button
+            class="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border border-border bg-transparent px-[14px] py-[7px] text-[13px] font-medium leading-none text-foreground transition-colors duration-150 ease-[var(--ease-standard)] hover:border-border-strong hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--primary)] focus-visible:outline-offset-2"
+            type="button"
+            on:click={() => go("/roadmaps")}
+          >
+            Открыть roadmap
+          </button>
         </div>
       </div>
       <div class="grid gap-3 rounded-[calc(var(--radius-panel)-2px)] border border-border bg-background/60 p-4">

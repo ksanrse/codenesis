@@ -60,6 +60,13 @@
   };
 
   const getRoleDisplayName = (title: string) => roleDisplayNames[title] ?? title;
+  const skillToneClasses: Record<string, string> = {
+    html: "bg-language-html",
+    css: "bg-language-css",
+    javascript: "bg-language-javascript text-primary-foreground",
+    python: "bg-language-python",
+    database: "bg-language-database",
+  };
 
   $: passedIds = getPassedChallengeIds($attempts);
   $: demoMode = routeHash.includes("demo=1");
@@ -131,15 +138,14 @@
     } satisfies SkillTreeFlowNode)),
   ];
   $: visualConnections = [
-    { source: "fullstack-role", target: "frontend-role", tone: "#64748b" },
-    { source: "fullstack-role", target: "backend-role", tone: "#64748b" },
+    { source: "fullstack-role", target: "frontend-role" },
+    { source: "fullstack-role", target: "backend-role" },
     ...skillTreeConnections
       .filter((connection) => connection.roleId !== "fullstack-role")
       .map((connection) => {
         return {
           source: connection.roleId,
           target: connection.skillId,
-          tone: "#64748b",
           optional: optionalSkillTreeConnectionKeys.has(`${connection.roleId}:${connection.skillId}`),
         };
       }),
@@ -151,7 +157,7 @@
       source: connection.source,
       target: connection.target,
       type: "floating",
-      style: `stroke:#64748b;stroke-width:3;opacity:${edgeDimmed ? ".12" : ".72"}${connection.optional ? ";stroke-dasharray:7 6" : ""}`,
+      style: `stroke:var(--text-muted);stroke-width:2;opacity:${edgeDimmed ? ".12" : ".72"}${connection.optional ? ";stroke-dasharray:7 6" : ""}`,
       className: connection.optional ? "optional-connection" : "animated-connection",
       animated: !connection.optional,
       selectable: false,
@@ -219,15 +225,14 @@
 
 <svelte:window on:hashchange={() => (routeHash = window.location.hash)} />
 
-<div class="container skill-tree-page">
-  <header class="skill-tree-header">
-    <h1>Skill tree</h1>
+<div class="container mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+  <header>
+    <h1 class="text-[clamp(2rem,5vw,3rem)] font-semibold tracking-[-0.05em] text-foreground">Skill tree</h1>
   </header>
 
-  <div class="skill-tree-map" class:demo-mode={demoMode}>
+  <div class="relative h-[calc(100dvh-210px)] min-h-[500px] overflow-hidden rounded-xl border border-border bg-background shadow-panel max-md:mx-[-12px] max-md:h-[650px] max-md:min-h-0" class:demo-mode={demoMode}>
     <button
-      class="legend-trigger"
-      class:active={legendOpen}
+      class={`absolute left-4 top-4 z-10 inline-flex min-h-9 items-center justify-center rounded-md border px-3 font-mono text-[11px] font-semibold transition ${legendOpen ? "border-border-strong bg-surface-muted text-foreground" : "border-border bg-surface text-muted hover:border-border-strong hover:bg-surface-muted hover:text-foreground"}`}
       type="button"
       aria-label="Открыть пояснения к карте"
       aria-expanded={legendOpen}
@@ -254,68 +259,67 @@
       onnodeclick={selectNode}
       colorMode="dark"
     >
-      <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="#28313d" />
+      <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--border-hover)" />
       <Controls showLock={false} />
     </SvelteFlow>
   </div>
 </div>
 
 {#if legendOpen}
-  <aside class="skill-sheet legend-sheet" aria-label="Пояснения к карте">
-    <header class="skill-sheet-header">
+  <aside class="fixed bottom-4 left-[max(16px,calc((100vw-var(--container-width))/2+16px))] top-[70px] z-45 flex w-[min(360px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-float max-md:inset-x-[10px] max-md:top-16 max-md:w-auto" aria-label="Пояснения к карте">
+    <header class="flex items-start justify-between gap-5 border-b border-border p-5">
       <div><h2>Как читать карту</h2></div>
-      <button type="button" aria-label="Закрыть пояснения" onclick={() => (legendOpen = false)}>×</button>
+      <button class="grid size-8 place-items-center rounded-md border border-border bg-surface-muted text-xl text-muted hover:border-border-strong hover:text-foreground" type="button" aria-label="Закрыть пояснения" onclick={() => (legendOpen = false)}>×</button>
     </header>
-    <div class="skill-sheet-body legend-sheet-body">
-      <div class="skill-tree-legend" aria-label="Легенда прогресса">
-        <span><i class="legend-dot empty"></i><strong>Не начато</strong><small>Упражнения ещё не выполнены</small></span>
-        <span><i class="legend-dot partial"></i><strong>В процессе</strong><small>Часть упражнений уже выполнена</small></span>
-        <span><i class="legend-dot complete"></i><strong>Завершено</strong><small>Все упражнения выполнены</small></span>
-        <span><i class="legend-line"></i><strong>Необязательная связь</strong><small>Навык полезен, но не обязателен для трека</small></span>
+    <div class="flex flex-1 flex-col overflow-y-auto p-5">
+      <div class="grid text-sm text-content" aria-label="Легенда прогресса">
+        <span class="grid grid-cols-[24px_1fr] items-center gap-x-2 border-b border-border py-4"><i class="size-2 rounded-full border-2 border-muted"></i><strong>Не начато</strong><small class="col-start-2 text-xs leading-5 text-muted">Упражнения ещё не выполнены</small></span>
+        <span class="grid grid-cols-[24px_1fr] items-center gap-x-2 border-b border-border py-4"><i class="size-2 rounded-full border-2 border-warning"></i><strong>В процессе</strong><small class="col-start-2 text-xs leading-5 text-muted">Часть упражнений уже выполнена</small></span>
+        <span class="grid grid-cols-[24px_1fr] items-center gap-x-2 border-b border-border py-4"><i class="size-2 rounded-full border-2 border-warning bg-warning"></i><strong>Завершено</strong><small class="col-start-2 text-xs leading-5 text-muted">Все упражнения выполнены</small></span>
+        <span class="grid grid-cols-[24px_1fr] items-center gap-x-2 py-4"><i class="w-5 border-t-2 border-dashed border-muted"></i><strong>Необязательная связь</strong><small class="col-start-2 text-xs leading-5 text-muted">Навык полезен, но не обязателен для трека</small></span>
       </div>
     </div>
   </aside>
 {:else if selectedSkill}
-  <aside class="skill-sheet" aria-label={`Навык: ${selectedSkill.title}`}>
-    <header class="skill-sheet-header">
-      <div><span>Навык · {Math.round((progressBySkill.get(selectedSkill.id) ?? 0) * 100)}%</span><h2>{selectedSkill.title}</h2></div>
-      <button type="button" aria-label="Закрыть описание" onclick={() => (selectedSkill = null)}>×</button>
+  <aside class="fixed bottom-4 right-[max(16px,calc((100vw-var(--container-width))/2+16px))] top-[70px] z-45 flex w-[min(360px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-float max-md:inset-x-[10px] max-md:top-16 max-md:w-auto" aria-label={`Навык: ${selectedSkill.title}`}>
+    <header class="flex items-start justify-between gap-5 border-b border-border p-5">
+      <div><span class="font-mono text-[10px] font-bold uppercase tracking-widest text-info">Навык · {Math.round((progressBySkill.get(selectedSkill.id) ?? 0) * 100)}%</span><h2 class="mt-1 text-xl font-semibold text-foreground">{selectedSkill.title}</h2></div>
+      <button class="grid size-8 place-items-center rounded-md border border-border bg-surface-muted text-xl text-muted hover:border-border-strong hover:text-foreground" type="button" aria-label="Закрыть описание" onclick={() => (selectedSkill = null)}>×</button>
     </header>
-    <div class="skill-sheet-body">
-      <p>{selectedSkill.description}</p>
+    <div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+      <p class="text-sm leading-6 text-content">{selectedSkill.description}</p>
       {#if selectedSkill.exerciseIds.length}
-        <p class="skill-sheet-note">Прогресс считается по решённым упражнениям Codenesis.</p>
+        <p class="text-xs text-muted">Прогресс считается по решённым упражнениям Codenesis.</p>
       {/if}
       {#if selectedSkill.kind === "external"}
-        <a class="sheet-action" href={selectedSkill.href} target="_blank" rel="noreferrer">Открыть roadmap {selectedSkill.title} ↗</a>
+        <a class="mt-auto flex min-h-13 items-center border-t border-border bg-surface-muted px-5 font-semibold text-foreground hover:bg-card" href={selectedSkill.href} target="_blank" rel="noreferrer">Открыть roadmap {selectedSkill.title} ↗</a>
       {:else}
-        <a class="sheet-action" href={`#/roadmaps/${selectedSkill.roadmapId}`}>Перейти к курсу {selectedSkill.title} →</a>
+        <a class="mt-auto flex min-h-13 items-center border-t border-border bg-surface-muted px-5 font-semibold text-foreground hover:bg-card" href={`#/roadmaps/${selectedSkill.roadmapId}`}>Перейти к курсу {selectedSkill.title} →</a>
       {/if}
     </div>
   </aside>
 {:else if selectedRole}
-  <aside class="skill-sheet" aria-label={getRoleDisplayName(selectedRole.title)}>
-    <header class="skill-sheet-header">
-      <div><h2>{getRoleDisplayName(selectedRole.title)}</h2></div>
-      <button type="button" aria-label="Закрыть описание" onclick={() => (selectedRole = null)}>×</button>
+  <aside class="fixed bottom-4 right-[max(16px,calc((100vw-var(--container-width))/2+16px))] top-[70px] z-45 flex w-[min(360px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-float max-md:inset-x-[10px] max-md:top-16 max-md:w-auto" aria-label={getRoleDisplayName(selectedRole.title)}>
+    <header class="flex items-start justify-between gap-5 border-b border-border p-5">
+      <div><h2 class="text-xl font-semibold text-foreground">{getRoleDisplayName(selectedRole.title)}</h2></div>
+      <button class="grid size-8 place-items-center rounded-md border border-border bg-surface-muted text-xl text-muted hover:border-border-strong hover:text-foreground" type="button" aria-label="Закрыть описание" onclick={() => (selectedRole = null)}>×</button>
     </header>
-    <div class="skill-sheet-body">
-      <p>{selectedRole.description}</p>
-      <h3>Общая база</h3>
-      <div class="role-skill-list">
+    <div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+      <p class="text-sm leading-6 text-content">{selectedRole.description}</p>
+      <h3 class="text-xs font-semibold text-foreground">Общая база</h3>
+      <div class="grid gap-2">
         {#each selectedRoleSkills as skill}
-          <button type="button" onclick={() => { selectedRole = null; selectedSkill = skill; }}>
-            <span class={`role-skill-icon tone-${skill.tone}`}>
+          <button class="grid min-h-11 grid-cols-[32px_1fr_auto] items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5 text-left text-xs text-content hover:border-border-strong hover:bg-surface-muted" type="button" onclick={() => { selectedRole = null; selectedSkill = skill; }}>
+            <span class={`grid size-8 place-items-center rounded-md text-white ${skillToneClasses[skill.tone] ?? "bg-surface-muted"}`}>
               <LanguageIcon language={skill.tone === "database" ? "database" : skill.tone} size={18} />
             </span>
             <span>{skill.title}</span>
-            <small>{Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%</small>
+            <small class="font-mono text-[10px] text-muted">{Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%</small>
           </button>
         {/each}
       </div>
       <button
-        class:cancel-track={activeRoleId === selectedRole.id}
-        class="sheet-action track-action"
+        class={`mt-auto flex min-h-13 items-center border-t border-border px-5 text-left font-semibold text-foreground ${activeRoleId === selectedRole.id ? "bg-[linear-gradient(to_right,var(--error)_var(--hold-progress),var(--error-light)_var(--hold-progress))]" : "bg-surface-muted hover:bg-card"}`}
         style={`--hold-progress: ${holdProgress}%`}
         type="button"
         aria-label={activeRoleId === selectedRole.id ? "Зажмите, чтобы отменить трек" : "Выбрать трек"}
@@ -328,57 +332,3 @@
     </div>
   </aside>
 {/if}
-
-<style>
-  .skill-tree-page { padding-top: 34px; padding-bottom: 60px; }
-  .skill-tree-header { margin-bottom: 22px; }
-  h1 { margin: 0 0 8px; color: #f7f9fc; font-size: clamp(30px, 5vw, 48px); letter-spacing: -.05em; }
-  .legend-trigger { position: absolute; z-index: 10; top: 16px; left: 16px; display: inline-flex; min-height: 34px; align-items: center; justify-content: center; padding: 0 13px; border: 1px solid #374253; border-radius: 9px; background: #11161e; color: #c5ceda; cursor: pointer; font: 600 11px/1 var(--font-mono); }
-  .legend-trigger:hover, .legend-trigger.active { border-color: #74839a; background: #19212c; color: #fff; }
-  .legend-trigger:focus-visible { outline: 2px solid #94a3b8; outline-offset: 2px; }
-  .skill-tree-legend { display: grid; gap: 4px; color: #d8dee7; }
-  .skill-tree-legend span { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 4px 10px; padding: 14px 0; border-bottom: 1px solid #29313c; }
-  .skill-tree-legend span:last-child { border-bottom: 0; }
-  .skill-tree-legend strong { font-size: 13px; font-weight: 600; }
-  .skill-tree-legend small { grid-column: 2; color: #8e99a8; font-size: 11px; line-height: 1.45; }
-  .legend-dot { width: 9px; height: 9px; border: 2px solid #637287; border-radius: 50%; }
-  .legend-dot.partial { border-color: #d7b83f; }
-  .legend-dot.complete { border-color: #f4d35e; background: #f4d35e; }
-  .skill-tree-map { position: relative; height: calc(100dvh - 210px); min-height: 500px; overflow: hidden; border: 1px solid #2a323e; border-radius: 14px; background: #0a0d11; }
-  :global(.skill-tree-map .svelte-flow) { --xy-background-color: #0a0d11; --xy-controls-button-background-color: #151b24; --xy-controls-button-background-color-hover: #202938; --xy-controls-button-color: #b8c1ce; --xy-controls-button-border-color: #2d3744; --xy-minimap-background-color: #0d1117; }
-  :global(.skill-tree-map .svelte-flow__attribution) { display: none; }
-  :global(.skill-tree-map .svelte-flow__edge path) { stroke-linecap: round; stroke-width: 3; vector-effect: non-scaling-stroke; }
-  :global(.skill-tree-map .svelte-flow__edge.animated-connection path) { stroke-dasharray: 5 9; filter: drop-shadow(0 0 3px rgb(148 163 184 / 28%)); animation: roadmap-edge-flow 1.35s linear infinite; }
-  :global(.skill-tree-map .svelte-flow__edge.optional-connection path) { stroke-dasharray: 7 7; opacity: .65; }
-  @keyframes roadmap-edge-flow { to { stroke-dashoffset: -28; } }
-  @media (prefers-reduced-motion: reduce) { :global(.skill-tree-map .svelte-flow__edge.animated-connection path) { animation: none; } }
-  .legend-line { width: 22px; border-top: 2px dashed #637287; }
-  .skill-sheet { position: fixed; z-index: 45; top: 70px; right: max(16px, calc((100vw - 1200px) / 2 + 16px)); bottom: 16px; display: flex; width: min(360px, calc(100vw - 32px)); flex-direction: column; overflow: hidden; border: 1px solid #374253; border-radius: 14px; background: #11161e; box-shadow: 0 24px 70px rgba(0,0,0,.58); }
-  .legend-sheet { right: auto; left: max(16px, calc((100vw - 1200px) / 2 + 16px)); }
-  .legend-sheet-body { padding-bottom: 20px; }
-  .skill-sheet-header { display: flex; align-items: start; justify-content: space-between; gap: 18px; padding: 20px; border-bottom: 1px solid #29313c; }
-  .skill-sheet-header span { color: #aebfd9; font: 700 9px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
-  .skill-sheet-header h2 { margin: 6px 0 0; color: #f2f5f8; font-size: 21px; }
-  .skill-sheet-header button { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #303946; border-radius: 7px; background: #171d26; color: #a9b1bd; font-size: 20px; cursor: pointer; }
-  .skill-sheet-body { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 18px; overflow-y: auto; padding: 20px 20px 0; }
-  .skill-sheet-body p { color: #b7c1ce; font-size: 13px; line-height: 1.55; }
-  .skill-sheet-note { color: #7f8b9b !important; font-size: 11px !important; }
-  .skill-sheet-body h3 { color: #e9edf2; font-size: 12px; }
-  .role-skill-list { display: grid; gap: 7px; }
-  .role-skill-list button { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 9px; min-height: 42px; padding: 6px 9px; border: 1px solid #2c3542; border-radius: 8px; background: #151b24; color: #e3e8ef; cursor: pointer; font-size: 12px; text-align: left; }
-  .role-skill-list button:hover { border-color: #9dbdff; background: #202b3b; }
-  .role-skill-icon { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid var(--role-skill-tone); border-radius: 7px; background: var(--role-skill-tone); color: #fff; }
-  .role-skill-icon :global(svg), .role-skill-icon :global(img) { display: block; width: 18px; height: 18px; filter: brightness(0) invert(1); }
-  .role-skill-icon.tone-html { --role-skill-tone: #e44d26; }
-  .role-skill-icon.tone-css { --role-skill-tone: #1572b6; }
-  .role-skill-icon.tone-javascript { --role-skill-tone: #f7df1e; }
-  .role-skill-icon.tone-python { --role-skill-tone: #3776ab; }
-  .role-skill-icon.tone-database { --role-skill-tone: #64748b; }
-  .role-skill-list small { color: #c7d3e1; font: 10px/1 var(--font-mono); }
-  .skill-sheet-body .sheet-action { display: flex; min-height: 52px; align-items: center; margin: auto -20px 0; padding: 0 20px; border-top: 1px solid #2c3542; background: #19222e; color: #e3e8ef; font-weight: 600; text-decoration: none; }
-  .skill-sheet-body .sheet-action:hover { background: #202b3b; color: #fff; }
-  .skill-sheet-body .track-action { width: calc(100% + 40px); justify-content: flex-start; border-right: 0; border-bottom: 0; border-left: 0; cursor: pointer; font: 600 13px/1.2 inherit; }
-  .skill-sheet-body .track-action.cancel-track { background: linear-gradient(to right, #b91c1c var(--hold-progress), #35191d var(--hold-progress)); color: #fff; }
-  .skill-sheet-body .track-action.cancel-track:hover { background: linear-gradient(to right, #dc2626 var(--hold-progress), #35191d var(--hold-progress)); }
-  @media (max-width: 720px) { .skill-tree-map { height: 650px; min-height: 0; margin-right: -12px; margin-left: -12px; } .skill-sheet { top: 64px; right: 10px; bottom: 10px; left: auto; width: calc(100vw - 20px); } .legend-sheet { right: auto; left: 10px; } }
-</style>

@@ -16,15 +16,10 @@
 </script>
 
 {#if path}
-  <path class="roadmap-edge-underlay" d={path} style={`${style};stroke-dasharray:none;opacity:.28`} />
+  <path class="fill-none stroke-border-strong [vector-effect:non-scaling-stroke]" d={path} style={`${style};stroke-dasharray:none;opacity:.28`} />
   <BaseEdge {id} {path} {style} {markerEnd} {className} />
   {#if params}
-    <circle class="roadmap-edge-port" cx={params.sourceX} cy={params.sourceY} r="5" />
-    <circle class="roadmap-edge-port" cx={params.targetX} cy={params.targetY} r="5" />
+    <circle class="fill-card stroke-muted stroke-2 [vector-effect:non-scaling-stroke]" cx={params.sourceX} cy={params.sourceY} r="5" />
+    <circle class="fill-card stroke-muted stroke-2 [vector-effect:non-scaling-stroke]" cx={params.targetX} cy={params.targetY} r="5" />
   {/if}
 {/if}
-
-<style>
-  .roadmap-edge-underlay { fill: none; stroke-linecap: round; pointer-events: none; vector-effect: non-scaling-stroke; }
-  .roadmap-edge-port { fill: #0f141c; stroke: #94a3b8; stroke-width: 2; vector-effect: non-scaling-stroke; }
-</style>

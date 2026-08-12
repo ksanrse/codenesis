@@ -13,17 +13,23 @@
   --color-border-strong: var(--border-hover);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
   --color-info: var(--accent-info);
   --color-success: var(--success);
   --color-warning: var(--accent-warning);
   --color-danger: var(--error);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-card);
-  --radius-2xl: var(--radius-panel);
+  --color-language-html: var(--language-html);
+  --color-language-css: var(--language-css);
+  --color-language-javascript: var(--language-javascript);
+  --color-language-python: var(--language-python);
+  --color-language-database: var(--language-database);
+  --font-sans: var(--ds-font-sans);
+  --font-mono: var(--ds-font-mono);
+  --radius-sm: var(--ds-radius-sm);
+  --radius-md: var(--ds-radius-md);
+  --radius-lg: var(--ds-radius-lg);
+  --radius-xl: var(--ds-radius-card);
+  --radius-2xl: var(--ds-radius-panel);
   --shadow-panel: var(--shadow-md);
   --shadow-float: var(--shadow-lg);
 }
@@ -58,6 +64,7 @@
 
   --primary: var(--raycast-red);
   --primary-hover: var(--raycast-red-hover);
+  --primary-foreground: var(--raycast-bg);
   --primary-light: rgba(255, 99, 99, 0.08);
   --primary-border: rgba(255, 99, 99, 0.22);
   --accent-info: var(--raycast-blue);
@@ -97,6 +104,16 @@
   --dashboard-cell-empty: #3f4048;
   --dashboard-progress: var(--raycast-green);
   --activity-accent: var(--primary);
+  --token-avatar-start: #7a9ae8;
+  --token-avatar-end: #2b3342;
+  --token-avatar-developer-start: #93c5fd;
+  --token-avatar-developer-end: #334155;
+
+  --language-html: #e44d26;
+  --language-css: #1572b6;
+  --language-javascript: #f7df1e;
+  --language-python: #3776ab;
+  --language-database: #64748b;
 
   --badge-starter-bg: rgba(34, 197, 94, 0.1);
   --badge-starter-text: #4ade80;
@@ -107,17 +124,24 @@
   --badge-expert-bg: rgba(96, 165, 250, 0.1);
   --badge-expert-text: #93c5fd;
 
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono:
+  --ds-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ds-font-mono:
     "Geist Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas, monospace;
+  --font-sans: var(--ds-font-sans);
+  --font-mono: var(--ds-font-mono);
 
   --nav-height: 56px;
   --container-width: 1200px;
-  --radius: 6px;
-  --radius-lg: 8px;
-  --radius-card: 12px;
-  --radius-sm: 4px;
-  --radius-panel: 16px;
+  --ds-radius-sm: 4px;
+  --ds-radius-md: 6px;
+  --ds-radius-lg: 8px;
+  --ds-radius-card: 12px;
+  --ds-radius-panel: 16px;
+  --radius: var(--ds-radius-md);
+  --radius-lg: var(--ds-radius-lg);
+  --radius-card: var(--ds-radius-card);
+  --radius-sm: var(--ds-radius-sm);
+  --radius-panel: var(--ds-radius-panel);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -156,6 +180,7 @@
 
   --primary: #e5484d;
   --primary-hover: #d64045;
+  --primary-foreground: #ffffff;
   --primary-light: rgba(229, 72, 77, 0.06);
   --primary-border: rgba(229, 72, 77, 0.18);
 
@@ -186,6 +211,10 @@
   --dashboard-cell-empty: #d1d5db;
   --dashboard-progress: #28b86b;
   --activity-accent: var(--primary);
+  --token-avatar-start: #8fb8ff;
+  --token-avatar-end: #cfd8e3;
+  --token-avatar-developer-start: #bfdbfe;
+  --token-avatar-developer-end: #94a3b8;
 
   --badge-starter-bg: rgba(34, 197, 94, 0.08);
   --badge-starter-text: #15803d;
@@ -204,8 +233,6 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html {
@@ -289,6 +316,34 @@ a {
 
 ul {
   list-style: none;
+}
+
+/* Third-party graph internals that cannot receive utility classes. */
+.svelte-flow__attribution {
+  display: none;
+}
+
+.svelte-flow__edge.animated-connection path {
+  stroke-linecap: round;
+  stroke-dasharray: 5 9;
+  animation: roadmap-edge-flow 1.35s linear infinite;
+  vector-effect: non-scaling-stroke;
+}
+
+.svelte-flow__edge.optional-connection path {
+  stroke-dasharray: 7 7;
+}
+
+@keyframes roadmap-edge-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svelte-flow__edge.animated-connection path {
+    animation: none;
+  }
 }
 
 /* ==============================

@@ -84,7 +84,7 @@
   {#if currentPage}
     <svelte:component this={currentPage} />
   {:else}
-    <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[var(--container-width)] flex-col justify-center px-[var(--page-x)] py-[var(--page-y)]">
+    <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[var(--container-width)] flex-col justify-center px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <div class="rounded-2xl border border-border bg-surface p-8 shadow-panel">
         <div class="space-y-3">
           <h1 class="text-3xl font-semibold tracking-tight text-foreground">Страница не найдена</h1>

@@ -49,18 +49,16 @@
   });
 </script>
 
-<div class="container mx-auto max-w-[var(--container-width)] px-[var(--page-x)] pb-[var(--space-12)] pt-[var(--page-y)]">
-  <header class="mb-6 border-b border-border pb-5">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-      <div class="min-w-0 space-y-1.5">
-        <div class="text-xs font-semibold uppercase tracking-[0.18em] text-dim">Каталог</div>
-        <h1 class="text-[clamp(28px,4vw,38px)] font-semibold tracking-[-0.03em] text-foreground">Все задачи</h1>
-        <p class="max-w-[70ch] text-sm leading-6 text-muted">Название, уровень и теги — всё необходимое, чтобы быстро выбрать следующую практику.</p>
-      </div>
-      {#if catalogReady}
-        <span class="inline-flex h-7 items-center rounded-md border border-border bg-surface px-3 text-[11px] font-medium tracking-[0.06em] text-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">Каталог синхронизирован с PocketBase</span>
-      {/if}
+<div class="mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+  <header class="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div class="min-w-0 space-y-1.5">
+      <div class="text-xs font-semibold uppercase tracking-[0.18em] text-dim">Каталог</div>
+      <h1 class="text-[clamp(28px,4vw,38px)] font-semibold tracking-[-0.03em] text-foreground">Все задачи</h1>
+      <p class="max-w-[70ch] text-sm leading-6 text-muted">Название, уровень и теги — всё необходимое, чтобы быстро выбрать следующую практику.</p>
     </div>
+    {#if catalogReady}
+      <span class="inline-flex h-7 shrink-0 items-center self-start rounded-md border border-border bg-surface px-3 text-[11px] font-medium tracking-[0.06em] text-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:self-end">Каталог синхронизирован с PocketBase</span>
+    {/if}
   </header>
 
   <FilterBar bind:search bind:rankRange bind:category bind:group bind:language bind:sort {groups} />
@@ -69,7 +67,7 @@
     <div
       bind:this={viewport}
       on:scroll={() => (scrollTop = viewport?.scrollTop ?? 0)}
-      class="relative z-[1] mb-12 h-[min(72vh,760px)] overflow-auto rounded-[var(--radius-lg)] border border-border bg-transparent [contain:strict]"
+      class="relative z-[1] h-[min(72vh,760px)] overflow-auto rounded-[var(--radius-lg)] border border-border bg-surface/10 [contain:strict]"
     >
       <div class="relative w-full" style:height={`${rowCount * rowHeight}px`}>
         {#each visibleRows as row (row.rowIndex)}
@@ -88,6 +86,6 @@
       </div>
     </div>
   {:else}
-    <div class="mb-12 grid place-items-center rounded-[var(--radius-lg)] border border-border bg-surface px-6 py-12 text-center text-sm text-muted">По этим фильтрам задач нет.</div>
+    <div class="grid place-items-center rounded-[var(--radius-lg)] border border-border bg-surface px-6 py-12 text-center text-sm text-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">По этим фильтрам задач нет.</div>
   {/if}
 </div>

@@ -11,7 +11,7 @@
   $: rank = getRankProgress(getMmrScore($attempts));
 </script>
 
-<div class="container mx-auto max-w-[var(--container-width)] px-[var(--page-x)] py-[var(--page-y)]">
+<div class="container mx-auto max-w-[var(--container-width)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
   <header class="mb-6 border-b border-border pb-5">
     <div class="space-y-1.5">
       <h1 class="text-[clamp(28px,4vw,38px)] font-semibold tracking-[-0.03em] text-foreground">Профиль</h1>

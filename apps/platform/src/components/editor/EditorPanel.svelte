@@ -144,11 +144,21 @@
   });
 </script>
 
-<div class="editor-panel">
-  <div class="file-tabs">
+<div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-panel">
+  <div class="flex items-center gap-2 overflow-x-auto border-b border-border bg-surface px-3 py-2">
     {#each visibleFiles as file}
-      <button type="button" class:active={file.path === activeFile} class="file-tab" on:click={() => selectFile(file.path)}>{file.path.split('/').pop()}</button>
+      <button
+        type="button"
+        class={`inline-flex min-h-9 shrink-0 items-center rounded-full px-3 text-sm font-medium transition ${
+          file.path === activeFile
+            ? 'bg-card text-foreground shadow-[inset_0_0_0_1px_var(--border)]'
+            : 'text-muted hover:bg-surface-muted hover:text-foreground'
+        }`}
+        on:click={() => selectFile(file.path)}
+      >
+        {file.path.split('/').pop()}
+      </button>
     {/each}
   </div>
-  <div class="editor-container" bind:this={container}></div>
+  <div class="min-h-0 flex-1" bind:this={container}></div>
 </div>

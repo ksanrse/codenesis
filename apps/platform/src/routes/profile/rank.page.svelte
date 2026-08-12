@@ -12,7 +12,7 @@
   $: rank = getRankProgress(score);
 </script>
 
-<div class="container mx-auto max-w-[var(--container-width)] px-[var(--page-x)] py-[var(--page-y)]">
+<div class="container mx-auto max-w-[var(--container-width)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
   <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
     <div class="space-y-3">
       <a href="#/profile" class="inline-flex items-center text-sm font-medium text-muted transition-colors hover:text-foreground">← Профиль</a>

@@ -50,5 +50,13 @@
     <ellipse cx="12" cy="5" rx="7" ry="3" fill="#94a3b8"/><path fill="#64748b" d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5c0 1.7-3.1 3-7 3S5 6.7 5 5Z"/><path fill="#475569" d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7c0 1.7-3.1 3-7 3s-7-1.3-7-3Z"/>
   </svg>
 {:else}
-  <span class={className} style={`display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:3px;background:var(--bg-muted);color:var(--text-heading);font-size:${size * 0.45}px;font-weight:700`} aria-label={label}>{language.slice(0, 2).toUpperCase()}</span>
+  <span
+    class={`inline-flex items-center justify-center rounded-[3px] bg-surface-muted text-foreground font-bold ${className}`}
+    style:width={`${size}px`}
+    style:height={`${size}px`}
+    style:font-size={`${size * 0.45}px`}
+    aria-label={label}
+  >
+    {language.slice(0, 2).toUpperCase()}
+  </span>
 {/if}

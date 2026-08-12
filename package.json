@@ -14,8 +14,6 @@
   },
   "devDependencies": {
     "@playwright/test": "catalog:",
-    "@tailwindcss/vite": "catalog:",
-    "tailwindcss": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {

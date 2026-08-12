@@ -52,7 +52,7 @@
 </script>
 
 <nav class="sticky top-0 z-60 border-b border-border/70 bg-background/85 backdrop-blur-xl" aria-label="Основная навигация">
-  <div class="relative mx-auto flex min-h-[60px] w-full max-w-[var(--container-width)] items-center gap-4 px-[var(--page-x)]">
+  <div class="relative mx-auto flex min-h-[60px] w-full max-w-[var(--container-width)] items-center gap-4 px-4 sm:px-6 lg:px-8">
     <a href="#/" class="shrink-0 text-sm font-semibold tracking-[-0.01em] text-foreground transition hover:text-content" aria-label="Codenesis" on:click={closeMenus}>
       Codenesis
     </a>
@@ -70,8 +70,11 @@
       <div class="relative">
         <button
           type="button"
-          class="grid size-10 place-items-center rounded-full border border-border text-xs font-extrabold text-foreground shadow-[0_8px_18px_rgb(0_0_0_/_28%)] transition hover:-translate-y-px hover:border-border-strong"
-          style:background={isDeveloper ? "radial-gradient(circle at 30% 30%, #93c5fd, #334155 70%)" : "radial-gradient(circle at 30% 30%, #7a9ae8, #2b3342 70%)"}
+          class={`grid size-10 place-items-center rounded-full border border-border text-xs font-extrabold text-foreground shadow-[0_8px_18px_rgb(0_0_0_/_28%)] transition hover:-translate-y-px hover:border-border-strong ${
+            isDeveloper
+              ? "bg-[radial-gradient(circle_at_30%_30%,_var(--token-avatar-developer-start),_var(--token-avatar-developer-end)_70%)]"
+              : "bg-[radial-gradient(circle_at_30%_30%,_var(--token-avatar-start),_var(--token-avatar-end)_70%)]"
+          }`}
           aria-expanded={profileOpen}
           aria-label={isDeveloper ? "Открыть меню developer" : "Открыть меню профиля"}
           on:click={() => (profileOpen = !profileOpen)}
