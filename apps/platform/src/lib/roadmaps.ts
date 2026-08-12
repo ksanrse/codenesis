@@ -264,9 +264,9 @@ const javascriptRoadmap: Roadmap = {
 
 const frontendRoadmap: Roadmap = {
   id: "frontend",
-  title: "Frontend",
+  title: "Фронтенд",
   description:
-    "Большая карта frontend-разработки: HTML, CSS и JavaScript в одном последовательном пути.",
+    "Большая карта фронтенд-разработки: HTML, CSS и JavaScript в одном последовательном пути.",
   audience: "От структуры страницы до интерактивного приложения",
   stages: [],
   children: [
