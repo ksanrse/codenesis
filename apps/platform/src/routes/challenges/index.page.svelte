@@ -22,7 +22,9 @@
 
   $: [minRank, maxRank] = rankRange ? rankRange.split("-").map(Number) : [undefined, undefined];
   $: challenges = filterCatalogChallenges({ search: search || undefined, minRank, maxRank, category: category || undefined, group: group || undefined, language: language || undefined, sort });
-  $: rowHeight = columnCount === 1 ? 128 : 132;
+  const cardHeight = 148;
+  const rowGap = 10;
+  $: rowHeight = cardHeight + rowGap;
   $: rowCount = Math.ceil(challenges.length / columnCount);
   $: startRow = Math.max(0, Math.floor(scrollTop / rowHeight) - overscanRows);
   $: endRow = Math.min(rowCount, Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscanRows);
@@ -72,7 +74,7 @@
       <div class="relative w-full" style:height={`${rowCount * rowHeight}px`}>
         {#each visibleRows as row (row.rowIndex)}
           <div
-            class="absolute inset-x-0 grid gap-2.5"
+            class="absolute inset-x-0 grid h-[148px] gap-2.5"
             class:grid-cols-1={columnCount === 1}
             class:grid-cols-2={columnCount === 2}
             class:grid-cols-3={columnCount === 3}

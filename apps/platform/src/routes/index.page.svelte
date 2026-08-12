@@ -10,7 +10,7 @@
 
 <div class="mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-7 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
   <section class="overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card shadow-panel">
-    <div class="grid gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:p-10 lg:p-12">
+    <div class="p-8 md:p-10 lg:p-12">
       <div class="flex max-w-2xl flex-col gap-6">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-info">Codenesis</p>
         <div class="space-y-4">
@@ -32,18 +32,6 @@
           >
             Открыть roadmap
           </button>
-        </div>
-      </div>
-      <div class="grid gap-3 rounded-[calc(var(--radius-panel)-2px)] border border-border bg-background/60 p-4">
-        <div class="rounded-2xl border border-border bg-surface-muted p-4">
-          <div class="text-xs uppercase tracking-[0.14em] text-muted">Ваша практика</div>
-          <div class="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground">{challenges.length}</div>
-          <div class="mt-1 text-sm text-muted">задач в каталоге</div>
-        </div>
-        <div class="rounded-2xl border border-border bg-surface-muted p-4">
-          <div class="text-xs uppercase tracking-[0.14em] text-muted">Маршруты</div>
-          <div class="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground">{roadmaps.length}</div>
-          <div class="mt-1 text-sm text-muted">учебных направлений</div>
         </div>
       </div>
     </div>

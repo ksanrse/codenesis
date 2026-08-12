@@ -10,9 +10,9 @@
   let profileOpen = false;
 
   const navItems = [
-    { label: "Главная", to: "#/" },
-    { label: "Roadmaps", to: "#/roadmaps" },
-    { label: "Задачи", to: "#/challenges" },
+    { label: "Главная", to: "#/", icon: "home" },
+    { label: "Roadmaps", to: "#/roadmaps", icon: "roadmap" },
+    { label: "Задачи", to: "#/challenges", icon: "tasks" },
   ];
 
   const closeMenus = () => {
@@ -21,7 +21,7 @@
   };
 
   const navLinkClass = (active: boolean) =>
-    `inline-flex min-h-9 items-center rounded-full px-4 text-xs font-medium transition ${
+    `inline-flex size-10 items-center justify-center rounded-lg text-xs font-medium transition ${
       active
         ? "bg-surface text-foreground shadow-[inset_0_0_0_1px_var(--border)]"
         : "text-muted hover:bg-surface hover:text-foreground"
@@ -57,11 +57,17 @@
       Codenesis
     </a>
 
-    <div class={`absolute left-[var(--page-x)] right-[var(--page-x)] top-[calc(100%+8px)] z-50 ${menuOpen ? "flex" : "hidden"} flex-col gap-1 rounded-xl border border-border bg-surface p-2 shadow-float md:static md:mx-auto md:flex md:flex-row md:items-center md:justify-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}>
+    <div class={`absolute left-4 right-4 top-[calc(100%+8px)] z-50 ${menuOpen ? "flex" : "hidden"} flex-col gap-1 rounded-xl border border-border bg-surface p-2 shadow-float sm:left-6 sm:right-6 md:left-1/2 md:right-auto md:top-1/2 md:flex md:-translate-x-1/2 md:-translate-y-1/2 md:flex-row md:items-center md:justify-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}>
       {#each navItems as item}
         {@const path = item.to.slice(1) || "/"}
-        <a href={item.to} class={navLinkClass(path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`))} on:click={closeMenus}>
-          {item.label}
+        <a href={item.to} class={navLinkClass(path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`))} aria-label={item.label} title={item.label} on:click={closeMenus}>
+          {#if item.icon === "home"}
+            <svg class="size-[18px] fill-none stroke-current stroke-[1.8]" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" /></svg>
+          {:else if item.icon === "roadmap"}
+            <svg class="size-[18px] fill-none stroke-current stroke-[1.8]" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2" /><circle cx="18" cy="6" r="2" /><path d="M8 18h3a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3" /></svg>
+          {:else}
+            <svg class="size-[18px] fill-none stroke-current stroke-[1.8]" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 9h6M9 13h6M9 17h4" /></svg>
+          {/if}
         </a>
       {/each}
     </div>

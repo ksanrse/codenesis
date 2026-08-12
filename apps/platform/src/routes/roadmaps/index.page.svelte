@@ -96,7 +96,6 @@
       type: "skillTree",
       position: rolePositions[role.id],
       width: 220,
-      height: 170,
       data: {
         title: getRoleDisplayName(role.title),
         shortLabel: role.shortLabel,

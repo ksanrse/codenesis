@@ -323,6 +323,11 @@ ul {
   display: none;
 }
 
+.svelte-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .svelte-flow__edge.animated-connection path {
   stroke-linecap: round;
   stroke-dasharray: 5 9;
