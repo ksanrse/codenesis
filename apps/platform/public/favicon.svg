@@ -1,13 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect
-    x="3"
-    y="5"
-    width="22"
-    height="15"
-    rx="4.5"
-    fill="#65578d"
-    transform="rotate(8 14 12.5)"
-  />
+  <rect x="3" y="5" width="22" height="15" rx="4.5" fill="#65578d" transform="rotate(8 14 12.5)" />
   <path
     d="M5.2 6.1 27.8 16.4l-9.5 3.1-4.1 9.1Z"
     fill="#fff"
