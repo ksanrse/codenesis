@@ -41,6 +41,14 @@ let cache = readLocalDatabase();
 let serverReady = false;
 let cachedSortedAttempts: ChallengeAttempt[] | null = null;
 
+function isLocalDeveloperSession(): boolean {
+  return (
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("codenesis:local-dev-session") === "1"
+  );
+}
+
 function createDatabase(): AppDatabase {
   return {
     version: 1,
@@ -210,7 +218,7 @@ export function setDatabaseUser(userId: string): void {
   serverReady = false;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("codenesis-db-change"));
-    void syncFromServer();
+    if (!isLocalDeveloperSession()) void syncFromServer();
   }
 }
 

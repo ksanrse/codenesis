@@ -79,7 +79,7 @@
 
 <svelte:window onhashchange={handleHashChange} />
 
-<Navbar {pathname} onLogout={() => (session = { authenticated: false })} />
+<Navbar {pathname} isDeveloper={session.user?.role === "developer"} onLogout={() => (session = { authenticated: false })} />
 
 <main class="main-content">
   {#if currentPage}

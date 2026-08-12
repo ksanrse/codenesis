@@ -24,6 +24,23 @@
     <rect width="24" height="24" rx="3" fill="#3178C6" />
     <text x="12" y="17" text-anchor="middle" fill="white" font-size="10" font-weight="700">TS</text>
   </svg>
+{:else if language === "html"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label="HTML">
+    <path fill="#e44d26" d="M3 2h18l-1.64 18.5L12 22l-7.36-1.5L3 2Z"/><path fill="#f16529" d="m12 3.5 5.8 0-1.1 12.4-4.7 1.1V3.5Z"/><path fill="#fff" d="M6.8 6.2h10.6l-.3 3H9.9l.2 2.1h6.8l-.7 6.1-4.2 1-4.2-1-.3-3h2.9l.2 1.3 1.4.3 1.4-.3.2-1.7H7.4L6.8 6.2Z"/>
+  </svg>
+{:else if language === "css"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label="CSS">
+    <rect width="24" height="24" rx="3" fill="#1572b6" />
+    <text x="12" y="15.5" text-anchor="middle" fill="white" font-size="7" font-weight="800" letter-spacing="-.2">CSS</text>
+  </svg>
+{:else if language === "python"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label="Python">
+    <path fill="#3776ab" d="M11.8 2C7.5 2 7.7 3.9 7.7 3.9v2.3h4.2v.7H6.1S2 6.4 2 10.7c0 4.3 3.6 4.1 3.6 4.1h2.1v-2.4s-.1-3.6 3.5-3.6h4.1s2.3 0 2.3-2.2V4.4S18 2 11.8 2Zm-2.3 1.4a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z"/><path fill="#ffd343" d="M12.2 22c4.3 0 4.1-1.9 4.1-1.9v-2.3h-4.2v-.7h5.8s4.1.5 4.1-3.8-3.6-4.1-3.6-4.1h-2.1v2.4s.1 3.6-3.5 3.6H8.7s-2.3 0-2.3 2.2v2.2S6 22 12.2 22Zm2.3-1.4a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Z"/>
+  </svg>
+{:else if language === "database"}
+  <svg class={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label="Databases">
+    <ellipse cx="12" cy="5" rx="7" ry="3" fill="#94a3b8"/><path fill="#64748b" d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5c0 1.7-3.1 3-7 3S5 6.7 5 5Z"/><path fill="#475569" d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7c0 1.7-3.1 3-7 3s-7-1.3-7-3Z"/>
+  </svg>
 {:else}
   <span class={className} style={`display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:3px;background:var(--bg-muted);color:var(--text-heading);font-size:${size * 0.45}px;font-weight:700`} aria-label={label}>{language.slice(0, 2).toUpperCase()}</span>
 {/if}

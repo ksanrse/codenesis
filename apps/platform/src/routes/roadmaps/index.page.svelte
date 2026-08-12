@@ -11,6 +11,7 @@
   import { onMount } from "svelte";
   import SkillTreeNode, { type SkillTreeFlowNode } from "../../components/roadmaps/SkillTreeNode.svelte";
   import FloatingEdge from "../../components/roadmaps/FloatingEdge.svelte";
+  import LanguageIcon from "../../components/ui/LanguageIcon.svelte";
   import { attempts } from "../../lib/database-store";
   import { developerSkillProgress } from "../../lib/developer-progress";
   import { getPassedChallengeIds } from "../../lib/progress";
@@ -27,16 +28,16 @@
   const edgeTypes = { floating: FloatingEdge };
   const rolePositions: Record<string, { x: number; y: number }> = {
     "fullstack-role": { x: 410, y: 10 },
-    "frontend-role": { x: 100, y: 135 },
-    "backend-role": { x: 430, y: 135 },
-    "ml-role": { x: 760, y: 135 },
+    "frontend-role": { x: 100, y: 175 },
+    "backend-role": { x: 430, y: 175 },
+    "ml-role": { x: 760, y: 175 },
   };
   const skillPositions: Record<string, { x: number; y: number }> = {
-    "html-skill": { x: 35, y: 285 },
-    "css-skill": { x: 215, y: 285 },
-    "javascript-skill": { x: 395, y: 285 },
-    "python-skill": { x: 650, y: 285 },
-    "databases-skill": { x: 830, y: 285 },
+    "html-skill": { x: 35, y: 355 },
+    "css-skill": { x: 215, y: 355 },
+    "javascript-skill": { x: 395, y: 355 },
+    "python-skill": { x: 650, y: 355 },
+    "databases-skill": { x: 830, y: 355 },
   };
   let routeHash = typeof window === "undefined" ? "" : window.location.hash;
   let selectedRole: SkillTreeRole | null = null;
@@ -72,7 +73,7 @@
       type: "skillTree",
       position: rolePositions[role.id],
       width: 220,
-      height: 92,
+      height: 108,
       data: {
         title: role.title,
         shortLabel: role.shortLabel,
@@ -86,7 +87,7 @@
         active: activeRoleId === role.id,
         onSelectTrack: () => selectTrack(role),
       },
-      draggable: false,
+      draggable: true,
       connectable: false,
       deletable: false,
       ariaLabel: `Направление: ${role.title}`,
@@ -107,24 +108,22 @@
         hasTarget: true,
         hasSource: false,
       },
-      draggable: false,
+      draggable: true,
       connectable: false,
       deletable: false,
       ariaLabel: `Навык: ${skill.title}`,
     } satisfies SkillTreeFlowNode)),
   ];
   $: visualConnections = [
-    { source: "fullstack-role", target: "frontend-role", tone: "#8797ad", optional: true },
-    { source: "fullstack-role", target: "backend-role", tone: "#8797ad", optional: true },
+    { source: "fullstack-role", target: "frontend-role", tone: "#64748b" },
+    { source: "fullstack-role", target: "backend-role", tone: "#64748b" },
     ...skillTreeConnections
       .filter((connection) => connection.roleId !== "fullstack-role")
       .map((connection) => {
-        const skill = skillTreeSkills.find((item) => item.id === connection.skillId);
-        const tone = skill?.tone === "javascript" ? "#d7b83f" : skill?.tone === "css" ? "#5ba5e8" : skill?.tone === "html" ? "#d86b43" : "#67758a";
         return {
           source: connection.roleId,
           target: connection.skillId,
-          tone,
+          tone: "#64748b",
           optional: optionalSkillTreeConnectionKeys.has(`${connection.roleId}:${connection.skillId}`),
         };
       }),
@@ -136,9 +135,9 @@
       source: connection.source,
       target: connection.target,
       type: "floating",
-      style: `stroke:${connection.tone};stroke-width:2;opacity:${edgeDimmed ? ".12" : ".72"}${connection.optional ? ";stroke-dasharray:7 6" : ""}`,
-      ...(connection.optional ? { className: "optional-connection" } : {}),
-      animated: false,
+      style: `stroke:#64748b;stroke-width:3;opacity:${edgeDimmed ? ".12" : ".72"}${connection.optional ? ";stroke-dasharray:7 6" : ""}`,
+      className: connection.optional ? "optional-connection" : "animated-connection",
+      animated: !connection.optional,
       selectable: false,
     } satisfies Edge;
   });
@@ -178,9 +177,7 @@
 <div class="container skill-tree-page">
   <header class="skill-tree-header">
     <div>
-      <p class="eyebrow">Общая roadmap</p>
       <h1>Skill tree</h1>
-      <p>Общие навыки связывают разные направления. Выбери роль или открой конкретный курс.</p>
     </div>
     <div class="skill-tree-legend" aria-label="Легенда прогресса">
       <span><i class="legend-dot empty"></i>не начато</span>
@@ -201,7 +198,7 @@
       minZoom={0.55}
       maxZoom={1.25}
       preventScrolling={false}
-      nodesDraggable={false}
+      nodesDraggable={true}
       nodesConnectable={false}
       elementsSelectable={true}
       onlyRenderVisibleElements={true}
@@ -244,7 +241,9 @@
       <div class="role-skill-list">
         {#each selectedRoleSkills as skill}
           <button type="button" on:click={() => { selectedRole = null; selectedSkill = skill; }}>
-            <span class={`role-skill-icon tone-${skill.tone}`}>{skill.shortLabel}</span>
+            <span class={`role-skill-icon tone-${skill.tone}`}>
+              <LanguageIcon language={skill.tone === "database" ? "database" : skill.tone} size={18} />
+            </span>
             <span>{skill.title}</span>
             <small>{Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%</small>
           </button>
@@ -258,18 +257,20 @@
 <style>
   .skill-tree-page { padding-top: 34px; padding-bottom: 60px; }
   .skill-tree-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
-  .eyebrow { margin: 0 0 8px; color: #9dbdff; font: 700 10px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
   h1 { margin: 0 0 8px; color: #f7f9fc; font-size: clamp(30px, 5vw, 48px); letter-spacing: -.05em; }
-  .skill-tree-header p:not(.eyebrow) { max-width: 620px; color: #9aa6b5; font-size: 13px; line-height: 1.5; }
   .skill-tree-legend { display: flex; flex-wrap: wrap; gap: 12px; color: #aeb8c5; font: 10px/1 var(--font-mono); white-space: nowrap; }
   .skill-tree-legend span { display: inline-flex; align-items: center; gap: 6px; }
   .legend-dot { width: 9px; height: 9px; border: 2px solid #637287; border-radius: 50%; }
   .legend-dot.partial { border-color: #d7b83f; }
   .legend-dot.complete { border-color: #f4d35e; background: #f4d35e; }
-  .skill-tree-map { height: min(650px, calc(100dvh - 210px)); min-height: 400px; overflow: hidden; border: 1px solid #2a323e; border-radius: 14px; background: #0a0d11; }
+  .skill-tree-map { height: calc(100dvh - 210px); min-height: 500px; overflow: hidden; border: 1px solid #2a323e; border-radius: 14px; background: #0a0d11; }
   :global(.skill-tree-map .svelte-flow) { --xy-background-color: #0a0d11; --xy-controls-button-background-color: #151b24; --xy-controls-button-background-color-hover: #202938; --xy-controls-button-color: #b8c1ce; --xy-controls-button-border-color: #2d3744; --xy-minimap-background-color: #0d1117; }
   :global(.skill-tree-map .svelte-flow__attribution) { display: none; }
-  :global(.skill-tree-map .svelte-flow__edge.optional-connection path) { stroke-dasharray: 7 6; }
+  :global(.skill-tree-map .svelte-flow__edge path) { stroke-linecap: round; stroke-width: 3; vector-effect: non-scaling-stroke; }
+  :global(.skill-tree-map .svelte-flow__edge.animated-connection path) { stroke-dasharray: 5 9; filter: drop-shadow(0 0 3px rgb(148 163 184 / 28%)); animation: roadmap-edge-flow 1.35s linear infinite; }
+  :global(.skill-tree-map .svelte-flow__edge.optional-connection path) { stroke-dasharray: 7 7; opacity: .65; }
+  @keyframes roadmap-edge-flow { to { stroke-dashoffset: -28; } }
+  @media (prefers-reduced-motion: reduce) { :global(.skill-tree-map .svelte-flow__edge.animated-connection path) { animation: none; } }
   .legend-line { width: 22px; border-top: 2px dashed #637287; }
   .skill-sheet { position: fixed; z-index: 45; top: 70px; right: max(16px, calc((100vw - 1200px) / 2 + 16px)); bottom: 16px; display: flex; width: min(360px, calc(100vw - 32px)); flex-direction: column; overflow: hidden; border: 1px solid #374253; border-radius: 14px; background: #11161e; box-shadow: 0 24px 70px rgba(0,0,0,.58); }
   .skill-sheet-header { display: flex; align-items: start; justify-content: space-between; gap: 18px; padding: 20px; border-bottom: 1px solid #29313c; }
@@ -283,7 +284,13 @@
   .role-skill-list { display: grid; gap: 7px; }
   .role-skill-list button { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 9px; min-height: 42px; padding: 6px 9px; border: 1px solid #2c3542; border-radius: 8px; background: #151b24; color: #e3e8ef; cursor: pointer; font-size: 12px; text-align: left; }
   .role-skill-list button:hover { border-color: #9dbdff; background: #202b3b; }
-  .role-skill-icon { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; color: #0b0e12; background: var(--skill-tone); font: 800 8px/1 var(--font-mono); }
+  .role-skill-icon { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #f8fafc; border-radius: 7px; background: #0b0f14; color: #f8fafc; }
+  .role-skill-icon :global(svg) { display: block; width: 18px; height: 18px; }
+  .role-skill-icon.tone-html { border-color: #e44d26; }
+  .role-skill-icon.tone-css { border-color: #1572b6; }
+  .role-skill-icon.tone-javascript { border-color: #f7df1e; }
+  .role-skill-icon.tone-python { border-color: #3776ab; }
+  .role-skill-icon.tone-database { border-color: #94a3b8; }
   .role-skill-list small { color: #c7d3e1; font: 10px/1 var(--font-mono); }
   @media (max-width: 720px) { .skill-tree-header { align-items: start; flex-direction: column; } .skill-tree-legend { white-space: normal; } .skill-tree-map { height: 650px; min-height: 0; margin-right: -12px; margin-left: -12px; } .skill-sheet { top: 64px; right: 10px; bottom: 10px; width: calc(100vw - 20px); } }
 </style>

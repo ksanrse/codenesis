@@ -2,6 +2,7 @@
   import { getAllChallenges } from "@codenesis/challenges";
   import { onMount } from "svelte";
   import { attempts } from "../../lib/database-store";
+  import { addAttempt } from "../../lib/local-db";
   import { getDeveloperProgress, setDeveloperProgress } from "../../lib/auth-client";
   import { developerSkillProgress } from "../../lib/developer-progress";
   import { getPassedChallengeIds } from "../../lib/progress";
@@ -33,6 +34,54 @@
       const result = await getDeveloperProgress();
       skillProgress = { ...skillProgress, ...result.skillProgress };
       developerSkillProgress.set(result.skillProgress);
+
+      const stored = JSON.parse(localStorage.getItem("codenesis:local-dev-progress") ?? "null") as
+        | { seededJavaScript50?: boolean }
+        | null;
+      if (import.meta.env.DEV && !stored?.seededJavaScript50) {
+        const javascriptChallenges = challenges.filter((challenge) =>
+          challenge.languages.some((language) => language.toLowerCase() === "javascript"),
+        );
+        const seeded = javascriptChallenges.slice(0, Math.ceil(javascriptChallenges.length / 2));
+        initialized = true;
+        solved = new Set(seeded.map((challenge) => challenge.id));
+        skillProgress = { ...skillProgress, "javascript-skill": 50 };
+        const passedIds = getPassedChallengeIds($attempts);
+
+        for (const challenge of seeded) {
+          if (passedIds.has(challenge.id)) continue;
+          addAttempt({
+            challengeId: challenge.id,
+            challengeTitle: challenge.title,
+            language: challenge.languages[0] ?? "javascript",
+            status: "passed",
+            passed: 1,
+            failed: 0,
+            total: 1,
+            files: {},
+            output: "Developer seed: JavaScript 50%",
+          });
+        }
+
+        const savedResult = await setDeveloperProgress(
+          challenges.map((challenge) => ({
+            id: challenge.id,
+            title: challenge.title,
+            language: challenge.languages[0] ?? "javascript",
+            solved: solved.has(challenge.id),
+          })),
+          skillProgress,
+        );
+        developerSkillProgress.set(savedResult.skillProgress);
+        localStorage.setItem(
+          "codenesis:local-dev-progress",
+          JSON.stringify({
+            challenges: seeded.map((challenge) => challenge.id),
+            skillProgress,
+            seededJavaScript50: true,
+          }),
+        );
+      }
     } catch {
       // The panel remains usable against a freshly started development API.
     }
@@ -138,7 +187,7 @@
 {/if}
 
 <style>
-  .dev-trigger { position: fixed; z-index: 80; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px; border: 1px solid #4b596b; border-radius: 8px; background: #161c24; color: #f4f7fb; box-shadow: 0 10px 28px rgb(0 0 0 / 34%); font: 700 10px/1 var(--font-mono); cursor: pointer; }
+  .dev-trigger { position: fixed; z-index: 80; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px; border: 1px solid #4b596b; border-radius: 6px; background: #161c24; color: #f4f7fb; box-shadow: 0 10px 28px rgb(0 0 0 / 34%); font: 700 10px/1 var(--font-mono); cursor: pointer; }
   .dev-trigger:hover { border-color: #d8e5f7; background: #263244; }
   .dev-trigger span { color: #9fb0c7; font-weight: 500; }
   .dev-panel { position: fixed; z-index: 79; top: 72px; right: 16px; bottom: 58px; display: flex; width: min(390px, calc(100vw - 32px)); flex-direction: column; overflow: hidden; border: 1px solid #394555; border-radius: 12px; background: #10151c; box-shadow: 0 24px 70px rgb(0 0 0 / 58%); }

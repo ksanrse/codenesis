@@ -17,7 +17,7 @@
   let busy = false;
   let error = "";
   let copied = false;
-  let developerCode = "";
+  let recoveryPhraseInput = "";
 
   async function run(action: () => Promise<void>) {
     busy = true;
@@ -56,6 +56,7 @@
     if (!file) return;
     try {
       recoveryFile = await readRecoveryFile(file);
+      recoveryPhraseInput = recoveryFile.recoveryPhrase;
       error = "";
     } catch (cause) {
       recoveryFile = null;
@@ -63,60 +64,92 @@
     }
   }
 
-  $: canRecover = recoveryFile !== null;
+  $: recoveryWords = recoveryPhraseInput.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  $: hasRecoveryPhrase = recoveryWords.length === 12;
+  $: phraseRecoveryFile = hasRecoveryPhrase
+    ? ({ type: "codenesis-recovery", version: 1, recoveryPhrase: recoveryWords.join(" ") } satisfies RecoveryFile)
+    : null;
+  $: activeRecoveryFile = phraseRecoveryFile ?? recoveryFile;
+  $: canRecover = activeRecoveryFile !== null;
 </script>
 
 <div class="auth-backdrop" role="presentation">
   <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
     <div class="auth-brand">Codenesis</div>
     <h1 id="auth-title">Войдите, чтобы продолжить</h1>
-    <p class="auth-description">Используйте passkey — Face ID, Touch ID, Windows Hello или ключ безопасности.</p>
+    <p class="auth-description">
+      {hasRecoveryPhrase
+        ? "Слова распознаны. Выберите, что сделать с этим ключом."
+        : "Используйте passkey — Face ID, Touch ID, Windows Hello или ключ безопасности."}
+    </p>
 
-    <button class="auth-primary" type="button" disabled={busy} on:click={() => run(loginPasskey)}>
-      {busy ? "Проверяем…" : "Войти с passkey"}
-    </button>
+    {#if !hasRecoveryPhrase}
+      <button class="auth-primary" type="button" disabled={busy} on:click={() => run(loginPasskey)}>
+        {busy ? "Проверяем…" : "Войти с passkey"}
+      </button>
 
-    <div class="auth-divider"><span>или</span></div>
+      <div class="auth-divider"><span>или</span></div>
 
-    <button class="auth-secondary" type="button" disabled={busy} on:click={() => run(createPasskey)}>
-      Создать passkey
-    </button>
-    <p class="auth-hint">При создании recovery-файл с 12 словами скачается автоматически.</p>
+      <button class="auth-secondary" type="button" disabled={busy} on:click={() => run(createPasskey)}>
+        Создать passkey
+      </button>
+      <p class="auth-hint">При создании recovery-файл с 12 словами скачается автоматически.</p>
+    {/if}
 
-    {#if import.meta.env.DEV}
+    {#if import.meta.env.DEV && !hasRecoveryPhrase}
       <div class="developer-login">
-        <label for="developer-code">Локальный developer</label>
-        <div>
-          <input id="developer-code" type="password" bind:value={developerCode} placeholder="Developer-код" autocomplete="off" />
-          <button type="button" disabled={busy || !developerCode} on:click={() => run(() => loginDeveloper(developerCode).then(() => undefined))}>Войти</button>
-        </div>
+        <span>Локальный developer</span>
+        <button type="button" disabled={busy} on:click={() => run(() => loginDeveloper().then(() => undefined))}>Войти в dev-режим</button>
       </div>
     {/if}
 
-    {#if recoveryFile}
+    {#if !recoveryFile || hasRecoveryPhrase}
+      <label class="recovery-input">
+        <span>Вставьте 12 слов recovery-ключа</span>
+        <textarea bind:value={recoveryPhraseInput} rows="3" placeholder="слово1 слово2 слово3 … слово12" spellcheck="false"></textarea>
+      </label>
+      {#if recoveryPhraseInput.trim() && !hasRecoveryPhrase}
+        <p class="auth-error recovery-validation">Нужно вставить ровно 12 слов.</p>
+      {/if}
+    {/if}
+
+    {#if activeRecoveryFile}
       <div class="recovery-box">
-        <p class="recovery-title">Сохраните эти 12 слов</p>
+        <p class="recovery-title">{hasRecoveryPhrase ? "Recovery-ключ" : "Сохраните эти 12 слов"}</p>
         <div class="word-grid" aria-label="Recovery-фраза">
-          {#each recoveryFile.recoveryPhrase.split(" ") as word, index}
+          {#each activeRecoveryFile.recoveryPhrase.split(" ") as word, index}
             <span><small>{index + 1}</small>{word}</span>
           {/each}
         </div>
-        <div class="recovery-actions">
-          <button class="auth-secondary" type="button" on:click={copyRecovery}>{copied ? "Скопировано" : "Скопировать слова"}</button>
-          <button class="auth-link" type="button" on:click={() => downloadRecoveryFile(recoveryFile!)}>Скачать файл ещё раз</button>
-        </div>
+        {#if !hasRecoveryPhrase}
+          <div class="recovery-actions">
+            <button class="auth-secondary" type="button" on:click={copyRecovery}>{copied ? "Скопировано" : "Скопировать слова"}</button>
+            <button class="auth-link" type="button" on:click={() => downloadRecoveryFile(activeRecoveryFile!)}>Скачать файл ещё раз</button>
+          </div>
+        {/if}
       </div>
     {/if}
 
-    <label class="auth-file">
-      <span>{selectedFile || "Войти через recovery-файл"}</span>
-      <input type="file" accept="application/json,.json" on:change={loadRecovery} />
-    </label>
-    {#if canRecover}
-      <button class="auth-secondary auth-recovery" type="button" disabled={busy} on:click={() => run(() => restoreWithRecovery(recoveryFile!))}>
+    {#if !hasRecoveryPhrase}
+      <label class="auth-file">
+        <span>{selectedFile || "Войти через recovery-файл"}</span>
+        <input type="file" accept="application/json,.json" on:change={loadRecovery} />
+      </label>
+    {/if}
+    {#if hasRecoveryPhrase}
+      <div class="phrase-actions">
+        <button class="auth-primary" type="button" disabled={busy} on:click={() => run(() => restoreWithRecovery(activeRecoveryFile!))}>
+          {busy ? "Проверяем…" : "Войти"}
+        </button>
+        <button class="auth-secondary" type="button" disabled={busy} on:click={() => run(() => updatePasskeyWithRecovery(activeRecoveryFile!))}>
+          Восстановить
+        </button>
+      </div>
+    {:else if canRecover}
+      <button class="auth-secondary auth-recovery" type="button" disabled={busy} on:click={() => run(() => restoreWithRecovery(activeRecoveryFile!))}>
         Восстановить доступ
       </button>
-      <button class="auth-link" type="button" disabled={busy} on:click={() => run(() => updatePasskeyWithRecovery(recoveryFile!))}>
+      <button class="auth-link" type="button" disabled={busy} on:click={() => run(() => updatePasskeyWithRecovery(activeRecoveryFile!))}>
         Обновить passkey этим файлом
       </button>
     {/if}
@@ -141,12 +174,13 @@
   .auth-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #69717e; font-size: 12px; }
   .auth-divider::before, .auth-divider::after { flex: 1; height: 1px; background: #29303a; content: ""; }
   .auth-hint, .auth-footnote { margin: 10px 0 0; color: #737c8b; font-size: 11px; line-height: 1.45; }
+  .recovery-input { display: grid; gap: 8px; margin-top: 18px; color: #aeb7c5; font-size: 11px; text-align: left; }
+  .recovery-input textarea { width: 100%; box-sizing: border-box; resize: vertical; padding: 10px; border: 1px solid #303640; border-radius: 8px; outline: none; background: #0b0e13; color: #e7ebf1; font: 12px/1.5 var(--font-mono, monospace); }
+  .recovery-input textarea:focus { border-color: #9ebdff; }
+  .recovery-validation { margin-top: 8px; text-align: left; }
   .developer-login { display: grid; gap: 8px; margin-top: 18px; padding-top: 18px; border-top: 1px solid #29303a; text-align: left; }
-  .developer-login label { color: #aeb7c5; font: 600 11px/1 var(--font-mono, monospace); }
-  .developer-login div { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-  .developer-login input, .developer-login button { min-height: 38px; border: 1px solid #303640; border-radius: 7px; background: #171b22; color: #e7ebf1; font: inherit; font-size: 12px; }
-  .developer-login input { min-width: 0; padding: 0 11px; }
-  .developer-login button { padding: 0 14px; cursor: pointer; }
+  .developer-login span { color: #aeb7c5; font: 600 11px/1 var(--font-mono, monospace); }
+  .developer-login button { min-height: 38px; border: 1px solid #303640; border-radius: 7px; background: #171b22; color: #e7ebf1; font: inherit; font-size: 12px; cursor: pointer; }
   .recovery-box { margin-top: 18px; padding: 14px; border: 1px solid #374355; border-radius: 10px; background: #0b0e13; text-align: left; }
   .recovery-title { margin: 0 0 10px; color: #e1e6ee; font-size: 12px; font-weight: 650; }
   .word-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
@@ -154,6 +188,7 @@
   .word-grid small { display: inline-block; min-width: 15px; color: #737c8b; }
   .recovery-actions { display: grid; gap: 6px; margin-top: 10px; }
   .auth-recovery { margin-top: 10px; }
+  .phrase-actions { display: grid; gap: 10px; margin-top: 14px; }
   .auth-link { min-height: auto; margin-top: 12px; border: 0; background: transparent; color: #9ebdff; font-size: 12px; }
   .auth-error { margin: 16px 0 0; color: #ff8c8c; font-size: 12px; line-height: 1.45; }
   @media (max-width: 480px) { .auth-modal { padding: 26px 20px; } }

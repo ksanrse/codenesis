@@ -1,4 +1,5 @@
 const API_BASE = (import.meta.env.VITE_CODENESIS_API_URL as string | undefined) ?? "/api";
+const LOCAL_DEV_SESSION_KEY = "codenesis:local-dev-session";
 export type RecoveryFile = { type: "codenesis-recovery"; version: 1; recoveryPhrase: string };
 export type AuthUser = {
   id: string;
@@ -36,12 +37,29 @@ async function request<T>(path: string, init?: RequestInit) {
   return body as T;
 }
 export async function getAuthSession(): Promise<AuthSession> {
+  if (import.meta.env.DEV && sessionStorage.getItem(LOCAL_DEV_SESSION_KEY) === "1") {
+    return {
+      authenticated: true,
+      user: { id: "codenesis-developer", name: "Developer", role: "developer" },
+    };
+  }
   return request<AuthSession>("/auth/session");
 }
 export async function logout(): Promise<void> {
+  if (import.meta.env.DEV && sessionStorage.getItem(LOCAL_DEV_SESSION_KEY) === "1") {
+    sessionStorage.removeItem(LOCAL_DEV_SESSION_KEY);
+    window.dispatchEvent(new Event("codenesis-auth-change"));
+    return;
+  }
   await request("/auth/logout", { method: "POST", body: "{}" });
 }
-export async function loginDeveloper(code: string): Promise<AuthSession> {
+export async function loginDeveloper(code = ""): Promise<AuthSession> {
+  if (import.meta.env.DEV && !code) {
+    sessionStorage.setItem(LOCAL_DEV_SESSION_KEY, "1");
+    const user = { id: "codenesis-developer", name: "Developer", role: "developer" as const };
+    window.dispatchEvent(new Event("codenesis-auth-change"));
+    return { authenticated: true, user };
+  }
   const result = await request<{ ok: true; user: AuthUser }>("/dev/login", {
     method: "POST",
     body: JSON.stringify({ code }),
@@ -54,6 +72,15 @@ export async function setDeveloperProgress(
   challenges: Array<{ id: string; title: string; language: string; solved: boolean }>,
   skillProgress: Record<string, number>,
 ): Promise<{ skillProgress: Record<string, number> }> {
+  if (import.meta.env.DEV && sessionStorage.getItem(LOCAL_DEV_SESSION_KEY) === "1") {
+    const result = { skillProgress };
+    localStorage.setItem(
+      "codenesis:local-dev-progress",
+      JSON.stringify({ challenges, skillProgress }),
+    );
+    window.dispatchEvent(new CustomEvent("codenesis-dev-progress-change", { detail: result }));
+    return result;
+  }
   const result = await request<{ skillProgress: Record<string, number> }>("/dev/progress", {
     method: "PUT",
     body: JSON.stringify({ challenges, skillProgress }),
@@ -64,6 +91,16 @@ export async function setDeveloperProgress(
 }
 
 export async function getDeveloperProgress(): Promise<{ skillProgress: Record<string, number> }> {
+  if (import.meta.env.DEV && sessionStorage.getItem(LOCAL_DEV_SESSION_KEY) === "1") {
+    try {
+      const stored = JSON.parse(localStorage.getItem("codenesis:local-dev-progress") ?? "null") as {
+        skillProgress?: Record<string, number>;
+      } | null;
+      return { skillProgress: stored?.skillProgress ?? {} };
+    } catch {
+      return { skillProgress: {} };
+    }
+  }
   return request("/dev/progress");
 }
 function creation(o: PublicKeyCredentialCreationOptions): PublicKeyCredentialCreationOptions {

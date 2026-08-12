@@ -205,9 +205,15 @@ test("shared roadmap shows connected roles and skill progress", async ({ page })
   await page.goto("/#/roadmaps?demo=1");
 
   await expect(page.getByRole("heading", { name: "Skill tree" })).toBeVisible();
-  await expect(page.getByRole("group", { name: "Навык: HTML" })).toContainText("0%");
-  await expect(page.getByRole("group", { name: "Навык: CSS" })).toContainText("100%");
-  await expect(page.getByRole("group", { name: "Навык: JavaScript" })).toContainText("50%");
+  await expect(
+    page.getByRole("group", { name: "Навык: HTML" }).locator(".skill-tree-node"),
+  ).toHaveAttribute("aria-label", /0%/);
+  await expect(
+    page.getByRole("group", { name: "Навык: CSS" }).locator(".skill-tree-node"),
+  ).toHaveAttribute("aria-label", /100%/);
+  await expect(
+    page.getByRole("group", { name: "Навык: JavaScript" }).locator(".skill-tree-node"),
+  ).toHaveAttribute("aria-label", /50%/);
   await expect(page.getByRole("group", { name: "Направление: Full Stack" })).toBeVisible();
 
   const frontendTrack = page.getByRole("group", { name: "Направление: Frontend" });
