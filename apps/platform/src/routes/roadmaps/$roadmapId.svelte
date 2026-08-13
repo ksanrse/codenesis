@@ -15,12 +15,14 @@
   import RoadmapNode, {
     type RoadmapFlowNode,
   } from "../../components/roadmaps/RoadmapNode.svelte";
+  import FloatingEdge from "../../components/roadmaps/FloatingEdge.svelte";
   import { getRoadmapById, type RoadmapChild, type RoadmapStage } from "../../lib/roadmaps";
 
   let routeHash = typeof window === "undefined" ? "" : window.location.hash;
   let roadmapId = "";
   let roadmap = getRoadmapById(roadmapId);
   const nodeTypes = { roadmap: RoadmapNode };
+  const edgeTypes = { floating: FloatingEdge };
   let nodes: RoadmapFlowNode[] = [];
   let edges: Edge[] = [];
 
@@ -58,6 +60,7 @@
         hasTarget: index > 0,
         hasSource: index < primaryFlowItems.length - 1 || (roadmapId === "javascript" && index === primaryFlowItems.length - 1),
         specialization: isSpecialization,
+        kind: isSpecialization ? "skill" : "stage",
       },
       draggable: true,
       connectable: false,
@@ -72,7 +75,7 @@
       target: primaryFlowItems[index + 1].id,
       type: "smoothstep",
       animated: true,
-      style: "stroke:var(--border-hover);stroke-width:1.35;stroke-dasharray:5 6",
+      style: "stroke:var(--text-muted);stroke-width:2;opacity:.72;stroke-dasharray:5 6",
       selectable: false,
     })),
     ...(roadmapId === "javascript" && primaryFlowItems.length
@@ -80,9 +83,10 @@
           id: `${primaryFlowItems.at(-1)?.id}-${item.id}`,
           source: primaryFlowItems.at(-1)?.id ?? "",
           target: item.id,
-          type: "smoothstep",
+          type: "floating",
           animated: true,
-          style: "stroke:var(--border-hover);stroke-width:1.35;stroke-dasharray:5 6",
+          style: "stroke:var(--text-muted);stroke-width:2;opacity:.72",
+          className: "animated-connection",
           selectable: false,
         }))
       : []),
@@ -129,6 +133,7 @@
         bind:nodes
         bind:edges
         {nodeTypes}
+        {edgeTypes}
         fitView
         fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
         minZoom={0.55}

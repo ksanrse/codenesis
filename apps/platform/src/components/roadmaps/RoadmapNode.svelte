@@ -8,6 +8,7 @@
     hasTarget: boolean;
     hasSource: boolean;
     specialization?: boolean;
+    kind?: "stage" | "skill";
   };
 
   export type RoadmapFlowNode = Node<RoadmapNodeData, "roadmap">;
