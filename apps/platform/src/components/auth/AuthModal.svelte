@@ -73,16 +73,19 @@
   $: canRecover = activeRecoveryFile !== null;
 </script>
 
-<div class="fixed inset-0 z-[1000] grid place-items-center bg-background/72 p-6 backdrop-blur-xl" role="presentation">
+<div
+  class="fixed inset-0 z-[1000] grid place-items-center bg-background/72 p-[var(--space-4)] backdrop-blur-xl sm:p-[var(--space-6)]"
+  role="presentation"
+>
   <div
-    class="flex w-full max-w-[420px] flex-col rounded-[var(--radius-panel)] border border-border bg-card px-6 py-7 text-center shadow-float sm:px-8 sm:py-8"
+    class="flex max-h-[calc(100dvh-var(--space-8))] w-full max-w-[480px] flex-col overflow-y-auto rounded-[var(--radius-panel)] border border-border bg-card p-[calc(var(--panel-padding)+var(--space-2))] text-center shadow-float sm:max-h-[calc(100dvh-var(--space-12))]"
     role="dialog"
     aria-modal="true"
     aria-labelledby="auth-title"
   >
-    <div class="mb-6 text-[15px] font-semibold tracking-[0.04em] text-foreground">Codenesis</div>
+    <div class="mb-[var(--space-6)] text-[15px] font-semibold tracking-[0.04em] text-foreground">Codenesis</div>
     <h1 id="auth-title" class="m-0 text-[22px] font-semibold tracking-[-0.02em] text-foreground">Войдите, чтобы продолжить</h1>
-    <p class="mt-3 text-[13px] leading-6 text-dim">
+    <p class="mt-[var(--space-3)] text-[13px] leading-6 text-dim">
       {hasRecoveryPhrase
         ? "Слова распознаны. Выберите, что сделать с этим ключом."
         : "Используйте passkey — Face ID, Touch ID, Windows Hello или ключ безопасности."}
@@ -90,7 +93,7 @@
 
     {#if !hasRecoveryPhrase}
       <button
-        class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-foreground px-4 text-[13px] font-semibold text-background transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
+        class="mt-[var(--space-8)] inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-foreground px-4 text-[13px] font-semibold text-background transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
         type="button"
         disabled={busy}
         on:click={() => run(loginPasskey)}
@@ -98,7 +101,7 @@
         {busy ? "Проверяем…" : "Войти с passkey"}
       </button>
 
-      <div class="my-5 flex items-center gap-3 text-[12px] text-dim before:h-px before:flex-1 before:bg-border before:content-[''] after:h-px after:flex-1 after:bg-border after:content-['']">
+      <div class="my-[var(--space-6)] flex items-center gap-[var(--space-3)] text-[12px] text-dim before:h-px before:flex-1 before:bg-border before:content-[''] after:h-px after:flex-1 after:bg-border after:content-['']">
         <span class="shrink-0">или</span>
       </div>
 
@@ -110,11 +113,11 @@
       >
         Создать passkey
       </button>
-      <p class="mt-2 text-left text-[11px] leading-5 text-muted">При создании recovery-файл с 12 словами скачается автоматически.</p>
+      <p class="mt-[var(--space-3)] text-left text-[11px] leading-5 text-muted">При создании recovery-файл с 12 словами скачается автоматически.</p>
     {/if}
 
     {#if import.meta.env.DEV && !hasRecoveryPhrase}
-      <div class="mt-5 grid gap-2 border-t border-border pt-5 text-left">
+      <div class="mt-[var(--space-6)] grid gap-[var(--space-2)] border-t border-border pt-[var(--space-6)] text-left">
         <span class="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">Локальный developer</span>
         <button
           class="inline-flex min-h-10 items-center justify-center rounded-md border border-border bg-surface px-3 text-[12px] font-medium text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
@@ -128,7 +131,7 @@
     {/if}
 
     {#if !recoveryFile || hasRecoveryPhrase}
-      <label class="mt-5 grid gap-2 text-left text-[11px] text-muted">
+      <label class="mt-[var(--space-8)] grid gap-[var(--space-2)] text-left text-[11px] text-muted">
         <span>Вставьте 12 слов recovery-ключа</span>
         <textarea
           bind:value={recoveryPhraseInput}
@@ -144,7 +147,7 @@
     {/if}
 
     {#if activeRecoveryFile}
-      <div class="mt-5 rounded-xl border border-border-strong bg-background p-4 text-left">
+      <div class="mt-[var(--space-6)] rounded-xl border border-border-strong bg-background p-[var(--space-4)] text-left">
         <p class="mb-2 text-[12px] font-semibold text-content">{hasRecoveryPhrase ? "Recovery-ключ" : "Сохраните эти 12 слов"}</p>
         <div class="grid grid-cols-3 gap-1.5" aria-label="Recovery-фраза">
           {#each activeRecoveryFile.recoveryPhrase.split(" ") as word, index}
@@ -175,7 +178,7 @@
     {/if}
 
     {#if !hasRecoveryPhrase}
-      <label class="mt-5 inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg border border-border bg-surface px-4 text-[13px] font-medium text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-within:border-border-strong focus-within:bg-surface-muted">
+      <label class="mt-[var(--space-6)] inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg border border-border bg-surface px-4 text-[13px] font-medium text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-within:border-border-strong focus-within:bg-surface-muted">
         <span>{selectedFile || "Войти через recovery-файл"}</span>
         <input class="hidden" type="file" accept="application/json,.json" on:change={loadRecovery} />
       </label>
@@ -221,6 +224,8 @@
     {#if error}
       <p class="mt-4 text-[12px] leading-5 text-danger" role="alert">{error}</p>
     {/if}
-    <p class="mt-4 text-[11px] leading-5 text-muted">Recovery-файл хранится только у вас. Если потеряны и passkey, и файл, восстановление невозможно.</p>
+    <p class="mt-[var(--space-6)] border-t border-border pt-[var(--space-5)] text-[11px] leading-5 text-muted">
+      Recovery-файл хранится только у вас. Если потеряны и passkey, и файл, восстановление невозможно.
+    </p>
   </div>
 </div>
