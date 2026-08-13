@@ -101,19 +101,14 @@
         {busy ? "Проверяем…" : "Войти с passkey"}
       </button>
 
-      <div class="my-[var(--space-6)] flex items-center gap-[var(--space-3)] text-[12px] text-dim before:h-px before:flex-1 before:bg-border before:content-[''] after:h-px after:flex-1 after:bg-border after:content-['']">
-        <span class="shrink-0">или</span>
-      </div>
-
       <button
-        class="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-surface px-4 text-[13px] font-medium text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
+        class="mt-[var(--space-4)] inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-surface px-4 text-[13px] font-medium text-content transition-colors hover:border-border-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
         type="button"
         disabled={busy}
         on:click={() => run(createPasskey)}
       >
         Создать passkey
       </button>
-      <p class="mt-[var(--space-3)] text-left text-[11px] leading-5 text-muted">При создании recovery-файл с 12 словами скачается автоматически.</p>
     {/if}
 
     {#if import.meta.env.DEV && !hasRecoveryPhrase}
@@ -131,15 +126,16 @@
     {/if}
 
     {#if !recoveryFile || hasRecoveryPhrase}
-      <label class="mt-[var(--space-8)] grid gap-[var(--space-2)] text-left text-[11px] text-muted">
+      <label class="mt-[var(--space-6)] grid gap-[var(--space-2)] text-left text-[11px] text-muted">
         <span>Вставьте 12 слов recovery-ключа</span>
-        <textarea
+        <input
+          type="text"
           bind:value={recoveryPhraseInput}
-          rows="3"
           placeholder="слово1 слово2 слово3 … слово12"
           spellcheck="false"
-          class="min-h-[92px] w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-[12px] leading-6 text-content outline-none transition-colors placeholder:text-dim focus:border-border-strong focus:ring-2 focus:ring-primary/25"
-        ></textarea>
+          autocomplete="off"
+          class="h-11 w-full rounded-lg border border-border bg-background px-3 font-mono text-[12px] leading-6 text-content outline-none transition-colors placeholder:text-dim focus:border-border-strong focus:ring-2 focus:ring-primary/25"
+        />
       </label>
       {#if recoveryPhraseInput.trim() && !hasRecoveryPhrase}
         <p class="mt-2 text-left text-[12px] leading-5 text-danger">Нужно вставить ровно 12 слов.</p>
@@ -224,8 +220,5 @@
     {#if error}
       <p class="mt-4 text-[12px] leading-5 text-danger" role="alert">{error}</p>
     {/if}
-    <p class="mt-[var(--space-6)] border-t border-border pt-[var(--space-5)] text-[11px] leading-5 text-muted">
-      Recovery-файл хранится только у вас. Если потеряны и passkey, и файл, восстановление невозможно.
-    </p>
   </div>
 </div>
