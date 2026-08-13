@@ -67,18 +67,6 @@
   };
 
   const getRoleDisplayName = (title: string) => roleDisplayNames[title] ?? title;
-  const skillToneClasses: Record<string, string> = {
-    html: "bg-language-html",
-    css: "bg-language-css",
-    javascript: "bg-language-javascript text-primary-foreground",
-    react: "bg-language-react",
-    vue: "bg-language-vue",
-    svelte: "bg-language-svelte",
-    solid: "bg-language-solid",
-    python: "bg-language-python",
-    database: "bg-language-database",
-  };
-
   $: passedIds = getPassedChallengeIds($attempts);
   $: demoMode = routeHash.includes("demo=1");
   $: progressBySkill = new Map(
@@ -394,8 +382,8 @@
       <div class="grid gap-2">
         {#each selectedRoleSkills as skill}
           <button class="grid min-h-11 grid-cols-[32px_1fr_auto] items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5 text-left text-xs text-content hover:border-border-strong hover:bg-surface-muted" type="button" onclick={() => { selectedRole = null; selectedSkill = skill; }}>
-            <span class={`grid size-8 place-items-center rounded-md text-white ${skillToneClasses[skill.tone] ?? "bg-surface-muted"}`}>
-              <LanguageIcon language={skill.tone === "database" ? "database" : skill.tone} size={18} className="brightness-0 invert" />
+            <span class="grid size-8 place-items-center rounded-md border border-border bg-background">
+              <LanguageIcon language={skill.tone === "database" ? "database" : skill.tone} size={20} />
             </span>
             <span>{skill.title}</span>
             <small class="font-mono text-[10px] text-muted">{Math.round((progressBySkill.get(skill.id) ?? 0) * 100)}%</small>
