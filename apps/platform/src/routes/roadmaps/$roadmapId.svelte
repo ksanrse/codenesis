@@ -3,8 +3,6 @@
     Background,
     BackgroundVariant,
     Controls,
-    MarkerType,
-    MiniMap,
     SvelteFlow,
     type Edge,
     type NodeEventWithPointer,
@@ -17,13 +15,14 @@
   import RoadmapNode, {
     type RoadmapFlowNode,
   } from "../../components/roadmaps/RoadmapNode.svelte";
-  import LanguageIcon from "../../components/ui/LanguageIcon.svelte";
+  import FloatingEdge from "../../components/roadmaps/FloatingEdge.svelte";
   import { getRoadmapById, type RoadmapChild, type RoadmapStage } from "../../lib/roadmaps";
 
   let routeHash = typeof window === "undefined" ? "" : window.location.hash;
   let roadmapId = "";
   let roadmap = getRoadmapById(roadmapId);
   const nodeTypes = { roadmap: RoadmapNode };
+  const edgeTypes = { floating: FloatingEdge };
   let nodes: RoadmapFlowNode[] = [];
   let edges: Edge[] = [];
 
@@ -31,39 +30,65 @@
   $: roadmap = getRoadmapById(roadmapId);
   $: childRoadmaps = roadmap?.children ?? [];
   $: nextRoadmaps = roadmap?.next ?? [];
-  $: flowItems = childRoadmaps.length ? childRoadmaps : roadmap?.stages ?? [];
-  $: flowHeight = Math.max(760, flowItems.length * 142 + 120);
-  $: flowColor = roadmap?.tone === "javascript" ? "var(--accent-warning)" : "var(--accent-info)";
-  $: nodes = flowItems.map((item, index, items) => {
+  $: primaryFlowItems = childRoadmaps.length ? childRoadmaps : roadmap?.stages ?? [];
+  $: flowItems = roadmapId === "javascript" ? [...primaryFlowItems, ...nextRoadmaps] : primaryFlowItems;
+  $: columnCount = 4;
+  $: primaryRows = Math.ceil(primaryFlowItems.length / columnCount);
+  $: flowHeight = roadmapId === "javascript" ? 680 : Math.max(620, primaryFlowItems.length * 142 + 120);
+  $: nodes = flowItems.map((item, index) => {
     const child = "kind" in item ? (item as RoadmapChild) : null;
     const stage = child ? null : (item as RoadmapStage);
-    const childRoadmap = child?.roadmapId ? getRoadmapById(child.roadmapId) : undefined;
+    const isSpecialization = roadmapId === "javascript" && index >= primaryFlowItems.length;
+    const primaryIndex = Math.min(index, primaryFlowItems.length - 1);
+    const row = Math.floor(primaryIndex / columnCount);
+    const columnInRow = primaryIndex % columnCount;
+    const column = row % 2 === 0 ? columnInRow : columnCount - 1 - columnInRow;
+    const specializationIndex = index - primaryFlowItems.length;
+    const position = roadmapId === "javascript"
+      ? isSpecialization
+        ? { x: specializationIndex * 250, y: primaryRows * 150 + 80 }
+        : { x: column * 250, y: row * 150 }
+      : { x: 0, y: index * 142 };
     return {
       id: item.id,
       type: "roadmap",
-      position: { x: 0, y: index * 142 },
+      position,
       data: {
         title: item.title,
-        meta: child ? (child.kind === "external" ? "roadmap.sh" : "курс") : undefined,
+        meta: isSpecialization ? "Фреймворк" : child ? (child.kind === "external" ? "roadmap.sh" : "курс") : undefined,
         tone: child?.tone ?? roadmap?.tone,
         hasTarget: index > 0,
-        hasSource: index < items.length - 1,
+        hasSource: index < primaryFlowItems.length - 1 || (roadmapId === "javascript" && index === primaryFlowItems.length - 1),
+        specialization: isSpecialization,
       },
-      draggable: false,
+      draggable: true,
       connectable: false,
       deletable: false,
       ariaLabel: child ? `Мини-roadmap: ${child.title}` : `Курс: ${stage?.title ?? item.title}`,
     } satisfies RoadmapFlowNode;
   });
-  $: edges = flowItems.slice(0, -1).map((item, index) => ({
-    id: `${item.id}-${flowItems[index + 1].id}`,
-    source: item.id,
-    target: flowItems[index + 1].id,
-    type: "straight",
-    markerEnd: { type: MarkerType.ArrowClosed, color: flowColor },
-    style: `stroke:${flowColor};stroke-width:1.8`,
-    selectable: false,
-  }));
+  $: edges = [
+    ...primaryFlowItems.slice(0, -1).map((item, index) => ({
+      id: `${item.id}-${primaryFlowItems[index + 1].id}`,
+      source: item.id,
+      target: primaryFlowItems[index + 1].id,
+      type: "floating",
+      animated: true,
+      style: "stroke:var(--muted);stroke-width:1.35;stroke-dasharray:5 6",
+      selectable: false,
+    })),
+    ...(roadmapId === "javascript" && primaryFlowItems.length
+      ? nextRoadmaps.map((item) => ({
+          id: `${primaryFlowItems.at(-1)?.id}-${item.id}`,
+          source: primaryFlowItems.at(-1)?.id ?? "",
+          target: item.id,
+          type: "floating",
+          animated: true,
+          style: "stroke:var(--muted);stroke-width:1.35;stroke-dasharray:5 6",
+          selectable: false,
+        }))
+      : []),
+  ];
 
   let selectedStage: RoadmapStage | null = null;
   let selectedChild: RoadmapChild | null = null;
@@ -75,7 +100,7 @@
     : [];
 
   const selectStage: NodeEventWithPointer<MouseEvent | TouchEvent, RoadmapFlowNode> = ({ node }) => {
-    const child = roadmap?.children?.find((item) => item.id === node.id);
+    const child = [...(roadmap?.children ?? []), ...(roadmap?.next ?? [])].find((item) => item.id === node.id);
     selectedChild = child ?? null;
     selectedStage = child ? null : roadmap?.stages.find((stage) => stage.id === node.id) ?? null;
   };
@@ -97,58 +122,31 @@
 
 {#if roadmap}
   <div class="container mx-auto flex w-full max-w-[var(--container-width)] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-    <header class="grid gap-3">
-      <a class="text-xs text-muted hover:text-foreground" href="#/roadmaps">← Все roadmaps</a>
-      <div>
-        <h1 class="text-[clamp(2rem,5vw,3rem)] font-semibold tracking-[-0.04em] text-foreground">{roadmap.title}</h1>
-        <p class="mt-2 max-w-2xl text-sm leading-6 text-muted">{roadmap.description}</p>
-      </div>
+    <header>
+      <h1 class="text-[clamp(2rem,5vw,3rem)] font-semibold tracking-[-0.04em] text-foreground">{roadmapId === "javascript" ? "JavaScript" : roadmap.title}</h1>
     </header>
 
-    <div class="min-h-[760px] overflow-hidden rounded-xl border border-border bg-background shadow-panel max-md:mx-[-12px] max-md:min-h-[620px]" style:height={`${flowHeight}px`}>
+    <div class="min-h-[620px] overflow-hidden rounded-xl border border-border bg-background shadow-panel max-md:mx-[-12px]" style:height={`${flowHeight}px`}>
       <SvelteFlow
         bind:nodes
         bind:edges
         {nodeTypes}
+        {edgeTypes}
         fitView
-        fitViewOptions={{ padding: 0.05, maxZoom: 1 }}
+        fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
         minZoom={0.55}
         maxZoom={1.5}
         preventScrolling={false}
-        nodesDraggable={false}
+        nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}
         onnodeclick={selectStage}
         colorMode="dark"
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--border-hover)" />
-        <MiniMap pannable zoomable nodeColor="var(--bg-muted)" maskColor="var(--bg)" />
         <Controls showLock={false} />
       </SvelteFlow>
     </div>
-
-    {#if nextRoadmaps.length}
-      <section class="grid gap-3 border-t border-border pt-5" aria-labelledby="framework-specializations">
-        <div>
-          <span class="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warning">Уровень 2</span>
-          <h2 id="framework-specializations" class="mt-1 text-lg font-semibold text-foreground">Выберите фреймворк</h2>
-          <p class="mt-1 text-sm text-muted">Сначала завершите фундамент Vanilla JavaScript. Каждая специализация ниже открывает собственную вложенную карту.</p>
-        </div>
-        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {#each nextRoadmaps as nextRoadmap}
-            <a class="group grid min-h-36 content-between rounded-lg border border-border bg-card p-4 transition hover:border-border-strong hover:bg-surface-muted" href={`#/roadmaps/${nextRoadmap.roadmapId}`}>
-              <span class="grid size-10 place-items-center rounded-md border border-border bg-background">
-                <LanguageIcon language={nextRoadmap.tone} size={24} />
-              </span>
-              <span class="grid gap-1">
-                <strong class="text-base font-semibold text-foreground">{nextRoadmap.title}</strong>
-                <span class="text-xs leading-5 text-muted">Открыть вложенную карту →</span>
-              </span>
-            </a>
-          {/each}
-        </div>
-      </section>
-    {/if}
   </div>
 
   {#if selectedChild}

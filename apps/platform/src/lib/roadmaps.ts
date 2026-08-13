@@ -72,7 +72,7 @@ export type SkillTreeDependency = {
 
 const javascriptRoadmap: Roadmap = {
   id: "javascript",
-  title: "Vanilla JavaScript",
+  title: "JavaScript",
   description:
     "Самостоятельный путь по JavaScript без фреймворков: язык, браузер, сеть, хранение данных и production-практика.",
   audience: "Фундамент перед React, Vue, Svelte или Solid",

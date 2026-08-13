@@ -49,10 +49,10 @@ describe("roadmaps", () => {
     }
   });
 
-  it("keeps framework specializations independent from Vanilla JavaScript", () => {
+  it("keeps framework specializations independent from core JavaScript", () => {
     const vanilla = getRoadmapById("javascript");
 
-    expect(vanilla?.title).toBe("Vanilla JavaScript");
+    expect(vanilla?.title).toBe("JavaScript");
     expect(vanilla?.next?.map(({ roadmapId }) => roadmapId)).toEqual([
       "react",
       "vue",
