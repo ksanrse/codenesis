@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check:lockfile": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts",
     "pocketbase:sync": "vp run -r build && node tools/pocketbase-sync.mjs",
     "check:mojibake": "node tools/check-mojibake.mjs",
     "e2e": "playwright test --config playwright.config.mjs",
-    "ready": "vp run check:mojibake && vp check && vp run -r test && vp run -r build",
+    "ready": "pnpm check:lockfile && vp run check:mojibake && vp check && vp run -r test && vp run -r build",
     "dev": "node tools/dev.mjs",
     "start": "node tools/dev.mjs",
     "prepare": "vp config"
