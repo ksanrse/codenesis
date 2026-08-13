@@ -15,14 +15,12 @@
   import RoadmapNode, {
     type RoadmapFlowNode,
   } from "../../components/roadmaps/RoadmapNode.svelte";
-  import FloatingEdge from "../../components/roadmaps/FloatingEdge.svelte";
   import { getRoadmapById, type RoadmapChild, type RoadmapStage } from "../../lib/roadmaps";
 
   let routeHash = typeof window === "undefined" ? "" : window.location.hash;
   let roadmapId = "";
   let roadmap = getRoadmapById(roadmapId);
   const nodeTypes = { roadmap: RoadmapNode };
-  const edgeTypes = { floating: FloatingEdge };
   let nodes: RoadmapFlowNode[] = [];
   let edges: Edge[] = [];
 
@@ -55,7 +53,7 @@
       position,
       data: {
         title: item.title,
-        meta: isSpecialization ? "Фреймворк" : child ? (child.kind === "external" ? "roadmap.sh" : "курс") : undefined,
+        meta: child && !isSpecialization ? (child.kind === "external" ? "roadmap.sh" : "курс") : undefined,
         tone: child?.tone ?? roadmap?.tone,
         hasTarget: index > 0,
         hasSource: index < primaryFlowItems.length - 1 || (roadmapId === "javascript" && index === primaryFlowItems.length - 1),
@@ -72,9 +70,9 @@
       id: `${item.id}-${primaryFlowItems[index + 1].id}`,
       source: item.id,
       target: primaryFlowItems[index + 1].id,
-      type: "floating",
+      type: "smoothstep",
       animated: true,
-      style: "stroke:var(--muted);stroke-width:1.35;stroke-dasharray:5 6",
+      style: "stroke:var(--border-hover);stroke-width:1.35;stroke-dasharray:5 6",
       selectable: false,
     })),
     ...(roadmapId === "javascript" && primaryFlowItems.length
@@ -82,9 +80,9 @@
           id: `${primaryFlowItems.at(-1)?.id}-${item.id}`,
           source: primaryFlowItems.at(-1)?.id ?? "",
           target: item.id,
-          type: "floating",
+          type: "smoothstep",
           animated: true,
-          style: "stroke:var(--muted);stroke-width:1.35;stroke-dasharray:5 6",
+          style: "stroke:var(--border-hover);stroke-width:1.35;stroke-dasharray:5 6",
           selectable: false,
         }))
       : []),
@@ -131,7 +129,6 @@
         bind:nodes
         bind:edges
         {nodeTypes}
-        {edgeTypes}
         fitView
         fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
         minZoom={0.55}
