@@ -32,6 +32,8 @@
   const nodeTypes = { skillTree: SkillTreeNode };
   const edgeTypes = { floating: FloatingEdge };
   const activeTrackStorageKey = "codenesis:roadmap:active-track";
+  const displayDepthStorageKey = "codenesis:roadmap:display-depth";
+  const specializationTones = new Set(["react", "vue", "svelte", "solid"]);
   const rolePositions: Record<string, { x: number; y: number }> = {
     "fullstack-role": { x: 410, y: 10 },
     "frontend-role": { x: 100, y: 230 },
@@ -53,6 +55,8 @@
   let selectedRole: SkillTreeRole | null = null;
   let selectedSkill: SkillTreeSkill | null = null;
   let legendOpen = false;
+  let depthMenuOpen = false;
+  let displayDepth: 1 | 2 = 1;
   let activeRoleId: string | null = null;
   let demoMode = false;
   let holdProgress = 0;
@@ -101,6 +105,10 @@
       .filter((dependency) => activeSkillIds.has(dependency.sourceSkillId))
       .map((dependency) => dependency.targetSkillId),
   );
+  $: visibleSkills = skillTreeSkills.filter(
+    (skill) => displayDepth >= 2 || !specializationTones.has(skill.tone),
+  );
+  $: visibleSkillIds = new Set(visibleSkills.map((skill) => skill.id));
   $: nodes = [
     ...skillTreeRoles.map((role) => ({
       id: role.id,
@@ -125,7 +133,7 @@
       deletable: false,
       ariaLabel: `Направление: ${getRoleDisplayName(role.title)}`,
     } satisfies SkillTreeFlowNode)),
-    ...skillTreeSkills.map((skill) => ({
+    ...visibleSkills.map((skill) => ({
       id: skill.id,
       type: "skillTree",
       position: skillPositions[skill.id],
@@ -166,10 +174,16 @@
           optional: optionalSkillTreeConnectionKeys.has(`${connection.roleId}:${connection.skillId}`),
         };
       }),
-    ...skillTreeDependencies.map((dependency) => ({
-      source: dependency.sourceSkillId,
-      target: dependency.targetSkillId,
-    })),
+    ...skillTreeDependencies
+      .filter(
+        (dependency) =>
+          visibleSkillIds.has(dependency.sourceSkillId) &&
+          visibleSkillIds.has(dependency.targetSkillId),
+      )
+      .map((dependency) => ({
+        source: dependency.sourceSkillId,
+        target: dependency.targetSkillId,
+      })),
   ];
   $: edges = visualConnections.map((connection) => {
     const edgeDimmed = Boolean(
@@ -205,6 +219,17 @@
     setActiveTrack(activeRoleId === role.id ? null : role.id);
     selectedRole = role;
     selectedSkill = null;
+  }
+
+  function setDisplayDepth(depth: 1 | 2) {
+    displayDepth = depth;
+    depthMenuOpen = false;
+    if (selectedSkill && !visibleSkillIds.has(selectedSkill.id)) selectedSkill = null;
+    try {
+      window.localStorage.setItem(displayDepthStorageKey, String(depth));
+    } catch {
+      // The graph still works when browser storage is unavailable.
+    }
   }
 
   function setActiveTrack(roleId: string | null) {
@@ -278,12 +303,14 @@
       } else if (savedRoleId) {
         window.localStorage.removeItem(activeTrackStorageKey);
       }
+      displayDepth = window.localStorage.getItem(displayDepthStorageKey) === "2" ? 2 : 1;
     } catch {
       // Storage can be disabled without blocking the roadmap.
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         legendOpen = false;
+        depthMenuOpen = false;
         selectedRole = null;
         selectedSkill = null;
       }
@@ -312,26 +339,55 @@
         selectedSkill = null;
       }}
     >Легенда</button>
-    <SvelteFlow
-      bind:nodes
-      bind:edges
-      {nodeTypes}
-      {edgeTypes}
-      fitView
-      fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
-      minZoom={0.55}
-      maxZoom={1.25}
-      preventScrolling={false}
-      nodesDraggable={true}
-      nodesConnectable={false}
-      elementsSelectable={true}
-      onlyRenderVisibleElements={true}
-      onnodeclick={selectNode}
-      colorMode="dark"
-    >
-      <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--border-hover)" />
-      <Controls showLock={false} />
-    </SvelteFlow>
+    <div class="absolute right-4 top-4 z-10">
+      <button
+        class={`inline-flex min-h-9 items-center gap-2 rounded-md border px-3 font-mono text-[11px] font-semibold transition ${depthMenuOpen ? "border-border-strong bg-surface-muted text-foreground" : "border-border bg-surface text-muted hover:border-border-strong hover:bg-surface-muted hover:text-foreground"}`}
+        type="button"
+        aria-label="Настроить глубину карты"
+        aria-expanded={depthMenuOpen}
+        onclick={() => (depthMenuOpen = !depthMenuOpen)}
+      >
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <circle cx="7" cy="7" r="2.5" /><circle cx="17" cy="7" r="2.5" /><circle cx="12" cy="17" r="2.5" />
+          <path d="m9.2 8.2 1.8 6.4m3.8-6.4L13 14.6" />
+        </svg>
+        Уровень {displayDepth}
+      </button>
+      {#if depthMenuOpen}
+        <div class="absolute right-0 top-11 grid w-64 overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-float" role="menu" aria-label="Глубина отображения">
+          <button class={`grid gap-0.5 rounded-md px-3 py-2.5 text-left hover:bg-surface-muted ${displayDepth === 1 ? "bg-surface-muted" : ""}`} type="button" role="menuitemradio" aria-checked={displayDepth === 1} onclick={() => setDisplayDepth(1)}>
+            <span class="text-xs font-semibold text-foreground">Уровень 1 · База</span>
+            <span class="text-[11px] leading-4 text-muted">Профессии и основные технологии</span>
+          </button>
+          <button class={`grid gap-0.5 rounded-md px-3 py-2.5 text-left hover:bg-surface-muted ${displayDepth === 2 ? "bg-surface-muted" : ""}`} type="button" role="menuitemradio" aria-checked={displayDepth === 2} onclick={() => setDisplayDepth(2)}>
+            <span class="text-xs font-semibold text-foreground">Уровень 2 · Специализации</span>
+            <span class="text-[11px] leading-4 text-muted">React, Vue, Svelte и Solid</span>
+          </button>
+        </div>
+      {/if}
+    </div>
+    {#key displayDepth}
+      <SvelteFlow
+        bind:nodes
+        bind:edges
+        {nodeTypes}
+        {edgeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
+        minZoom={0.55}
+        maxZoom={1.25}
+        preventScrolling={false}
+        nodesDraggable={true}
+        nodesConnectable={false}
+        elementsSelectable={true}
+        onlyRenderVisibleElements={true}
+        onnodeclick={selectNode}
+        colorMode="dark"
+      >
+        <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--border-hover)" />
+        <Controls showLock={false} />
+      </SvelteFlow>
+    {/key}
   </div>
 </div>
 

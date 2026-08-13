@@ -17,6 +17,7 @@
   import RoadmapNode, {
     type RoadmapFlowNode,
   } from "../../components/roadmaps/RoadmapNode.svelte";
+  import LanguageIcon from "../../components/ui/LanguageIcon.svelte";
   import { getRoadmapById, type RoadmapChild, type RoadmapStage } from "../../lib/roadmaps";
 
   let routeHash = typeof window === "undefined" ? "" : window.location.hash;
@@ -129,14 +130,20 @@
     {#if nextRoadmaps.length}
       <section class="grid gap-3 border-t border-border pt-5" aria-labelledby="framework-specializations">
         <div>
-          <h2 id="framework-specializations" class="text-lg font-semibold text-foreground">Следующая специализация</h2>
-          <p class="mt-1 text-sm text-muted">Фреймворки прокачиваются отдельно и не меняют прогресс Vanilla JavaScript.</p>
+          <span class="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warning">Уровень 2</span>
+          <h2 id="framework-specializations" class="mt-1 text-lg font-semibold text-foreground">Выберите фреймворк</h2>
+          <p class="mt-1 text-sm text-muted">Сначала завершите фундамент Vanilla JavaScript. Каждая специализация ниже открывает собственную вложенную карту.</p>
         </div>
         <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {#each nextRoadmaps as nextRoadmap}
-            <a class="group grid min-h-28 content-between rounded-lg border border-border bg-card p-4 transition hover:border-border-strong hover:bg-surface-muted" href={`#/roadmaps/${nextRoadmap.roadmapId}`}>
-              <strong class="text-base font-semibold text-foreground">{nextRoadmap.title}</strong>
-              <span class="text-xs leading-5 text-muted">{nextRoadmap.description}</span>
+            <a class="group grid min-h-36 content-between rounded-lg border border-border bg-card p-4 transition hover:border-border-strong hover:bg-surface-muted" href={`#/roadmaps/${nextRoadmap.roadmapId}`}>
+              <span class="grid size-10 place-items-center rounded-md border border-border bg-background">
+                <LanguageIcon language={nextRoadmap.tone} size={24} />
+              </span>
+              <span class="grid gap-1">
+                <strong class="text-base font-semibold text-foreground">{nextRoadmap.title}</strong>
+                <span class="text-xs leading-5 text-muted">Открыть вложенную карту →</span>
+              </span>
             </a>
           {/each}
         </div>

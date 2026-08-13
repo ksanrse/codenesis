@@ -66,6 +66,18 @@ describe("roadmaps", () => {
     }
   });
 
+  it("keeps the global base separate from second-level framework specializations", () => {
+    const baseTones = new Set(["html", "css", "javascript", "python", "database"]);
+    const specializationTones = new Set(["react", "vue", "svelte", "solid"]);
+
+    expect(
+      skillTreeSkills.filter(({ tone }) => baseTones.has(tone)).map(({ title }) => title),
+    ).toEqual(["HTML", "CSS", "Vanilla JS", "Python", "Databases"]);
+    expect(
+      skillTreeSkills.filter(({ tone }) => specializationTones.has(tone)).map(({ title }) => title),
+    ).toEqual(["React", "Vue", "Svelte", "Solid"]);
+  });
+
   it("keeps the shared skill tree connected across roles", () => {
     expect(skillTreeRoles.map((role) => role.title)).toEqual([
       "Frontend",
